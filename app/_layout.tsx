@@ -1,29 +1,55 @@
-import { DarkTheme, DefaultTheme, ThemeProvider } from '@react-navigation/native';
-import { useFonts } from 'expo-font';
-import { Stack } from 'expo-router';
-import { StatusBar } from 'expo-status-bar';
-import 'react-native-reanimated';
+// app/_layout.tsx
 
-import { useColorScheme } from '@/hooks/useColorScheme';
+import React, { useState, useEffect } from 'react';
+import { ActivityIndicator, View, StyleSheet } from 'react-native';
+import { Slot, Stack, useRouter, usePathname } from 'expo-router';
+import { onAuthStateChanged } from 'firebase/auth';
+import { auth } from '../src/api/firebaseConfig';
 
 export default function RootLayout() {
-  const colorScheme = useColorScheme();
-  const [loaded] = useFonts({
-    SpaceMono: require('../assets/fonts/SpaceMono-Regular.ttf'),
-  });
+  const router = useRouter();
+  const pathname = usePathname();
+  const [initializing, setInitializing] = useState(true);
 
-  if (!loaded) {
-    // Async font loading only occurs in development.
-    return null;
+  useEffect(() => {
+    const unsubscribe = onAuthStateChanged(auth, (user) => {
+      if (initializing) {
+        setInitializing(false);
+      }
+      if (!user) {
+        // Jos ei ole kirjautunut, ohjataan /login – jos ei olla jo siellä
+        if (pathname !== '/login') {
+          router.replace('/login');
+        }
+      } else {
+        // Jos on jo kirjautunut ja reitti on /login tai /register, ohjataan "/"
+        if (pathname === '/login' || pathname === '/register') {
+          router.replace('/');
+        }
+      }
+    });
+    return unsubscribe;
+  }, [pathname]);
+
+  if (initializing) {
+    return (
+      <View style={styles.loaderContainer}>
+        <ActivityIndicator size="large" color="#f1c40f" />
+      </View>
+    );
   }
 
   return (
-    <ThemeProvider value={colorScheme === 'dark' ? DarkTheme : DefaultTheme}>
-      <Stack>
-        <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
-        <Stack.Screen name="+not-found" />
-      </Stack>
-      <StatusBar style="auto" />
-    </ThemeProvider>
+    <Stack>
+      <Slot />
+    </Stack>
   );
 }
+
+const styles = StyleSheet.create({
+  loaderContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+});
