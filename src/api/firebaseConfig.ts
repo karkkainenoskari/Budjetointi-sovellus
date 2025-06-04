@@ -1,8 +1,7 @@
 // src/api/firebaseConfig.ts
-
-import { initializeApp, getApps, FirebaseApp } from 'firebase/app';
-import { getAuth } from 'firebase/auth';
-import { getFirestore } from 'firebase/firestore';
+import firebase from 'firebase/compat/app';
+import 'firebase/compat/auth';
+import 'firebase/compat/firestore';
 
 // ┌────────────────────────────────────────────────────────────────┐
 // │ 1) KOPIOI TÄHÄN OMAN FIREBASE-PROJEKTISI KONFIGURAATIO        │
@@ -18,19 +17,16 @@ const firebaseConfig = {
   measurementId: "G-98Y1WTLKM1"
 };
 
-// ┌────────────────────────────────────────────────────────────────┐
-// │ 2) Alustetaan Firebase-sovellus vain kerran (hot-reload turvaksi) │
-// └────────────────────────────────────────────────────────────────┘
-let app: FirebaseApp;
-if (!getApps().length) {
-  app = initializeApp(firebaseConfig);
-} else {
-  app = getApps()[0];
+// ┌───────────────────────────────────────────────────────────────────┐
+// │ 2) Alustetaan Firebase‐sovellus vain kerran (hot-reload turvaksi)   │
+// └───────────────────────────────────────────────────────────────────┘
+if (!firebase.apps.length) {
+  firebase.initializeApp(firebaseConfig);
 }
 
-// ┌────────────────────────────────────────────────────────────────┐
-// │ 3) Haetaan JS-SDK:n Auth ja Firestore -instanssit ilman        │
-// │    erillistä “react-native” -initialisointia                  │
-// └────────────────────────────────────────────────────────────────┘
-export const auth = getAuth(app);
-export const db = getFirestore(app);
+// ┌───────────────────────────────────────────────────────────────────┐
+// │ 3) Exportataan “compat”-Auth ja “compat”-Firestore                │
+// │    Älä käytä getAuth(app) tai initializeAuth(...) tässä vaiheessa. │
+// └───────────────────────────────────────────────────────────────────┘
+export const auth = firebase.auth();
+export const db = firebase.firestore();

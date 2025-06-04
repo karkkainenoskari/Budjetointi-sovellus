@@ -3,8 +3,7 @@
 import React, { useState, useEffect } from 'react';
 import { ActivityIndicator, View, StyleSheet } from 'react-native';
 import { Slot, Stack, useRouter, usePathname } from 'expo-router';
-import { onAuthStateChanged } from 'firebase/auth';
-import { auth } from '../src/api/firebaseConfig';
+import { auth } from '../src/api/firebaseConfig'; // COMPAT-Auth
 
 export default function RootLayout() {
   const router = useRouter();
@@ -12,17 +11,17 @@ export default function RootLayout() {
   const [initializing, setInitializing] = useState(true);
 
   useEffect(() => {
-    const unsubscribe = onAuthStateChanged(auth, (user) => {
+    const unsubscribe = auth.onAuthStateChanged((user) => {
       if (initializing) {
         setInitializing(false);
       }
       if (!user) {
-        // Jos ei ole kirjautunut, ohjataan /login – jos ei olla jo siellä
+        // Kirjautumaton; ohjataan `/login` (jos ei olla jo siellä)
         if (pathname !== '/login') {
           router.replace('/login');
         }
       } else {
-        // Jos on jo kirjautunut ja reitti on /login tai /register, ohjataan "/"
+        // Kirjautunut; jos yritetään `/login` tai `/register`, siirrytään `/`
         if (pathname === '/login' || pathname === '/register') {
           router.replace('/');
         }
@@ -47,9 +46,5 @@ export default function RootLayout() {
 }
 
 const styles = StyleSheet.create({
-  loaderContainer: {
-    flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
+  loaderContainer: { flex: 1, justifyContent: 'center', alignItems: 'center' },
 });

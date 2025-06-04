@@ -11,12 +11,8 @@ import {
   Alert,
 } from 'react-native';
 import { Stack, useRouter } from 'expo-router';
-import { auth } from '../src/api/firebaseConfig';
-import {
-  createUserWithEmailAndPassword,
-  onAuthStateChanged,
-  User,
-} from 'firebase/auth';
+import { auth } from '../src/api/firebaseConfig'; // COMPAT-Auth
+import type firebase from 'firebase/compat/app';
 
 export default function RegisterScreen() {
   const router = useRouter();
@@ -26,9 +22,9 @@ export default function RegisterScreen() {
   const [confirmPassword, setConfirmPassword] = useState<string>('');
   const [loading, setLoading] = useState<boolean>(false);
 
-  // Jos käyttäjä on jo kirjautunut (esim. back-painallus), ohjataan kotisivulle
+  // Jos käyttäjä on jo kirjautunut (esim. takaisin puskiessa), ohjataan "/"
   useEffect(() => {
-    const unsubscribe = onAuthStateChanged(auth, (usr: User | null) => {
+    const unsubscribe = auth.onAuthStateChanged((usr: firebase.User | null) => {
       if (usr) {
         router.replace('/');
       }
@@ -48,8 +44,8 @@ export default function RegisterScreen() {
 
     setLoading(true);
     try {
-      await createUserWithEmailAndPassword(auth, email.trim(), password);
-      // Onnistumisen jälkeen onAuthStateChanged ohjaa "/"
+      await auth.createUserWithEmailAndPassword(email.trim(), password);
+      // Käyttäjä ohjataan "/" onAuthStateChangedin kautta
     } catch (err: any) {
       console.error('Rekisteröintivirhe:', err);
       Alert.alert('Rekisteröinti-virhe', err.message || 'Jokin meni pieleen');
@@ -60,6 +56,7 @@ export default function RegisterScreen() {
 
   return (
     <View style={styles.container}>
+      {/* Expo Router asettaa header-otsikon */}
       <Stack.Screen options={{ title: 'Rekisteröidy' }} />
 
       <Text style={styles.title}>Luo uusi käyttäjätili</Text>
@@ -111,22 +108,11 @@ export default function RegisterScreen() {
 }
 
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: '#ffffff',
-    paddingHorizontal: 24,
-    justifyContent: 'center',
-  },
-  title: {
-    fontSize: 26,
-    fontWeight: 'bold',
-    color: '#333333',
-    marginBottom: 32,
-    textAlign: 'center',
-  },
+  container: { flex: 1, backgroundColor: '#fff', paddingHorizontal: 24, justifyContent: 'center' },
+  title: { fontSize: 26, fontWeight: 'bold', color: '#333', marginBottom: 32, textAlign: 'center' },
   input: {
     height: 52,
-    borderColor: '#cccccc',
+    borderColor: '#ccc',
     borderWidth: 1,
     borderRadius: 8,
     paddingHorizontal: 16,
@@ -141,18 +127,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     marginVertical: 24,
   },
-  buttonText: {
-    color: '#000000',
-    fontSize: 18,
-    fontWeight: '600',
-  },
-  footerText: {
-    textAlign: 'center',
-    color: '#666666',
-    fontSize: 14,
-  },
-  linkText: {
-    color: '#f1c40f',
-    fontWeight: 'bold',
-  },
+  buttonText: { color: '#000', fontSize: 18, fontWeight: '600' },
+  footerText: { textAlign: 'center', color: '#666', fontSize: 14 },
+  linkText: { color: '#f1c40f', fontWeight: 'bold' },
 });

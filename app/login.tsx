@@ -11,12 +11,8 @@ import {
   Alert,
 } from 'react-native';
 import { Stack, useRouter } from 'expo-router';
-import { auth } from '../src/api/firebaseConfig';
-import {
-  signInWithEmailAndPassword,
-  onAuthStateChanged,
-  User,
-} from 'firebase/auth';
+import { auth } from '../src/api/firebaseConfig'; // COMPAT-Auth
+import type firebase from 'firebase/compat/app';
 
 export default function LoginScreen() {
   const router = useRouter();
@@ -25,11 +21,11 @@ export default function LoginScreen() {
   const [password, setPassword] = useState<string>('');
   const [loading, setLoading] = useState<boolean>(false);
 
-  // Jos käyttäjä on jo kirjautunut (esim. hot-reload), ohjataan kotisivulle
+  // Jos käyttäjä on jo kirjautunut, ohjataan kotisivulle
   useEffect(() => {
-    const unsubscribe = onAuthStateChanged(auth, (usr: User | null) => {
+    const unsubscribe = auth.onAuthStateChanged((usr: firebase.User | null) => {
       if (usr) {
-        router.replace('/'); // Korvaa "/" haluamallasi kotireitillä
+        router.replace('/'); // Vaihda haluamaksesi kotireitiksi
       }
     });
     return unsubscribe;
@@ -43,9 +39,8 @@ export default function LoginScreen() {
 
     setLoading(true);
     try {
-      // Pelkällä JS-SDK:lla kirjaudutaan
-      await signInWithEmailAndPassword(auth, email.trim(), password);
-      // onAuthStateChanged (yläpuolella) hoitaa navigoinnin
+      await auth.signInWithEmailAndPassword(email.trim(), password);
+      // Käyttäjä ohjataan "/" onAuthStateChangedin kautta
     } catch (err: any) {
       console.error('Kirjautumisvirhe:', err);
       Alert.alert('Kirjautumisvirhe', err.message || 'Tarkista tunnukset');
