@@ -7,15 +7,15 @@ import {
   Text,
   StyleSheet,
   TouchableOpacity,
-  Alert, 
+  Alert,
   FlatList,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
 import { signOut } from 'firebase/auth';
-import { auth } from '../../src/api/firebaseConfig'; // Huom: polku on pari hakemistoa ylöspäin
+import { auth } from '../../src/api/firebaseConfig';
 
-// Esimerkkikategoriadata (kovakoodattu). Myöhemmin korvaa Firebasen datalla.
+// Esimerkkikategoriadata (kovakoodattu):
 const EXAMPLE_CATEGORIES = [
   { id: '1', title: 'Lainat', allocated: 1500 },
   { id: '2', title: 'Ruoka', allocated: 400 },
@@ -27,23 +27,46 @@ export default function BudjettiScreen() {
   const router = useRouter();
   const [selectedTab, setSelectedTab] = useState<'plan' | 'spent' | 'left'>('plan');
 
-  // Jos haluat oikean logout‐toiminnallisuuden, käytä:
   const handleLogout = async () => {
     try {
       await signOut(auth);
-      // RootLayout ohjaa tämän jälkeen automaattisesti takaisin /login
+      // RootLayout (app/_layout.tsx) huolehtii uudelleenohjauksesta /login
     } catch (err) {
       console.log('Kirjaudu ulos -virhe:', err);
     }
   };
 
-  // Kategorianäkymän renderöitsijä
-  const renderCategoryItem = ({ item }: { item: typeof EXAMPLE_CATEGORIES[0] }) => {
-    const spent = 0; // Esimerkkiä varten nolla; korvaa todellisella luvulla Firebasesta
-    const left = item.allocated - spent;
+  const handleEditCategory = (categoryId: string) => {
+    // Tähän voit laittaa navigoinnin muokkaus‐lomakkeelle, esim.:
+    // router.push(`/categories/${categoryId}/edit`);
+    Alert.alert('Muokkaa kategoriaa', `KategoriaId: ${categoryId}`);
+  };
 
+  const handleDeleteCategory = (categoryId: string) => {
+    Alert.alert(
+      'Poista kategoria',
+      'Haluatko varmasti poistaa tämän kategorian?',
+      [
+        { text: 'Peruuta', style: 'cancel' },
+        {
+          text: 'Poista',
+          style: 'destructive',
+          onPress: () => {
+            // Tähän kutsu Firebasen tai muun backendin poisto‐funktio
+            console.log('Poistetaan kategoria:', categoryId);
+          },
+        },
+      ],
+      { cancelable: true }
+    );
+  };
+
+  const renderCategoryItem = ({ item }: { item: typeof EXAMPLE_CATEGORIES[0] }) => {
+    const spent = 0;
+    const left = item.allocated - spent;
     let mainValue: number;
     let mainLabel: string;
+
     if (selectedTab === 'plan') {
       mainValue = item.allocated;
       mainLabel = 'Suunniteltu';
@@ -58,16 +81,33 @@ export default function BudjettiScreen() {
     return (
       <View style={styles.categoryCard}>
         <View style={styles.categoryLeft}>
-          <Text style={styles.categoryTitle}>{item.title}</Text>
+          <View style={styles.categoryTitleRow}>
+            <Text style={styles.categoryTitle}>{item.title}</Text>
+            {/* Muokkaa‐ikoni */}
+            <TouchableOpacity
+              onPress={() => handleEditCategory(item.id)}
+              style={styles.iconButtonSmall}
+            >
+              <Ionicons name="pencil-outline" size={16} color="#555" />
+            </TouchableOpacity>
+            {/* Poista‐ikoni */}
+            <TouchableOpacity
+              onPress={() => handleDeleteCategory(item.id)}
+              style={styles.iconButtonSmall}
+            >
+              <Ionicons name="trash-outline" size={16} color="#c0392b" />
+            </TouchableOpacity>
+          </View>
+
           <TouchableOpacity
             onPress={() => {
-              // Navigoi esim. alikategoria‐ruudulle:
-              // router.push(`/categories/${item.id}/subcategories/new`);
+              Alert.alert('Lisää alakategoria', 'Toiminto puuttuu vielä');
             }}
           >
             <Text style={styles.addSubcatText}>+ Lisää alakategoria</Text>
           </TouchableOpacity>
         </View>
+
         <View style={styles.categoryRight}>
           <Text style={styles.categoryValueLabel}>{mainLabel}</Text>
           <Text style={styles.categoryValue}>{mainValue} €</Text>
@@ -78,114 +118,78 @@ export default function BudjettiScreen() {
 
   return (
     <SafeAreaView style={styles.safeContainer}>
-      {/* ──────────── Header: Hamburger + “Budjettijakso” + Kynä + Logout ──────────── */}
+      {/* ─── Budjetti‐header ─── */}
       <View style={styles.headerContainer}>
-        {/* Hambuger‐painike otsikon vasemmalla puolella */}
         <TouchableOpacity
-          onPress={() => {
-            // TODO: avaa drawer tai muu sivuvalikko
-            Alert.alert('Menu', 'Tämä voisi avata drawer‐valikon.');
-          }}
+          onPress={() => Alert.alert('Menu', 'Tämä voisi avata drawer‐valikon')}
           style={styles.hamburgerButton}
         >
           <Ionicons name="menu-outline" size={26} color="#333" />
         </TouchableOpacity>
-
-        {/* Budjettijakson teksti */}
         <View style={styles.budgetPeriodContainer}>
           <Text style={styles.budgetPeriodText}>Budjettijakso: 13.4 – 12.5</Text>
         </View>
-
-        {/* Kynä (muokkaa jaksoa) ja uloskirjautuminen */}
         <View style={styles.headerIcons}>
           <TouchableOpacity
-            onPress={() => {
-              // router.push('/settings/budget-period');
-              Alert.alert('Muokkaa', 'Tähän voisi siirtyä jakson muokkausruudulle.');
-            }}
+            onPress={() => Alert.alert('Muokkaa', 'Jakson muokkaus puuttuu')}
             style={styles.iconButton}
           >
             <Ionicons name="pencil" size={22} color="#333" />
           </TouchableOpacity>
-
           <TouchableOpacity onPress={handleLogout} style={styles.iconButton}>
             <Ionicons name="log-out-outline" size={22} color="#c0392b" />
           </TouchableOpacity>
         </View>
       </View>
 
-      {/* ──────────── Alavalikko: Suunnitelma / Käytetty / Jäljellä ──────────── */}
+      {/* ─── Tilannevälilehdet ─── */}
       <View style={styles.tabsContainer}>
         <TouchableOpacity
-          style={[
-            styles.tabButton,
-            selectedTab === 'plan' && styles.tabButtonSelected,
-          ]}
+          style={[styles.tabButton, selectedTab === 'plan' && styles.tabButtonSelected]}
           onPress={() => setSelectedTab('plan')}
         >
-          <Text
-            style={[
-              styles.tabText,
-              selectedTab === 'plan' && styles.tabTextSelected,
-            ]}
-          >
+          <Text style={[styles.tabText, selectedTab === 'plan' && styles.tabTextSelected]}>
             Suunnitelma
           </Text>
         </TouchableOpacity>
-
         <TouchableOpacity
-          style={[
-            styles.tabButton,
-            selectedTab === 'spent' && styles.tabButtonSelected,
-          ]}
+          style={[styles.tabButton, selectedTab === 'spent' && styles.tabButtonSelected]}
           onPress={() => setSelectedTab('spent')}
         >
-          <Text
-            style={[
-              styles.tabText,
-              selectedTab === 'spent' && styles.tabTextSelected,
-            ]}
-          >
+          <Text style={[styles.tabText, selectedTab === 'spent' && styles.tabTextSelected]}>
             Käytetty
           </Text>
         </TouchableOpacity>
-
         <TouchableOpacity
-          style={[
-            styles.tabButton,
-            selectedTab === 'left' && styles.tabButtonSelected,
-          ]}
+          style={[styles.tabButton, selectedTab === 'left' && styles.tabButtonSelected]}
           onPress={() => setSelectedTab('left')}
         >
-          <Text
-            style={[
-              styles.tabText,
-              selectedTab === 'left' && styles.tabTextSelected,
-            ]}
-          >
+          <Text style={[styles.tabText, selectedTab === 'left' && styles.tabTextSelected]}>
             Jäljellä
           </Text>
         </TouchableOpacity>
       </View>
 
-      {/* ──────────── Kategoriat FlatListillä ──────────── */}
+      {/* ─── Pääkategoriat‐otsikko ja Lisää kategoriapainike ─── */}
+      <View style={styles.mainCategoryHeader}>
+        <Text style={styles.mainCategoryTitle}>Pääkategoriat</Text>
+        <TouchableOpacity
+          style={styles.addMainCategoryButton}
+          onPress={() => {
+            Alert.alert('Lisää pääkategoria', 'Toiminto puuttuu vielä');
+          }}
+        >
+          <Ionicons name="add-circle-outline" size={20} color="#f1c40f" />
+          <Text style={styles.addMainCategoryText}>Lisää kategoria</Text>
+        </TouchableOpacity>
+      </View>
+
+      {/* ─── Kategoriat listattuna FlatListillä ─── */}
       <FlatList
         data={EXAMPLE_CATEGORIES}
         keyExtractor={(item) => item.id}
         renderItem={renderCategoryItem}
         contentContainerStyle={styles.listContent}
-        ListFooterComponent={
-          <TouchableOpacity
-            style={styles.addCategoryButton}
-            onPress={() => {
-              // router.push('/categories/new');
-              Alert.alert('Lisää Kategoria', 'Tähän voisi avautua uusi lomake.');
-            }}
-          >
-            <Ionicons name="add-circle-outline" size={20} color="#f1c40f" />
-            <Text style={styles.addCategoryText}>Lisää pääkategoria</Text>
-          </TouchableOpacity>
-        }
       />
     </SafeAreaView>
   );
@@ -196,6 +200,7 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: '#fff',
   },
+  /* ── Header ── */
   headerContainer: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -221,6 +226,7 @@ const styles = StyleSheet.create({
     marginLeft: 12,
   },
 
+  /* ── Tilannevälilehdet ── */
   tabsContainer: {
     flexDirection: 'row',
     justifyContent: 'space-around',
@@ -248,9 +254,34 @@ const styles = StyleSheet.create({
     fontWeight: '600',
   },
 
+  /* ── Pääkategoriat otsikko ja lisää painike ── */
+  mainCategoryHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    paddingHorizontal: 16,
+    marginTop: 12,
+    marginBottom: 8,
+  },
+  mainCategoryTitle: {
+    fontSize: 20,
+    fontWeight: '600',
+    color: '#333',
+  },
+  addMainCategoryButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  addMainCategoryText: {
+    marginLeft: 6,
+    fontSize: 16,
+    color: '#f1c40f',
+    fontWeight: '600',
+  },
+
+  /* ── Kategoriakortin tyylit ── */
   listContent: {
     paddingHorizontal: 16,
-    paddingTop: 8,
     paddingBottom: 24,
   },
   categoryCard: {
@@ -266,10 +297,17 @@ const styles = StyleSheet.create({
   categoryLeft: {
     flex: 1,
   },
+  categoryTitleRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
   categoryTitle: {
     fontSize: 18,
     fontWeight: '500',
     color: '#333',
+  },
+  iconButtonSmall: {
+    marginLeft: 8,
   },
   addSubcatText: {
     marginTop: 6,
@@ -289,18 +327,5 @@ const styles = StyleSheet.create({
     fontSize: 20,
     fontWeight: '600',
     color: '#333',
-  },
-  addCategoryButton: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-    marginVertical: 20,
-    paddingVertical: 10,
-  },
-  addCategoryText: {
-    marginLeft: 6,
-    fontSize: 16,
-    color: '#f1c40f',
-    fontWeight: '600',
   },
 });
