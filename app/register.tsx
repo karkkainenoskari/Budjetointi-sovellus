@@ -76,7 +76,7 @@ export default function RegisterScreen() {
 
       <TextInput
         style={styles.input}
-        placeholder="Vahvista salasana"
+        placeholder="Toista salasana uudelleen"
         secureTextEntry
         value={confirmPassword}
         onChangeText={setConfirmPassword}
