@@ -1,58 +1,117 @@
 // app/register.tsx
 
 import React, { useState } from 'react';
-import { 
-  View, 
-  Text, 
-  TextInput, 
-  StyleSheet, 
-  TouchableOpacity, 
-  Alert, 
+import {
+  View,
+  Text,
+  TextInput,
+  StyleSheet,
+  TouchableOpacity,
+  Alert,
   KeyboardAvoidingView,
-  Platform
+  Platform,
 } from 'react-native';
 import { useRouter } from 'expo-router';
-import { createUserWithEmailAndPassword } from 'firebase/auth';
+import { createUserWithEmailAndPassword, signOut } from 'firebase/auth';
 import { auth } from '../src/api/firebaseConfig';
 
 export default function RegisterScreen() {
   const router = useRouter();
 
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
-  const [confirmPassword, setConfirmPassword] = useState('');
-  const [loading, setLoading] = useState(false);
+  const [email, setEmail] = useState<string>('');
+  const [password, setPassword] = useState<string>('');
+  const [confirmPassword, setConfirmPassword] = useState<string>('');
+  const [loading, setLoading] = useState<boolean>(false);
 
   const handleRegister = async () => {
-    // Pienet kenttätarkistukset
-    if (!email || !password || !confirmPassword) {
+    // 1) Varmistetaan, että kentät eivät ole tyhjiä
+    if (!email.trim() || !password || !confirmPassword) {
       Alert.alert('Virhe', 'Täytä kaikki kentät');
       return;
     }
+
+    // 2) Tarkistetaan, että salasanat täsmäävät keskenään
     if (password !== confirmPassword) {
       Alert.alert('Virhe', 'Salasanat eivät täsmää');
       return;
     }
 
+    // 3) Kootaan lista puuttuvista salasanaehdoista:
+    const requirements: string[] = [];
+
+    // 3.1) Pituus: vähintään 8 merkkiä
+    if (password.length < 8) {
+      requirements.push('vähintään 8 merkkiä pitkä');
+    }
+
+    // 3.2) Iso kirjain (A–Z, myös ÅÄÖ)
+    if (!/[A-ZÅÄÖ]/.test(password)) {
+      requirements.push('vähintään yksi iso kirjain (A–Z)');
+    }
+
+    // 3.3) Numero (0–9)
+    if (!/\d/.test(password)) {
+      requirements.push('vähintään yksi numero (0–9)');
+    }
+
+    // 3.4) Erikoismerkki (esim. !@#$%^&*()_+-=[]{};\'":,./<>?)
+    if (!/[!@#$%^&*()_\-+=\[\]{};':"\\|,.<>\/?]/.test(password)) {
+      requirements.push('vähintään yksi erikoismerkki (esim. !@#$%^&*)');
+    }
+
+    // 4) Jos jokin ehto ei täyty, näytetään yksityiskohtainen viesti
+    if (requirements.length > 0) {
+      const msg = `Salasanan täytyy sisältää:\n• ${requirements.join('\n• ')}`;
+      Alert.alert('Salasana ei kelpaa', msg);
+      return;
+    }
+
     setLoading(true);
     try {
-      // Kutsutaan Firebase Auth‐APIa
+      // 5) Luodaan uusi käyttäjä Firebaseen
       await createUserWithEmailAndPassword(auth, email.trim(), password);
-      Alert.alert('Onnistui', 'Rekisteröinti onnistui! Kirjaudu sisään.');
-      router.replace('/login');
+
+      // 6) Kirjaudutaan heti ulos, jotta käyttäjä ei jää automaattisesti sisään
+      await signOut(auth);
+
+      // 7) Näytetään Alert, ja vasta kun käyttäjä painaa OK, siirrytään /login
+      Alert.alert(
+        'Onnistui',
+        'Rekisteröinti onnistui! Nyt voit kirjautua sisään.',
+        [
+          {
+            text: 'OK',
+            onPress: () => {
+              router.replace('/login');
+            },
+          },
+        ],
+        { cancelable: false }
+      );
     } catch (err: any) {
       console.log('Rekisteröintivirhe:', err);
-      // Voit halutessasi tulkita err.code -> näyttämään käyttäjälle selkeämmän virheilmoituksen
-      const message = err.message || 'Tuntematon virhe';
-      Alert.alert('Virhe', message);
+
+      let message = 'Tuntematon virhe';
+      if (err.code === 'auth/invalid-email') {
+        message = 'Sähköpostiosoite ei ole muodoltaan oikea.';
+      } else if (err.code === 'auth/email-already-in-use') {
+        message = 'Tällä sähköpostiosoitteella on jo tili.';
+      } else if (err.code === 'auth/weak-password') {
+        // Firebase voi tästä huolimatta palauttaa weak-password, jos alle 6 merkkiä
+        message = 'Salasanan täytyy olla vähintään 6 merkkiä pitkä.';
+      } else {
+        message = err.message || message;
+      }
+
+      Alert.alert('Rekisteröintivirhe', message);
     } finally {
       setLoading(false);
     }
   };
 
   return (
-    <KeyboardAvoidingView 
-      behavior={Platform.OS === 'ios' ? 'padding' : 'height'} 
+    <KeyboardAvoidingView
+      behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
       style={styles.container}
     >
       <Text style={styles.heading}>Rekisteröidy</Text>
@@ -60,10 +119,10 @@ export default function RegisterScreen() {
       <TextInput
         style={styles.input}
         placeholder="Sähköpostiosoite"
+        autoCapitalize="none"
+        keyboardType="email-address"
         value={email}
         onChangeText={setEmail}
-        keyboardType="email-address"
-        autoCapitalize="none"
       />
 
       <TextInput
@@ -76,14 +135,14 @@ export default function RegisterScreen() {
 
       <TextInput
         style={styles.input}
-        placeholder="Toista salasana uudelleen"
+        placeholder="Vahvista salasana"
         secureTextEntry
         value={confirmPassword}
         onChangeText={setConfirmPassword}
       />
 
-      <TouchableOpacity 
-        onPress={handleRegister} 
+      <TouchableOpacity
+        onPress={handleRegister}
         style={[styles.button, loading && styles.buttonDisabled]}
         disabled={loading}
       >
@@ -95,10 +154,7 @@ export default function RegisterScreen() {
       <View style={styles.footerContainer}>
         <Text style={styles.footerText}>
           Onko sinulla jo tili?{' '}
-          <Text 
-            style={styles.linkText} 
-            onPress={() => router.push('/login')}
-          >
+          <Text style={styles.linkText} onPress={() => router.push('/login')}>
             Kirjaudu
           </Text>
         </Text>
