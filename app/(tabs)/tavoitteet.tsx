@@ -7,7 +7,9 @@ import Colors from '../../constants/Colors';
 export default function TavoitteetScreen() {
   return (
     <View style={styles.container}>
-      <Text style={styles.text}>Tavoitteet‐välilehti (tähän tulee graafit, lomakkeet yms.)</Text>
+      <Text style={styles.text}>
+        Tavoitteet‐välilehti (tässä voisi olla graafit ja lomakkeet tavoitteille)
+      </Text>
     </View>
   );
 }
@@ -17,8 +19,10 @@ const styles = StyleSheet.create({
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
+    backgroundColor: Colors.background,
   },
   text: {
     fontSize: 18,
+    color: Colors.textPrimary,
   },
 });

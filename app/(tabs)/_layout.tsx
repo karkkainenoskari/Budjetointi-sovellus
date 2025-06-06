@@ -10,17 +10,17 @@ export default function TabsLayout() {
     <Tabs
       screenOptions={{
         headerShown: false,
-        tabBarActiveTintColor: '#f1c40f',
-        tabBarInactiveTintColor: '#555',
+        tabBarActiveTintColor: Colors.moss,
+        tabBarInactiveTintColor: Colors.textSecondary,
         tabBarStyle: {
-          backgroundColor: '#fff',
-          borderTopColor: '#ddd',
+          backgroundColor: Colors.background,
+          borderTopColor: Colors.border,
         },
       }}
     >
       {/* Budjetti‐välilehti */}
       <Tabs.Screen
-        name="index"                // index.tsx näyttää Budjetti-sisällön
+        name="index"
         options={{
           title: 'Budjetti',
           tabBarIcon: ({ color, size }) => (

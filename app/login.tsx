@@ -1,19 +1,20 @@
 // app/login.tsx
 
 import React, { useState } from 'react';
-import { 
-  View, 
-  Text, 
-  TextInput, 
-  StyleSheet, 
-  TouchableOpacity, 
-  Alert, 
+import {
+  View,
+  Text,
+  TextInput,
+  TouchableOpacity,
+  StyleSheet,
   KeyboardAvoidingView,
-  Platform 
+  Platform,
+  Alert,
 } from 'react-native';
 import { useRouter } from 'expo-router';
 import { signInWithEmailAndPassword } from 'firebase/auth';
 import { auth } from '../src/api/firebaseConfig';
+import Colors from '../constants/Colors';
 
 export default function LoginScreen() {
   const router = useRouter();
@@ -29,62 +30,50 @@ export default function LoginScreen() {
 
     setLoading(true);
     try {
-      await signInWithEmailAndPassword(auth, email.trim(), password);
-      // Kirjautuminen onnistui, RootLayout kuuntelee onAuthStateChanged → ohjaa '/'
-    } catch (err: any) {
-      console.log('Kirjautumisvirhe:', err);
-      const message = err.message || 'Virhe kirjautumisessa';
-      Alert.alert('Virhe', message);
+      await signInWithEmailAndPassword(auth, email, password);
+      router.replace('/'); // ohjaa juureen (=> TabsLayout)
+    } catch (error: any) {
+      Alert.alert('Kirjautumisvirhe', error.message);
     } finally {
       setLoading(false);
     }
   };
 
   return (
-    <KeyboardAvoidingView 
-      behavior={Platform.OS === 'ios' ? 'padding' : 'height'} 
+    <KeyboardAvoidingView
+      behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
       style={styles.container}
     >
-      <Text style={styles.heading}>Kirjaudu sisään</Text>
-
+      <Text style={styles.title}>Kirjaudu sisään</Text>
       <TextInput
-        style={styles.input}
-        placeholder="Sähköpostiosoite"
+        placeholder="Sähköposti"
         value={email}
         onChangeText={setEmail}
         keyboardType="email-address"
         autoCapitalize="none"
-      />
-
-      <TextInput
         style={styles.input}
+        placeholderTextColor={Colors.textSecondary}
+      />
+      <TextInput
         placeholder="Salasana"
-        secureTextEntry
         value={password}
         onChangeText={setPassword}
+        secureTextEntry
+        style={styles.input}
+        placeholderTextColor={Colors.textSecondary}
       />
-
-      <TouchableOpacity 
-        onPress={handleLogin} 
+      <TouchableOpacity
+        onPress={handleLogin}
         style={[styles.button, loading && styles.buttonDisabled]}
         disabled={loading}
       >
         <Text style={styles.buttonText}>
-          {loading ? 'Kirjaudutaan...' : 'Kirjaudu'}
+          {loading ? 'Kirjaudutaan…' : 'Kirjaudu sisään'}
         </Text>
       </TouchableOpacity>
-
-      <View style={styles.footerContainer}>
-        <Text style={styles.footerText}>
-          Ei vielä tiliä?{' '}
-          <Text 
-            style={styles.linkText} 
-            onPress={() => router.push('/register')}
-          >
-            Rekisteröidy
-          </Text>
-        </Text>
-      </View>
+      <TouchableOpacity onPress={() => router.push('/register')}>
+        <Text style={styles.linkText}>Eikö ole tiliä? Rekisteröidy</Text>
+      </TouchableOpacity>
     </KeyboardAvoidingView>
   );
 }
@@ -92,48 +81,48 @@ export default function LoginScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    padding: 20,
     justifyContent: 'center',
-    backgroundColor: '#fff',
+    alignItems: 'center',
+    paddingHorizontal: 20,
+    backgroundColor: Colors.background,
   },
-  heading: {
-    fontSize: 28,
+  title: {
+    fontSize: 24,
+    marginBottom: 24,
     fontWeight: '600',
-    marginBottom: 30,
-    textAlign: 'center',
+    color: Colors.textPrimary,
   },
   input: {
+    width: '100%',
+    height: 50,
+    borderColor: Colors.border,
     borderWidth: 1,
-    borderColor: '#ddd',
     borderRadius: 8,
-    padding: 14,
     marginBottom: 16,
+    paddingHorizontal: 12,
+    color: Colors.textPrimary,
+    backgroundColor: Colors.cardBackground,
   },
   button: {
+    width: '100%',
     height: 50,
-    backgroundColor: '#007AFF',
+    backgroundColor: Colors.moss,
     borderRadius: 8,
     justifyContent: 'center',
     alignItems: 'center',
-    marginVertical: 24,
+    marginBottom: 12,
   },
   buttonDisabled: {
-    backgroundColor: '#aaa',
+    backgroundColor: Colors.sageHint,
   },
   buttonText: {
-    color: '#fff',
+    color: Colors.buttonPrimaryText,
     fontSize: 18,
     fontWeight: '600',
   },
-  footerContainer: {
-    alignItems: 'center',
-  },
-  footerText: {
-    color: '#666',
-    fontSize: 14,
-  },
   linkText: {
-    color: '#007AFF',
-    fontWeight: 'bold',
+    marginTop: 12,
+    color: Colors.moss,
+    fontSize: 16,
   },
 });

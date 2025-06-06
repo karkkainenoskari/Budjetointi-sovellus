@@ -13,9 +13,8 @@ export default function ValikkoScreen() {
   const handleLogout = async () => {
     try {
       await signOut(auth);
-      // RootLayout ohjaa takaisin /login
     } catch (err) {
-      console.log('Kirjautuminen ulos epäonnistui:', err);
+      console.log('Kirjaudu ulos epäonnistui:', err);
     }
   };
 
@@ -33,19 +32,21 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     padding: 20,
+    backgroundColor: Colors.background,
   },
   text: {
     fontSize: 18,
+    color: Colors.textPrimary,
   },
   logoutButton: {
     marginTop: 20,
-    backgroundColor: '#f1c40f',
+    backgroundColor: Colors.moss,
     padding: 12,
     borderRadius: 8,
     alignItems: 'center',
   },
   logoutText: {
-    color: '#333',
+    color: Colors.buttonPrimaryText,
     fontSize: 16,
     fontWeight: '600',
   },

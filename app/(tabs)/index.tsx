@@ -16,7 +16,7 @@ import { signOut } from 'firebase/auth';
 import { auth } from '../../src/api/firebaseConfig';
 import Colors from '../../constants/Colors';
 
-// Esimerkkikategoriadata (kovakoodattu):
+// Esimerkkikategoriadata (kovakoodattu)
 const EXAMPLE_CATEGORIES = [
   { id: '1', title: 'Lainat', allocated: 1500 },
   { id: '2', title: 'Ruoka', allocated: 400 },
@@ -31,15 +31,13 @@ export default function BudjettiScreen() {
   const handleLogout = async () => {
     try {
       await signOut(auth);
-      // RootLayout (app/_layout.tsx) huolehtii uudelleenohjauksesta /login
+      // RootLayout ohjaa /login tarjolle
     } catch (err) {
       console.log('Kirjaudu ulos -virhe:', err);
     }
   };
 
   const handleEditCategory = (categoryId: string) => {
-    // Tähän voit laittaa navigoinnin muokkaus‐lomakkeelle, esim.:
-    // router.push(`/categories/${categoryId}/edit`);
     Alert.alert('Muokkaa kategoriaa', `KategoriaId: ${categoryId}`);
   };
 
@@ -53,7 +51,6 @@ export default function BudjettiScreen() {
           text: 'Poista',
           style: 'destructive',
           onPress: () => {
-            // Tähän kutsu Firebasen tai muun backendin poisto‐funktio
             console.log('Poistetaan kategoria:', categoryId);
           },
         },
@@ -89,14 +86,14 @@ export default function BudjettiScreen() {
               onPress={() => handleEditCategory(item.id)}
               style={styles.iconButtonSmall}
             >
-              <Ionicons name="pencil-outline" size={16} color="#555" />
+              <Ionicons name="pencil-outline" size={16} color={Colors.textSecondary} />
             </TouchableOpacity>
             {/* Poista‐ikoni */}
             <TouchableOpacity
               onPress={() => handleDeleteCategory(item.id)}
               style={styles.iconButtonSmall}
             >
-              <Ionicons name="trash-outline" size={16} color="#c0392b" />
+              <Ionicons name="trash-outline" size={16} color={Colors.evergreen} />
             </TouchableOpacity>
           </View>
 
@@ -125,7 +122,7 @@ export default function BudjettiScreen() {
           onPress={() => Alert.alert('Menu', 'Tämä voisi avata drawer‐valikon')}
           style={styles.hamburgerButton}
         >
-          <Ionicons name="menu-outline" size={26} color="#333" />
+          <Ionicons name="menu-outline" size={26} color={Colors.evergreen} />
         </TouchableOpacity>
         <View style={styles.budgetPeriodContainer}>
           <Text style={styles.budgetPeriodText}>Budjettijakso: 13.4 – 12.5</Text>
@@ -135,10 +132,10 @@ export default function BudjettiScreen() {
             onPress={() => Alert.alert('Muokkaa', 'Jakson muokkaus puuttuu')}
             style={styles.iconButton}
           >
-            <Ionicons name="pencil" size={22} color="#333" />
+            <Ionicons name="pencil" size={22} color={Colors.textSecondary} />
           </TouchableOpacity>
           <TouchableOpacity onPress={handleLogout} style={styles.iconButton}>
-            <Ionicons name="log-out-outline" size={22} color="#c0392b" />
+            <Ionicons name="log-out-outline" size={22} color={Colors.evergreen} />
           </TouchableOpacity>
         </View>
       </View>
@@ -146,32 +143,56 @@ export default function BudjettiScreen() {
       {/* ─── Tilannevälilehdet ─── */}
       <View style={styles.tabsContainer}>
         <TouchableOpacity
-          style={[styles.tabButton, selectedTab === 'plan' && styles.tabButtonSelected]}
+          style={[
+            styles.tabButton,
+            selectedTab === 'plan' && styles.tabButtonSelected,
+          ]}
           onPress={() => setSelectedTab('plan')}
         >
-          <Text style={[styles.tabText, selectedTab === 'plan' && styles.tabTextSelected]}>
+          <Text
+            style={[
+              styles.tabText,
+              selectedTab === 'plan' && styles.tabTextSelected,
+            ]}
+          >
             Suunnitelma
           </Text>
         </TouchableOpacity>
         <TouchableOpacity
-          style={[styles.tabButton, selectedTab === 'spent' && styles.tabButtonSelected]}
+          style={[
+            styles.tabButton,
+            selectedTab === 'spent' && styles.tabButtonSelected,
+          ]}
           onPress={() => setSelectedTab('spent')}
         >
-          <Text style={[styles.tabText, selectedTab === 'spent' && styles.tabTextSelected]}>
+          <Text
+            style={[
+              styles.tabText,
+              selectedTab === 'spent' && styles.tabTextSelected,
+            ]}
+          >
             Käytetty
           </Text>
         </TouchableOpacity>
         <TouchableOpacity
-          style={[styles.tabButton, selectedTab === 'left' && styles.tabButtonSelected]}
+          style={[
+            styles.tabButton,
+            selectedTab === 'left' && styles.tabButtonSelected,
+          ]}
           onPress={() => setSelectedTab('left')}
         >
-          <Text style={[styles.tabText, selectedTab === 'left' && styles.tabTextSelected]}>
+          <Text
+            style={[
+              styles.tabText,
+              selectedTab === 'left' && styles.tabTextSelected,
+            ]}
+          >
             Jäljellä
           </Text>
         </TouchableOpacity>
       </View>
 
-      {/* ─── Pääkategoriat‐otsikko ja Lisää kategoriapainike ─── */}
+      {/* ─── Pääkategoriat‐otsikko ja Lisää kategoria ─── */}
       <View style={styles.mainCategoryHeader}>
         <Text style={styles.mainCategoryTitle}>Pääkategoriat</Text>
         <TouchableOpacity
@@ -180,7 +201,7 @@ export default function BudjettiScreen() {
             Alert.alert('Lisää pääkategoria', 'Toiminto puuttuu vielä');
           }}
         >
-          <Ionicons name="add-circle-outline" size={20} color="#f1c40f" />
+          <Ionicons name="add-circle-outline" size={20} color={Colors.moss} />
           <Text style={styles.addMainCategoryText}>Lisää kategoria</Text>
         </TouchableOpacity>
       </View>
@@ -199,7 +220,7 @@ export default function BudjettiScreen() {
 const styles = StyleSheet.create({
   safeContainer: {
     flex: 1,
-    backgroundColor: '#fff',
+    backgroundColor: Colors.background,
   },
   /* ── Header ── */
   headerContainer: {
@@ -218,7 +239,7 @@ const styles = StyleSheet.create({
   budgetPeriodText: {
     fontSize: 18,
     fontWeight: '600',
-    color: '#333',
+    color: Colors.textPrimary,
   },
   headerIcons: {
     flexDirection: 'row',
@@ -235,7 +256,7 @@ const styles = StyleSheet.create({
     marginTop: 12,
     marginBottom: 8,
     borderRadius: 8,
-    backgroundColor: '#f0f0f0',
+    backgroundColor: Colors.tabInactiveBg,
   },
   tabButton: {
     flex: 1,
@@ -244,14 +265,14 @@ const styles = StyleSheet.create({
     borderRadius: 6,
   },
   tabButtonSelected: {
-    backgroundColor: '#f1c40f',
+    backgroundColor: Colors.moss,
   },
   tabText: {
     fontSize: 16,
-    color: '#555',
+    color: Colors.textSecondary,
   },
   tabTextSelected: {
-    color: '#000',
+    color: Colors.background,
     fontWeight: '600',
   },
 
@@ -267,7 +288,7 @@ const styles = StyleSheet.create({
   mainCategoryTitle: {
     fontSize: 20,
     fontWeight: '600',
-    color: '#333',
+    color: Colors.textPrimary,
   },
   addMainCategoryButton: {
     flexDirection: 'row',
@@ -276,7 +297,7 @@ const styles = StyleSheet.create({
   addMainCategoryText: {
     marginLeft: 6,
     fontSize: 16,
-    color: '#f1c40f',
+    color: Colors.moss,
     fontWeight: '600',
   },
 
@@ -288,12 +309,12 @@ const styles = StyleSheet.create({
   categoryCard: {
     flexDirection: 'row',
     justifyContent: 'space-between',
-    backgroundColor: '#fafafa',
+    backgroundColor: Colors.cardBackground,
     borderRadius: 8,
     padding: 12,
     marginBottom: 12,
     borderWidth: 1,
-    borderColor: '#ddd',
+    borderColor: Colors.border,
   },
   categoryLeft: {
     flex: 1,
@@ -305,14 +326,14 @@ const styles = StyleSheet.create({
   categoryTitle: {
     fontSize: 18,
     fontWeight: '500',
-    color: '#333',
+    color: Colors.textPrimary,
   },
   iconButtonSmall: {
     marginLeft: 8,
   },
   addSubcatText: {
     marginTop: 6,
-    color: '#f1c40f',
+    color: Colors.moss,
     fontSize: 14,
     fontWeight: '500',
   },
@@ -322,11 +343,11 @@ const styles = StyleSheet.create({
   },
   categoryValueLabel: {
     fontSize: 12,
-    color: '#777',
+    color: Colors.textSecondary,
   },
   categoryValue: {
     fontSize: 20,
     fontWeight: '600',
-    color: '#333',
+    color: Colors.textPrimary,
   },
 });
