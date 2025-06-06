@@ -1,6 +1,6 @@
 // app/(tabs)/index.tsx
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   SafeAreaView,
   View,
@@ -9,6 +9,7 @@ import {
   TouchableOpacity,
   Alert,
   FlatList,
+  ActivityIndicator,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
@@ -16,42 +17,245 @@ import { signOut } from 'firebase/auth';
 import { auth } from '../../src/api/firebaseConfig';
 import Colors from '../../constants/Colors';
 
-// Esimerkkikategoriadata (kovakoodattu)
-const EXAMPLE_CATEGORIES = [
-  { id: '1', title: 'Lainat', allocated: 1500 },
-  { id: '2', title: 'Ruoka', allocated: 400 },
-  { id: '3', title: 'Vakuutukset', allocated: 150 },
-  { id: '4', title: 'Liikenne', allocated: 200 },
-];
+import {
+  getCategories,
+  addCategory,
+  updateCategory,
+  deleteCategory,
+  Category,
+} from '../../src/services/categories';
+import {
+  getExpensesByPeriod,
+  Expense,
+} from '../../src/services/expenses';
+import {
+  getCurrentBudgetPeriod,
+  setCurrentBudgetPeriod,
+} from '../../src/services/budget';
 
 export default function BudjettiScreen() {
   const router = useRouter();
+  const user = auth.currentUser;
+  const userId = user ? user.uid : null;
+
+  // ─── States ─────────────────────────────────────────────────────────
+  // Kategoriat ja lataustila
+  const [categories, setCategories] = useState<Category[]>([]);
+  const [loadingCategories, setLoadingCategories] = useState<boolean>(true);
+
+  // Kulut summattuna kategoriakohtaisesti
+  const [expensesByCategory, setExpensesByCategory] = useState<Record<string, number>>({});
+  const [loadingExpenses, setLoadingExpenses] = useState<boolean>(false);
+
+  // Budjettijakso ja lataustila
+  const [budgetPeriod, setBudgetPeriod] = useState<{ startDate: Date; endDate: Date; totalAmount: number } | null>(null);
+  const [loadingPeriod, setLoadingPeriod] = useState<boolean>(true);
+
+  // Valittu välilehti: 'plan' | 'spent' | 'left'
   const [selectedTab, setSelectedTab] = useState<'plan' | 'spent' | 'left'>('plan');
 
+  // ─── Fetch current budget period ────────────────────────────────────
+  useEffect(() => {
+    if (!userId) return;
+
+    setLoadingPeriod(true);
+    getCurrentBudgetPeriod(userId)
+      .then((bp) => {
+        if (bp) {
+          setBudgetPeriod({
+            startDate: bp.startDate.toDate(),
+            endDate: bp.endDate.toDate(),
+            totalAmount: bp.totalAmount,
+          });
+        } else {
+          // Jos ei ole tallennettua jaksoa, aseta oletukseksi nykyinen kalenterikuukausi ja totalAmount = 0
+          const now = new Date();
+          const start = new Date(now.getFullYear(), now.getMonth(), 1);
+          const end = new Date(now.getFullYear(), now.getMonth() + 1, 0);
+          setBudgetPeriod({ startDate: start, endDate: end, totalAmount: 0 });
+          // Kirjoita Firestoreen oletusjaksoksi
+          return setCurrentBudgetPeriod(userId, {
+            startDate: start,
+            endDate: end,
+            totalAmount: 0,
+          });
+        }
+      })
+      .catch((e) => {
+        console.error('getCurrentBudgetPeriod virhe:', e);
+      })
+      .finally(() => {
+        setLoadingPeriod(false);
+      });
+  }, [userId]);
+
+  // ─── Fetch categories whenever userId or budgetPeriod changes ────────
+  useEffect(() => {
+    if (!userId || !budgetPeriod) return;
+
+    let isActive = true;
+    setLoadingCategories(true);
+
+    getCategories(userId)
+      .then((cats) => {
+        if (isActive) {
+          setCategories(cats);
+        }
+      })
+      .catch((e) => {
+        console.error('getCategories virhe:', e);
+      })
+      .finally(() => {
+        if (isActive) setLoadingCategories(false);
+      });
+
+    return () => {
+      isActive = false;
+    };
+  }, [userId, budgetPeriod]);
+
+  // ─── Fetch expenses and sum by category when budgetPeriod changes ────
+  useEffect(() => {
+    if (!userId || !budgetPeriod) return;
+
+    setLoadingExpenses(true);
+    getExpensesByPeriod(userId, budgetPeriod.startDate, budgetPeriod.endDate)
+      .then((expenses) => {
+        const sums: Record<string, number> = {};
+        expenses.forEach((exp: Expense) => {
+          const catId = exp.categoryId;
+          sums[catId] = (sums[catId] || 0) + exp.amount;
+        });
+        setExpensesByCategory(sums);
+      })
+      .catch((e) => {
+        console.error('getExpensesByPeriod virhe:', e);
+      })
+      .finally(() => {
+        setLoadingExpenses(false);
+      });
+  }, [userId, budgetPeriod]);
+
+  // ─── Logout handler ────────────────────────────────────────────────
   const handleLogout = async () => {
+    if (!userId) return;
     try {
       await signOut(auth);
-      // RootLayout ohjaa /login tarjolle
+      // RootLayout ohjaa takaisin /login
     } catch (err) {
       console.log('Kirjaudu ulos -virhe:', err);
     }
   };
 
-  const handleEditCategory = (categoryId: string) => {
-    Alert.alert('Muokkaa kategoriaa', `KategoriaId: ${categoryId}`);
+  // ─── Add main category ──────────────────────────────────────────────
+  const handleAddMainCategory = () => {
+    if (!userId) return;
+    Alert.prompt(
+      'Uusi pääkategoria',
+      'Anna pääkategorian nimi:',
+      [
+        { text: 'Peruuta', style: 'cancel' },
+        {
+          text: 'Luo',
+          onPress: async (title) => {
+            if (!title) return;
+            try {
+              await addCategory(userId, {
+                title: title.trim(),
+                allocated: 0,
+                parentId: null,
+                type: 'main',
+              });
+              const updatedCats = await getCategories(userId);
+              setCategories(updatedCats);
+            } catch (e) {
+              console.error('addCategory virhe:', e);
+            }
+          },
+        },
+      ],
+      'plain-text'
+    );
   };
 
+  // ─── Edit category (title & allocated) ─────────────────────────────
+  const handleEditCategory = (categoryId: string, oldTitle: string, oldAllocated: number) => {
+    if (!userId || !budgetPeriod) return;
+    const totalBudget = budgetPeriod.totalAmount;
+
+    Alert.prompt(
+      'Muokkaa kategoriaa',
+      `Syötä uusi nimi ja määrä muodossa “Nimi, summa” (vanha: ${oldAllocated} €). Kokonaisbudjetti: ${totalBudget} €`,
+      [
+        { text: 'Peruuta', style: 'cancel' },
+        {
+          text: 'Tallenna',
+          onPress: async (input) => {
+            if (!input) return;
+            const parts = input.split(',');
+            if (parts.length !== 2) {
+              Alert.alert('Virhe', 'Muoto: “Nimi, 300”');
+              return;
+            }
+            const newTitle = parts[0].trim();
+            const newAlloc = parseFloat(parts[1].trim());
+            if (isNaN(newAlloc) || newAlloc < 0) {
+              Alert.alert('Virhe', 'Anna kelvollinen summa');
+              return;
+            }
+            // Laske muiden pääkategorioiden varaukset
+            const mainCats = categories.filter((c) => c.parentId === null);
+            let sumOthers = 0;
+            mainCats.forEach((cat) => {
+              if (cat.id !== categoryId) {
+                sumOthers += cat.allocated;
+              }
+            });
+            if (sumOthers + newAlloc > totalBudget) {
+              Alert.alert(
+                'Virhe',
+                `Et voi varata enempää kuin budjetti. Jo varattuna: ${sumOthers} €. `
+                  + `Yritit varata: ${newAlloc} €. Ylittää budjetin (${totalBudget} €).`
+              );
+              return;
+            }
+            try {
+              await updateCategory(userId, categoryId, {
+                title: newTitle,
+                allocated: newAlloc,
+              });
+              const updatedCats = await getCategories(userId);
+              setCategories(updatedCats);
+            } catch (e) {
+              console.error('updateCategory virhe:', e);
+            }
+          },
+        },
+      ],
+      'plain-text',
+      `${oldTitle}, ${oldAllocated}`
+    );
+  };
+
+  // ─── Delete category (and its subcategories) ───────────────────────
   const handleDeleteCategory = (categoryId: string) => {
+    if (!userId) return;
     Alert.alert(
       'Poista kategoria',
-      'Haluatko varmasti poistaa tämän kategorian?',
+      'Haluatko varmasti poistaa tämän kategorian ja sen alakategoriat?',
       [
         { text: 'Peruuta', style: 'cancel' },
         {
           text: 'Poista',
           style: 'destructive',
-          onPress: () => {
-            console.log('Poistetaan kategoria:', categoryId);
+          onPress: async () => {
+            try {
+              await deleteCategory(userId, categoryId);
+              const updatedCats = await getCategories(userId);
+              setCategories(updatedCats);
+            } catch (e) {
+              console.error('deleteCategory virhe:', e);
+            }
           },
         },
       ],
@@ -59,8 +263,60 @@ export default function BudjettiScreen() {
     );
   };
 
-  const renderCategoryItem = ({ item }: { item: typeof EXAMPLE_CATEGORIES[0] }) => {
-    const spent = 0;
+  // ─── Edit budget period ─────────────────────────────────────────────
+  const handleEditPeriod = () => {
+    if (!budgetPeriod || !userId) return;
+    // Tämän esimerkin tarkoitus on demo, joten kysytään vain totalAmount
+    Alert.prompt(
+      'Muokkaa budjettijaksoa',
+      `Anna uusi budjetin loppusumma tiedonny: nykyinen ${budgetPeriod.totalAmount} €`,
+      [
+        { text: 'Peruuta', style: 'cancel' },
+        {
+          text: 'OK',
+          onPress: async (input) => {
+            const newTotal = parseFloat(input || '');
+            if (isNaN(newTotal) || newTotal < 0) {
+              Alert.alert('Virhe', 'Anna kelvollinen luku.');
+              return;
+            }
+            // Esimerkkinä jätetään päivämäärä samaksi, päivitetään totalAmount
+            try {
+              await setCurrentBudgetPeriod(userId, {
+                startDate: budgetPeriod.startDate,
+                endDate: budgetPeriod.endDate,
+                totalAmount: newTotal,
+              });
+              setBudgetPeriod({
+                startDate: budgetPeriod.startDate,
+                endDate: budgetPeriod.endDate,
+                totalAmount: newTotal,
+              });
+            } catch (e) {
+              console.error('setCurrentBudgetPeriod virhe:', e);
+            }
+          },
+        },
+      ],
+      'plain-text',
+      `${budgetPeriod.totalAmount}`
+    );
+  };
+
+  // ─── Render category item (shows main categories and option to add sub) ─
+  const renderCategoryItem = ({ item }: { item: Category }) => {
+    if (item.parentId !== null) return null;
+
+    // Laske pääkategorian yhteiset kulut (myös alakategoriat)
+    let totalSpentForMain = 0;
+    categories.forEach((cat) => {
+      if (cat.parentId === item.id) {
+        totalSpentForMain += expensesByCategory[cat.id] || 0;
+      }
+    });
+    totalSpentForMain += expensesByCategory[item.id] || 0;
+
+    const spent = totalSpentForMain;
     const left = item.allocated - spent;
     let mainValue: number;
     let mainLabel: string;
@@ -81,14 +337,12 @@ export default function BudjettiScreen() {
         <View style={styles.categoryLeft}>
           <View style={styles.categoryTitleRow}>
             <Text style={styles.categoryTitle}>{item.title}</Text>
-            {/* Muokkaa‐ikoni */}
             <TouchableOpacity
-              onPress={() => handleEditCategory(item.id)}
+              onPress={() => handleEditCategory(item.id, item.title, item.allocated)}
               style={styles.iconButtonSmall}
             >
               <Ionicons name="pencil-outline" size={16} color={Colors.textSecondary} />
             </TouchableOpacity>
-            {/* Poista‐ikoni */}
             <TouchableOpacity
               onPress={() => handleDeleteCategory(item.id)}
               style={styles.iconButtonSmall}
@@ -99,7 +353,32 @@ export default function BudjettiScreen() {
 
           <TouchableOpacity
             onPress={() => {
-              Alert.alert('Lisää alakategoria', 'Toiminto puuttuu vielä');
+              Alert.prompt(
+                'Uusi alakategoria',
+                'Anna alakategorian nimi:',
+                [
+                  { text: 'Peruuta', style: 'cancel' },
+                  {
+                    text: 'Luo',
+                    onPress: async (subTitle) => {
+                      if (!subTitle || !userId) return;
+                      try {
+                        await addCategory(userId, {
+                          title: subTitle.trim(),
+                          allocated: 0,
+                          parentId: item.id,
+                          type: 'sub',
+                        });
+                        const updatedCats = await getCategories(userId);
+                        setCategories(updatedCats);
+                      } catch (e) {
+                        console.error('addCategory (sub) virhe:', e);
+                      }
+                    },
+                  },
+                ],
+                'plain-text'
+              );
             }}
           >
             <Text style={styles.addSubcatText}>+ Lisää alakategoria</Text>
@@ -114,9 +393,26 @@ export default function BudjettiScreen() {
     );
   };
 
+  // ─── Render loading if needed ────────────────────────────────────────
+  if (!userId) {
+    return (
+      <View style={styles.loaderContainer}>
+        <Text style={{ color: Colors.textPrimary }}>Kirjaudu sisään, kiitos.</Text>
+      </View>
+    );
+  }
+  if (loadingPeriod || loadingCategories || loadingExpenses) {
+    return (
+      <View style={styles.loaderContainer}>
+        <ActivityIndicator size="large" color={Colors.moss} />
+      </View>
+    );
+  }
+
+  // ─── Main UI ─────────────────────────────────────────────────────────
   return (
     <SafeAreaView style={styles.safeContainer}>
-      {/* ─── Budjetti‐header ─── */}
+      {/* ─── Budjetti‐header ──────────────────────────────────────────── */}
       <View style={styles.headerContainer}>
         <TouchableOpacity
           onPress={() => Alert.alert('Menu', 'Tämä voisi avata drawer‐valikon')}
@@ -125,13 +421,14 @@ export default function BudjettiScreen() {
           <Ionicons name="menu-outline" size={26} color={Colors.evergreen} />
         </TouchableOpacity>
         <View style={styles.budgetPeriodContainer}>
-          <Text style={styles.budgetPeriodText}>Budjettijakso: 13.4 – 12.5</Text>
+          <Text style={styles.budgetPeriodText}>
+            {budgetPeriod
+              ? `Budjettijakso: ${budgetPeriod.startDate.getDate()}.${budgetPeriod.startDate.getMonth() + 1} – ${budgetPeriod.endDate.getDate()}.${budgetPeriod.endDate.getMonth() + 1} (Total: ${budgetPeriod.totalAmount} €)`
+              : 'Budjettijakso: latautuu…'}
+          </Text>
         </View>
         <View style={styles.headerIcons}>
-          <TouchableOpacity
-            onPress={() => Alert.alert('Muokkaa', 'Jakson muokkaus puuttuu')}
-            style={styles.iconButton}
-          >
+          <TouchableOpacity onPress={handleEditPeriod} style={styles.iconButton}>
             <Ionicons name="pencil" size={22} color={Colors.textSecondary} />
           </TouchableOpacity>
           <TouchableOpacity onPress={handleLogout} style={styles.iconButton}>
@@ -140,75 +437,46 @@ export default function BudjettiScreen() {
         </View>
       </View>
 
-      {/* ─── Tilannevälilehdet ─── */}
+      {/* ─── Tilannevälilehdet ────────────────────────────────────────── */}
       <View style={styles.tabsContainer}>
         <TouchableOpacity
-          style={[
-            styles.tabButton,
-            selectedTab === 'plan' && styles.tabButtonSelected,
-          ]}
+          style={[styles.tabButton, selectedTab === 'plan' && styles.tabButtonSelected]}
           onPress={() => setSelectedTab('plan')}
         >
-          <Text
-            style={[
-              styles.tabText,
-              selectedTab === 'plan' && styles.tabTextSelected,
-            ]}
-          >
+          <Text style={[styles.tabText, selectedTab === 'plan' && styles.tabTextSelected]}>
             Suunnitelma
           </Text>
         </TouchableOpacity>
         <TouchableOpacity
-          style={[
-            styles.tabButton,
-            selectedTab === 'spent' && styles.tabButtonSelected,
-          ]}
+          style={[styles.tabButton, selectedTab === 'spent' && styles.tabButtonSelected]}
           onPress={() => setSelectedTab('spent')}
         >
-          <Text
-            style={[
-              styles.tabText,
-              selectedTab === 'spent' && styles.tabTextSelected,
-            ]}
-          >
+          <Text style={[styles.tabText, selectedTab === 'spent' && styles.tabTextSelected]}>
             Käytetty
           </Text>
         </TouchableOpacity>
         <TouchableOpacity
-          style={[
-            styles.tabButton,
-            selectedTab === 'left' && styles.tabButtonSelected,
-          ]}
+          style={[styles.tabButton, selectedTab === 'left' && styles.tabButtonSelected]}
           onPress={() => setSelectedTab('left')}
         >
-          <Text
-            style={[
-              styles.tabText,
-              selectedTab === 'left' && styles.tabTextSelected,
-            ]}
-          >
+          <Text style={[styles.tabText, selectedTab === 'left' && styles.tabTextSelected]}>
             Jäljellä
           </Text>
         </TouchableOpacity>
       </View>
 
-      {/* ─── Pääkategoriat‐otsikko ja Lisää kategoria ─── */}
+      {/* ─── Pääkategoriat‐otsikko + Lisää ──────────────────────────────── */}
       <View style={styles.mainCategoryHeader}>
         <Text style={styles.mainCategoryTitle}>Pääkategoriat</Text>
-        <TouchableOpacity
-          style={styles.addMainCategoryButton}
-          onPress={() => {
-            Alert.alert('Lisää pääkategoria', 'Toiminto puuttuu vielä');
-          }}
-        >
+        <TouchableOpacity style={styles.addMainCategoryButton} onPress={handleAddMainCategory}>
           <Ionicons name="add-circle-outline" size={20} color={Colors.moss} />
           <Text style={styles.addMainCategoryText}>Lisää kategoria</Text>
         </TouchableOpacity>
       </View>
 
-      {/* ─── Kategoriat listattuna FlatListillä ─── */}
+      {/* ─── Kategoriat FlatListillä ─────────────────────────────────── */}
       <FlatList
-        data={EXAMPLE_CATEGORIES}
+        data={categories}
         keyExtractor={(item) => item.id}
         renderItem={renderCategoryItem}
         contentContainerStyle={styles.listContent}
@@ -217,11 +485,19 @@ export default function BudjettiScreen() {
   );
 }
 
+// ─── Styles ───────────────────────────────────────────────────────────
 const styles = StyleSheet.create({
   safeContainer: {
     flex: 1,
     backgroundColor: Colors.background,
   },
+  loaderContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    backgroundColor: Colors.background,
+  },
+
   /* ── Header ── */
   headerContainer: {
     flexDirection: 'row',
@@ -276,7 +552,7 @@ const styles = StyleSheet.create({
     fontWeight: '600',
   },
 
-  /* ── Pääkategoriat otsikko ja lisää painike ── */
+  /* ── Pääkategoriat otsikko ja Lisää painike ── */
   mainCategoryHeader: {
     flexDirection: 'row',
     alignItems: 'center',

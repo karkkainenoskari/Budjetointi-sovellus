@@ -2,6 +2,9 @@
 import firebase from 'firebase/compat/app';
 import 'firebase/compat/auth';
 import 'firebase/compat/firestore';
+import { initializeApp } from 'firebase/app';
+import { getAuth } from 'firebase/auth';
+import { getFirestore } from 'firebase/firestore';
 
 // ┌────────────────────────────────────────────────────────────────┐
 // │ 1) KOPIOI TÄHÄN OMAN FIREBASE-PROJEKTISI KONFIGURAATIO        │
@@ -17,16 +20,6 @@ const firebaseConfig = {
   measurementId: "G-98Y1WTLKM1"
 };
 
-// ┌───────────────────────────────────────────────────────────────────┐
-// │ 2) Alustetaan Firebase‐sovellus vain kerran (hot-reload turvaksi)   │
-// └───────────────────────────────────────────────────────────────────┘
-if (!firebase.apps.length) {
-  firebase.initializeApp(firebaseConfig);
-}
-
-// ┌───────────────────────────────────────────────────────────────────┐
-// │ 3) Exportataan “compat”-Auth ja “compat”-Firestore                │
-// │    Älä käytä getAuth(app) tai initializeAuth(...) tässä vaiheessa. │
-// └───────────────────────────────────────────────────────────────────┘
-export const auth = firebase.auth();
-export const db = firebase.firestore();
+const app = initializeApp(firebaseConfig);
+export const auth = getAuth(app);
+export const firestore = getFirestore(app);
