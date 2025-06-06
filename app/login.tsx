@@ -7,9 +7,10 @@ import {
   TextInput,
   TouchableOpacity,
   StyleSheet,
+  ActivityIndicator,
+  Alert,
   KeyboardAvoidingView,
   Platform,
-  Alert,
 } from 'react-native';
 import { useRouter } from 'expo-router';
 import { signInWithEmailAndPassword } from 'firebase/auth';
@@ -18,22 +19,49 @@ import Colors from '../constants/Colors';
 
 export default function LoginScreen() {
   const router = useRouter();
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
-  const [loading, setLoading] = useState(false);
 
+  // ─── State‐muuttujat ─────────────────────────────────────────────────────────────
+  const [email, setEmail] = useState<string>('');
+  const [password, setPassword] = useState<string>('');
+  const [loading, setLoading] = useState<boolean>(false);
+
+  // ─── Handler: Kirjaudu sisään ‒painike ───────────────────────────────────────────
   const handleLogin = async () => {
-    if (!email || !password) {
-      Alert.alert('Virhe', 'Täytä sähköposti ja salasana');
+    if (!email.trim() || !password) {
+      Alert.alert('Virhe', 'Täytä sähköpostiosoite ja salasana.');
       return;
     }
 
     setLoading(true);
     try {
-      await signInWithEmailAndPassword(auth, email, password);
-      router.replace('/'); // ohjaa juureen (=> TabsLayout)
+      await signInWithEmailAndPassword(auth, email.trim(), password);
+      // Onnistunut kirjautuminen ohjaa sovelluksen pääsivulle (esim. "/")
+      router.replace('/');
     } catch (error: any) {
-      Alert.alert('Kirjautumisvirhe', error.message);
+      console.error('signInWithEmailAndPassword-virhe:', error);
+      // Tarkistetaan virhekoodi ja näytetään käyttäjälle sopiva ilmoitus
+      let message = 'Väärä salasana, yritä uudelleen.';
+
+      switch (error.code) {
+        case 'auth/invalid-email':
+          message = 'Sähköpostiosoite on virheellinen.';
+          break;
+        case 'auth/user-disabled':
+          message = 'Tämä käyttäjä on estetty.';
+          break;
+        case 'auth/user-not-found':
+          message = 'Tiliä ei löydy. Tarkista sähköpostiosoite.';
+          break;
+        case 'auth/wrong-password':
+          message = 'Väärä salasana, yritä uudelleen.';
+          break;
+        default:
+          // Jos haluat, voit näyttää suoraan Firebase‐virheilmoituksen:
+          // message = error.message;
+          break;
+      }
+
+      Alert.alert('Kirjautuminen epäonnistui', message);
     } finally {
       setLoading(false);
     }
@@ -41,39 +69,59 @@ export default function LoginScreen() {
 
   return (
     <KeyboardAvoidingView
-      behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
       style={styles.container}
+      behavior={Platform.OS === 'ios' ? 'padding' : undefined}
     >
-      <Text style={styles.title}>Kirjaudu sisään</Text>
-      <TextInput
-        placeholder="Sähköposti"
-        value={email}
-        onChangeText={setEmail}
-        keyboardType="email-address"
-        autoCapitalize="none"
-        style={styles.input}
-        placeholderTextColor={Colors.textSecondary}
-      />
-      <TextInput
-        placeholder="Salasana"
-        value={password}
-        onChangeText={setPassword}
-        secureTextEntry
-        style={styles.input}
-        placeholderTextColor={Colors.textSecondary}
-      />
-      <TouchableOpacity
-        onPress={handleLogin}
-        style={[styles.button, loading && styles.buttonDisabled]}
-        disabled={loading}
-      >
-        <Text style={styles.buttonText}>
-          {loading ? 'Kirjaudutaan…' : 'Kirjaudu sisään'}
-        </Text>
-      </TouchableOpacity>
-      <TouchableOpacity onPress={() => router.push('/register')}>
-        <Text style={styles.linkText}>Eikö ole tiliä? Rekisteröidy</Text>
-      </TouchableOpacity>
+      <View style={styles.innerContainer}>
+        <Text style={styles.title}>Kirjaudu sisään</Text>
+
+        {/* Sähköposti‐kenttä */}
+        <TextInput
+          style={styles.input}
+          placeholder="Sähköpostiosoite"
+          placeholderTextColor="#888"
+          autoCapitalize="none"
+          keyboardType="email-address"
+          autoComplete="email"
+          value={email}
+          onChangeText={setEmail}
+        />
+
+        {/* Salasana‐kenttä */}
+        <TextInput
+          style={styles.input}
+          placeholder="Salasana"
+          placeholderTextColor="#888"
+          secureTextEntry
+          value={password}
+          onChangeText={setPassword}
+        />
+
+        {/* Kirjaudu‐painike */}
+        <TouchableOpacity
+          style={[styles.button, loading && { opacity: 0.6 }]}
+          onPress={handleLogin}
+          disabled={loading}
+        >
+          {loading ? (
+            <ActivityIndicator color="#fff" />
+          ) : (
+            <Text style={styles.buttonText}>Kirjaudu</Text>
+          )}
+        </TouchableOpacity>
+
+        {/* Linkki rekisteröitymiseen */}
+        <TouchableOpacity
+          onPress={() => {
+            router.replace('/register');
+          }}
+          style={styles.registerLink}
+        >
+          <Text style={styles.registerText}>
+            Ei vielä tiliä? <Text style={styles.registerLinkText}>Rekisteröidy</Text>
+          </Text>
+        </TouchableOpacity>
+      </View>
     </KeyboardAvoidingView>
   );
 }
@@ -81,48 +129,54 @@ export default function LoginScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
-    paddingHorizontal: 20,
     backgroundColor: Colors.background,
   },
+  innerContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    paddingHorizontal: 24,
+  },
   title: {
-    fontSize: 24,
-    marginBottom: 24,
+    fontSize: 28,
     fontWeight: '600',
     color: Colors.textPrimary,
+    marginBottom: 32,
+    alignSelf: 'center',
   },
   input: {
-    width: '100%',
-    height: 50,
+    height: 48,
     borderColor: Colors.border,
     borderWidth: 1,
     borderRadius: 8,
-    marginBottom: 16,
     paddingHorizontal: 12,
+    marginBottom: 16,
+    fontSize: 16,
     color: Colors.textPrimary,
     backgroundColor: Colors.cardBackground,
   },
   button: {
-    width: '100%',
-    height: 50,
+    height: 48,
     backgroundColor: Colors.moss,
     borderRadius: 8,
     justifyContent: 'center',
     alignItems: 'center',
-    marginBottom: 12,
-  },
-  buttonDisabled: {
-    backgroundColor: Colors.sageHint,
+    marginTop: 8,
   },
   buttonText: {
-    color: Colors.buttonPrimaryText,
+    color: Colors.background,
     fontSize: 18,
     fontWeight: '600',
   },
-  linkText: {
-    marginTop: 12,
+  registerLink: {
+    marginTop: 16,
+    alignSelf: 'center',
+  },
+  registerText: {
+    color: Colors.textSecondary,
+    fontSize: 14,
+  },
+  registerLinkText: {
     color: Colors.moss,
-    fontSize: 16,
+    fontWeight: '500',
   },
 });
