@@ -1,26 +1,29 @@
-/**
- * Below are the colors that are used in the app. The colors are defined in the light and dark mode.
- * There are many other ways to style your app. For example, [Nativewind](https://www.nativewind.dev/), [Tamagui](https://tamagui.dev/), [unistyles](https://reactnativeunistyles.vercel.app), etc.
- */
+// src/constants/Colors.ts
 
-const tintColorLight = '#0a7ea4';
-const tintColorDark = '#fff';
+export default {
+  /* Vaaleat taustasävyt */
+  sageHint: '#BFCFBB',   // Soft sage hint – hyvin vaalea vihreä
+  mint: '#BECFBB',       // Mint – hieman tummempi kuin sageHint
 
-export const Colors = {
-  light: {
-    text: '#11181C',
-    background: '#fff',
-    tint: tintColorLight,
-    icon: '#687076',
-    tabIconDefault: '#687076',
-    tabIconSelected: tintColorLight,
-  },
-  dark: {
-    text: '#ECEDEE',
-    background: '#151718',
-    tint: tintColorDark,
-    icon: '#9BA1A6',
-    tabIconDefault: '#9BA1A6',
-    tabIconSelected: tintColorDark,
-  },
+  /* Keskitummat sävyt korostuksiin */
+  sage: '#9EA58C',       // Sage – neutraali vihreä
+  moss: '#738A6E',       // Moss – tummempi vihreä
+  evergreen: '#344C3D',  // Evergreen – kaikkein tummin vihreä (esim. tekstiin/ikonin pääväri)
+
+  /* Tekstivärit */
+  textPrimary: '#344C3D',   // Evergreen – päätekstille
+  textSecondary: '#738A6E', // Moss – otsikoille tai valituille teksteille
+
+  /* Taustat ja kortit */
+  background: '#FFFFFF',      // Puhdas valkoinen, päätaustaksi
+  cardBackground: '#F0F4EE',  // Erittäin vaalea vihreään taittava – korttien taustaksi
+  tabInactiveBg: '#EAEBE6',   // Hyvin vaalea, tabien inaktiiviseksi pohjaksi
+
+  /* Painikkeet ja korostusvärisävyt */
+  buttonPrimary: '#738A6E',    // Moss – pääpainikkeille
+  buttonPrimaryText: '#FFFFFF', // valkoinen teksti nappeihin
+  buttonSecondary: '#9EA58C',   // Sage – toissijaisille painikkeille
+
+  /* Rajaviivat ja varjostukset */
+  border: '#CED4C2',       // Hillitty rajaviiva korttien ympärille
 };

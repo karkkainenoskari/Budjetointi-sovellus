@@ -1,32 +1,27 @@
 {
-  // Laajennetaan Expo SDK:n perus­asetuksia
-  // Tämä tuo mukanaan kaikki React Native— ja Expo Router—kohtaiset
-  // compilerOptions-asetukset, mm. "jsx": "react-native"
   "extends": "expo/tsconfig.base",
-
   "compilerOptions": {
-    // Määritellään, että kaikki importit, jotka alkavat "@/...",
-    // haetaan projektin juu­resta
     "baseUrl": ".",
     "paths": {
-      "@/*": ["*"]
+      "@/*": [
+        "*"
+      ]
     }
   },
-
-  // Ilmoitetaan TypeScriptille, mitkä tiedostot otetaan mukaan
   "include": [
     "app/**/*.ts",
     "app/**/*.tsx",
     "src/**/*.ts",
-    "src/**/*.tsx"
+    "src/**/*.tsx",
+    "constants/**/*.ts",
+    "constants/**/*.tsx",
+    ".expo/types/**/*.ts",
+    "expo-env.d.ts"
   ],
-
-  // Poissuljetaan käännöksestä node_modules ja muut konfiguraatiotiedostot
   "exclude": [
     "node_modules",
     "babel.config.js",
     "metro.config.js",
-    "app.json",
     "jest.config.ts"
   ]
 }

@@ -5,6 +5,7 @@ import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
 import { signOut } from 'firebase/auth';
 import { auth } from '../../src/api/firebaseConfig';
 import { useRouter } from 'expo-router';
+import Colors from '../../constants/Colors';
 
 export default function ValikkoScreen() {
   const router = useRouter();

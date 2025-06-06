@@ -14,6 +14,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
 import { signOut } from 'firebase/auth';
 import { auth } from '../../src/api/firebaseConfig';
+import Colors from '../../constants/Colors';
 
 // Esimerkkikategoriadata (kovakoodattu):
 const EXAMPLE_CATEGORIES = [
