@@ -14,7 +14,7 @@ const firebaseConfig = {
   apiKey: "AIzaSyC45hnhNkZF8ASi2ZGtzN7laJwX-oQdf0k",
   authDomain: "budjetointiaplikaatio.firebaseapp.com",
   projectId: "budjetointiaplikaatio",
-  storageBucket: "budjetointiaplikaatio.firebasestorage.app",
+  storageBucket: "budjetointiaplikaatio.appspot.com",
   messagingSenderId: "746160459264",
   appId: "1:746160459264:web:d1c744164444892041d2e5",
   measurementId: "G-98Y1WTLKM1"

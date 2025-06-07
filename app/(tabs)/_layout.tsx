@@ -28,6 +28,17 @@ export default function TabsLayout() {
           ),
         }}
       />
+         {/* Historia-välilehti */}
+      <Tabs.Screen
+        name="historia"
+        options={{
+          title: 'Historia',
+          tabBarIcon: ({ color, size }) => (
+            <Ionicons name="time-outline" size={size} color={color} />
+          ),
+        }}
+      />
+
 
       {/* Tavoitteet‐välilehti */}
       <Tabs.Screen

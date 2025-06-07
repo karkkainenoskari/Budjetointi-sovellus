@@ -8,6 +8,7 @@ import {
 } from 'firebase/firestore';
 import { firestore } from '../api/firebaseConfig';
 import { getCurrentBudgetPeriod } from './budget';
+import { Category } from './categories';
 
 /**
  * Kopioi edellisen kuukauden kategoriat history-kokoelmaan,
@@ -82,4 +83,46 @@ export async function copyPreviousMonthCategories(
       createdAt: serverTimestamp(),
     });
   }
+}
+
+/**
+ * Palauta tallennettujen budjettikuukausien id:t (YYYY-MM).
+ */
+export async function getHistoryMonths(userId: string): Promise<string[]> {
+  const historyRef = collection(firestore, 'budjetit', userId, 'history');
+  const snapshot = await getDocs(historyRef);
+  const months: string[] = [];
+  snapshot.forEach((docSnap) => months.push(docSnap.id));
+  return months;
+}
+
+/**
+ * Hae tietyn kuukauden kategoriat history-kokoelmasta.
+ */
+export async function getHistoryCategories(
+  userId: string,
+  periodId: string
+): Promise<Category[]> {
+  const catsRef = collection(
+    firestore,
+    'budjetit',
+    userId,
+    'history',
+    periodId,
+    'categories'
+  );
+  const snapshot = await getDocs(catsRef);
+  const categories: Category[] = [];
+  snapshot.forEach((docSnap) => {
+    const data = docSnap.data();
+    categories.push({
+      id: docSnap.id,
+      title: data.title,
+      allocated: data.allocated,
+      parentId: data.parentId || null,
+      type: data.type,
+      createdAt: data.createdAt,
+    });
+  });
+  return categories;
 }
