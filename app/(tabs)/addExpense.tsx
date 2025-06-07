@@ -10,6 +10,7 @@ import {
   ActivityIndicator,
   Alert,
   Platform,
+  SafeAreaView,
 } from 'react-native';
 import { Picker } from '@react-native-picker/picker';
 import DateTimePicker from '@react-native-community/datetimepicker';
@@ -109,14 +110,14 @@ export default function AddExpenseScreen() {
   // ─── Jos lataamme kategorioita, näytetään loader ──────────────────────
   if (loadingCategories) {
     return (
-      <View style={styles.loaderContainer}>
+      <SafeAreaView style={styles.loaderContainer}>
         <ActivityIndicator size="large" color={Colors.moss} />
-      </View>
+      </SafeAreaView>
     );
   }
 
   return (
-    <View style={styles.container}>
+    <SafeAreaView style={styles.safeContainer}>
       {/* Summa‐kenttä */}
       <Text style={styles.label}>Summa (€)</Text>
       <TextInput
@@ -182,12 +183,12 @@ export default function AddExpenseScreen() {
           <Text style={styles.saveButtonText}>Tallenna kulu</Text>
         )}
       </TouchableOpacity>
-    </View>
+    </SafeAreaView>
   );
 }
 
 const styles = StyleSheet.create({
-  container: {
+  safeContainer: {
     flex: 1,
     backgroundColor: Colors.background,
     padding: 16,

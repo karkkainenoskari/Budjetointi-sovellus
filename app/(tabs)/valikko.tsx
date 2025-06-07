@@ -1,7 +1,7 @@
 // app/(tabs)/valikko.tsx
 
 import React from 'react';
-import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
+import { View, Text, StyleSheet, TouchableOpacity, SafeAreaView } from 'react-native';
 import { signOut } from 'firebase/auth';
 import { auth } from '../../src/api/firebaseConfig';
 import { useRouter } from 'expo-router';
@@ -19,17 +19,17 @@ export default function ValikkoScreen() {
   };
 
   return (
-    <View style={styles.container}>
+    <SafeAreaView style={styles.safeContainer}>
       <Text style={styles.text}>Valikko‐välilehti (esim. profiili, asetukset)</Text>
       <TouchableOpacity onPress={handleLogout} style={styles.logoutButton}>
         <Text style={styles.logoutText}>Kirjaudu ulos</Text>
       </TouchableOpacity>
-    </View>
+    </SafeAreaView>
   );
 }
 
 const styles = StyleSheet.create({
-  container: {
+  safeContainer: {
     flex: 1,
     padding: 20,
     backgroundColor: Colors.background,

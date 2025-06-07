@@ -9,6 +9,7 @@ import {
   TouchableOpacity,
   Alert,
   ActivityIndicator,
+  SafeAreaView,
 } from 'react-native';
 import Colors from '../../constants/Colors';
 import { getGoals, addGoal, updateGoal, deleteGoal, Goal } from '../../src/services/goals';
@@ -148,22 +149,22 @@ export default function TavoitteetScreen() {
 
   if (!userId) {
     return (
-      <View style={styles.loaderContainer}>
+      <SafeAreaView style={styles.loaderContainer}>
         <Text style={{ color: Colors.textPrimary }}>Kirjaudu sisään, kiitos.</Text>
-      </View>
+      </SafeAreaView>
     );
   }
 
   if (loadingGoals) {
     return (
-      <View style={styles.loaderContainer}>
+      <SafeAreaView style={styles.loaderContainer}>
         <ActivityIndicator size="large" color={Colors.moss} />
-      </View>
+      </SafeAreaView>
     );
   }
 
   return (
-    <View style={styles.container}>
+    <SafeAreaView style={styles.safeContainer}>
       <View style={styles.headerRow}>
         <Text style={styles.headerTitle}>Tavoitteet</Text>
         <TouchableOpacity onPress={handleAddGoal} style={styles.iconButton}>
@@ -211,12 +212,12 @@ export default function TavoitteetScreen() {
           );
         }}
       />
-    </View>
+    </SafeAreaView>
   );
 }
 
 const styles = StyleSheet.create({
-  container: {
+  safeContainer: {
     flex: 1,
     backgroundColor: Colors.background,
     padding: 16,

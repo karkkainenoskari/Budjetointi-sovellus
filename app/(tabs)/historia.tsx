@@ -7,6 +7,7 @@ import {
   FlatList,
   ActivityIndicator,
   Alert,
+  SafeAreaView,
 } from 'react-native';
 import { auth } from '../../src/api/firebaseConfig';
 import {
@@ -95,7 +96,7 @@ export default function HistoriaScreen() {
   }
 
   return (
-    <View style={styles.container}>
+    <SafeAreaView style={styles.safeContainer}>
       <TouchableOpacity style={styles.copyButton} onPress={handleCopyPrevious}>
         <Text style={styles.copyButtonText}>Kopioi edellisen kuukauden kategoriat</Text>
       </TouchableOpacity>
@@ -130,12 +131,12 @@ export default function HistoriaScreen() {
           );
         }}
       />
-    </View>
+    </SafeAreaView>
   );
 }
 
 const styles = StyleSheet.create({
-  container: {
+  safeContainer: {
     flex: 1,
     backgroundColor: Colors.background,
     padding: 16,

@@ -415,7 +415,7 @@ export default function BudjettiScreen() {
       {/* ─── Budjetti‐header ──────────────────────────────────────────── */}
       <View style={styles.headerContainer}>
         <TouchableOpacity
-          onPress={() => Alert.alert('Menu', 'Tämä voisi avata drawer‐valikon')}
+          onPress={() => router.push('/valikko')}
           style={styles.hamburgerButton}
         >
           <Ionicons name="menu-outline" size={26} color={Colors.evergreen} />
