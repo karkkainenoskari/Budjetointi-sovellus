@@ -10,6 +10,8 @@ import {
   Alert,
   FlatList,
   ActivityIndicator,
+  Modal,
+  TextInput,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
@@ -55,7 +57,13 @@ export default function BudjettiScreen() {
   // Valittu välilehti: 'plan' | 'spent' | 'left'
   const [selectedTab, setSelectedTab] = useState<'plan' | 'spent' | 'left'>('plan');
 
-   // Laske paljonko budjetista on vielä varaamatta pääkategorioihin
+ // Alakategorian lisäys -modalin tilat
+  const [showAddSubModal, setShowAddSubModal] = useState<boolean>(false);
+  const [newSubTitle, setNewSubTitle] = useState<string>('');
+  const [newSubAmount, setNewSubAmount] = useState<string>('');
+  const [parentForSub, setParentForSub] = useState<string | null>(null);
+
+  // Laske paljonko budjetista on vielä varaamatta pääkategorioihin
   const totalAllocated = categories
     .filter((cat) => cat.parentId === null)
     .reduce((sum, cat) => sum + cat.allocated, 0);
@@ -185,6 +193,55 @@ export default function BudjettiScreen() {
       ],
       'plain-text'
     );
+  };
+
+   // ─── Open add subcategory modal ────────────────────────────────────
+  const handleOpenAddSubcategory = (parentId: string) => {
+    setParentForSub(parentId);
+    setNewSubTitle('');
+    setNewSubAmount('');
+    setShowAddSubModal(true);
+  };
+
+  // ─── Create subcategory from modal ──────────────────────────────────
+  const handleCreateSubcategory = async () => {
+    if (!userId || !parentForSub) return;
+    const title = newSubTitle.trim();
+    const amountNum = parseFloat(newSubAmount.replace(',', '.')) || 0;
+    if (!title) {
+      Alert.alert('Virhe', 'Anna nimi');
+      return;
+    }
+    if (isNaN(amountNum) || amountNum < 0) {
+      Alert.alert('Virhe', 'Anna kelvollinen summa');
+      return;
+    }
+    try {
+      const newId = await addCategory(userId, {
+        title,
+        allocated: 0,
+        parentId: parentForSub,
+        type: 'sub',
+      });
+      if (amountNum > 0) {
+        await addExpense(userId, {
+          categoryId: newId,
+          amount: amountNum,
+          date: new Date(),
+          description: 'Alkukulutus',
+        });
+        setExpensesByCategory((prev) => ({
+          ...prev,
+          [newId]: (prev[newId] || 0) + amountNum,
+        }));
+      }
+      const updatedCats = await getCategories(userId);
+      setCategories(updatedCats);
+      setShowAddSubModal(false);
+      setParentForSub(null);
+    } catch (e) {
+      console.error('addCategory (sub) virhe:', e);
+    }
   };
 
   // ─── Edit category (title & allocated) ─────────────────────────────
@@ -407,54 +464,7 @@ export default function BudjettiScreen() {
           })}
 
           <TouchableOpacity
-            onPress={() => {
-              Alert.prompt(
-                'Uusi alakategoria',
-                'Syötä alakategoria ja mahdollinen jo käytetty summa muodossa "Nimi, 50"',
-                [
-                  { text: 'Peruuta', style: 'cancel' },
-                  {
-                    text: 'Luo',
-                    onPress: async (input) => {
-                      if (!input || !userId) return;
-                      const parts = input.split(',');
-                      const subTitle = parts[0].trim();
-                      const spentPart = parts[1] ? parts[1].trim() : '0';
-                      const spentAmount = parseFloat(spentPart);
-                      if (isNaN(spentAmount) || spentAmount < 0) {
-                        Alert.alert('Virhe', 'Anna kelvollinen summa');
-                        return;
-                      }
-                      try {
-                         const newId = await addCategory(userId, {
-                          title: subTitle,
-                          allocated: 0,
-                          parentId: item.id,
-                          type: 'sub',
-                        });
-                        if (spentAmount > 0) {
-                          await addExpense(userId, {
-                            categoryId: newId,
-                            amount: spentAmount,
-                            date: new Date(),
-                            description: 'Alkukulutus',
-                          });
-                          setExpensesByCategory((prev) => ({
-                            ...prev,
-                            [newId]: (prev[newId] || 0) + spentAmount,
-                          }));
-                        }
-                        const updatedCats = await getCategories(userId);
-                        setCategories(updatedCats);
-                      } catch (e) {
-                        console.error('addCategory (sub) virhe:', e);
-                      }
-                    },
-                  },
-                ],
-                'plain-text'
-              );
-            }}
+           onPress={() => handleOpenAddSubcategory(item.id)}
           >
             <Text style={styles.addSubcatText}>+ Lisää alakategoria</Text>
           </TouchableOpacity>
@@ -487,6 +497,56 @@ export default function BudjettiScreen() {
   // ─── Main UI ─────────────────────────────────────────────────────────
   return (
     <SafeAreaView style={styles.safeContainer}>
+
+         {/* Alakategorian lisäysmodal */}
+      <Modal
+        transparent
+        visible={showAddSubModal}
+        animationType="slide"
+        onRequestClose={() => {
+          setShowAddSubModal(false);
+          setParentForSub(null);
+        }}
+      >
+        <View style={styles.modalOverlay}>
+          <View style={styles.modalContainer}>
+            <Text style={styles.modalTitle}>Uusi alakategoria</Text>
+            <TextInput
+              style={styles.modalInput}
+              placeholder="Nimi"
+              placeholderTextColor="#888"
+              value={newSubTitle}
+              onChangeText={setNewSubTitle}
+            />
+            <TextInput
+              style={styles.modalInput}
+              placeholder="Jo käytetty summa"
+              placeholderTextColor="#888"
+              keyboardType="numeric"
+              value={newSubAmount}
+              onChangeText={setNewSubAmount}
+            />
+            <View style={styles.modalButtons}>
+              <TouchableOpacity
+                onPress={() => {
+                  setShowAddSubModal(false);
+                  setParentForSub(null);
+                }}
+                style={styles.modalButton}
+              >
+                <Text style={styles.modalButtonText}>Peruuta</Text>
+              </TouchableOpacity>
+              <TouchableOpacity
+                onPress={handleCreateSubcategory}
+                style={styles.modalButton}
+              >
+                <Text style={styles.modalButtonText}>Luo</Text>
+              </TouchableOpacity>
+            </View>
+          </View>
+        </View>
+      </Modal>
+
       {/* ─── Budjetti‐header ──────────────────────────────────────────── */}
       <View style={styles.headerContainer}>
         <TouchableOpacity
@@ -734,5 +794,47 @@ const styles = StyleSheet.create({
     fontSize: 20,
     fontWeight: '600',
     color: Colors.textPrimary,
+  },
+  /* ── Modal tyylit ── */
+  modalOverlay: {
+    flex: 1,
+    backgroundColor: 'rgba(0,0,0,0.3)',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  modalContainer: {
+    width: '80%',
+    backgroundColor: Colors.background,
+    padding: 20,
+    borderRadius: 8,
+  },
+  modalTitle: {
+    fontSize: 18,
+    fontWeight: '600',
+    color: Colors.textPrimary,
+    marginBottom: 12,
+  },
+  modalInput: {
+    height: 44,
+    borderColor: Colors.border,
+    borderWidth: 1,
+    borderRadius: 8,
+    paddingHorizontal: 10,
+    marginBottom: 12,
+    fontSize: 16,
+    color: Colors.textPrimary,
+    backgroundColor: Colors.cardBackground,
+  },
+  modalButtons: {
+    flexDirection: 'row',
+    justifyContent: 'flex-end',
+  },
+  modalButton: {
+    marginLeft: 12,
+  },
+  modalButtonText: {
+    fontSize: 16,
+    color: Colors.moss,
+    fontWeight: '600',
   },
 });
