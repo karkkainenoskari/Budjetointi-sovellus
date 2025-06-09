@@ -26,6 +26,7 @@ import {
 } from '../../src/services/categories';
 import {
   getExpensesByPeriod,
+  addExpense,
   Expense,
 } from '../../src/services/expenses';
 import {
@@ -53,6 +54,14 @@ export default function BudjettiScreen() {
 
   // Valittu välilehti: 'plan' | 'spent' | 'left'
   const [selectedTab, setSelectedTab] = useState<'plan' | 'spent' | 'left'>('plan');
+
+   // Laske paljonko budjetista on vielä varaamatta pääkategorioihin
+  const totalAllocated = categories
+    .filter((cat) => cat.parentId === null)
+    .reduce((sum, cat) => sum + cat.allocated, 0);
+  const unallocated = budgetPeriod
+    ? Math.max(budgetPeriod.totalAmount - totalAllocated, 0)
+    : 0;
 
   // ─── Fetch current budget period ────────────────────────────────────
   useEffect(() => {
@@ -332,6 +341,8 @@ export default function BudjettiScreen() {
       mainLabel = 'Jäljellä';
     }
 
+    const subCategories = categories.filter((c) => c.parentId === item.id);
+
     return (
       <View style={styles.categoryCard}>
         <View style={styles.categoryLeft}>
@@ -351,24 +362,88 @@ export default function BudjettiScreen() {
             </TouchableOpacity>
           </View>
 
+
+{subCategories.map((sub) => {
+            const subSpent = expensesByCategory[sub.id] || 0;
+            const subLeft = sub.allocated - subSpent;
+            let subValue: number;
+            if (selectedTab === 'plan') {
+              subValue = sub.allocated;
+            } else if (selectedTab === 'spent') {
+              subValue = subSpent;
+            } else {
+              subValue = subLeft;
+            }
+            return (
+              <View key={sub.id} style={styles.subCategoryRow}>
+                <View style={styles.subCategoryLeft}>
+                  <Text style={styles.subCategoryTitle}>{sub.title}</Text>
+                  <TouchableOpacity
+                    onPress={() =>
+                      handleEditCategory(sub.id, sub.title, sub.allocated)
+                    }
+                    style={styles.iconButtonSmall}
+                  >
+                    <Ionicons
+                      name="pencil-outline"
+                      size={16}
+                      color={Colors.textSecondary}
+                    />
+                  </TouchableOpacity>
+                  <TouchableOpacity
+                    onPress={() => handleDeleteCategory(sub.id)}
+                    style={styles.iconButtonSmall}
+                  >
+                    <Ionicons
+                      name="trash-outline"
+                      size={16}
+                      color={Colors.evergreen}
+                    />
+                  </TouchableOpacity>
+                </View>
+                <Text style={styles.subCategoryValue}>{subValue} €</Text>
+              </View>
+            );
+          })}
+
           <TouchableOpacity
             onPress={() => {
               Alert.prompt(
                 'Uusi alakategoria',
-                'Anna alakategorian nimi:',
+                'Syötä alakategoria ja mahdollinen jo käytetty summa muodossa "Nimi, 50"',
                 [
                   { text: 'Peruuta', style: 'cancel' },
                   {
                     text: 'Luo',
-                    onPress: async (subTitle) => {
-                      if (!subTitle || !userId) return;
+                    onPress: async (input) => {
+                      if (!input || !userId) return;
+                      const parts = input.split(',');
+                      const subTitle = parts[0].trim();
+                      const spentPart = parts[1] ? parts[1].trim() : '0';
+                      const spentAmount = parseFloat(spentPart);
+                      if (isNaN(spentAmount) || spentAmount < 0) {
+                        Alert.alert('Virhe', 'Anna kelvollinen summa');
+                        return;
+                      }
                       try {
-                        await addCategory(userId, {
-                          title: subTitle.trim(),
+                          const newId = await addCategory(userId, {
+                          title: subTitle,
                           allocated: 0,
                           parentId: item.id,
                           type: 'sub',
                         });
+                         if (spentAmount > 0) {
+                          await addExpense(userId, {
+                            categoryId: newId,
+                            amount: spentAmount,
+                            date: new Date(),
+                            description: 'Alkukulutus',
+                          });
+                          setExpensesByCategory((prev) => ({
+                            ...prev,
+                            [newId]: (prev[newId] || 0) + spentAmount,
+                          }));
+                        }
                         const updatedCats = await getCategories(userId);
                         setCategories(updatedCats);
                       } catch (e) {
@@ -435,6 +510,11 @@ export default function BudjettiScreen() {
             <Ionicons name="log-out-outline" size={22} color={Colors.evergreen} />
           </TouchableOpacity>
         </View>
+      </View>
+
+       {/* Näytä jäljellä budjetoitava määrä */}
+      <View style={styles.unallocatedContainer}>
+        <Text style={styles.unallocatedText}>Budjetoimatta: {unallocated} €</Text>
       </View>
 
       {/* ─── Tilannevälilehdet ────────────────────────────────────────── */}
@@ -522,6 +602,16 @@ const styles = StyleSheet.create({
   },
   iconButton: {
     marginLeft: 12,
+  },
+
+   unallocatedContainer: {
+    paddingHorizontal: 16,
+    marginTop: 4,
+  },
+  unallocatedText: {
+    fontSize: 16,
+    color: Colors.textPrimary,
+    fontWeight: '500',
   },
 
   /* ── Tilannevälilehdet ── */
@@ -612,6 +702,25 @@ const styles = StyleSheet.create({
     color: Colors.moss,
     fontSize: 14,
     fontWeight: '500',
+  },
+  subCategoryRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    paddingLeft: 12,
+    marginTop: 4,
+  },
+  subCategoryLeft: {
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  subCategoryTitle: {
+    fontSize: 16,
+    color: Colors.textPrimary,
+  },
+  subCategoryValue: {
+    fontSize: 16,
+    color: Colors.textPrimary,
   },
   categoryRight: {
     alignItems: 'flex-end',
