@@ -11,6 +11,7 @@ import {
   KeyboardAvoidingView,
   Platform,
 } from 'react-native';
+import { Image } from 'expo-image';
 import { useRouter } from 'expo-router';
 import { createUserWithEmailAndPassword } from 'firebase/auth';
 import { auth } from '../src/api/firebaseConfig';
@@ -116,6 +117,11 @@ export default function RegisterScreen() {
       behavior={Platform.OS === 'ios' ? 'padding' : undefined}
     >
       <View style={styles.innerContainer}>
+        <Image
+          source={require('@/assets/images/budjettikoutsi_logo.png')}
+          style={styles.logo}
+        />
+        <Text style={styles.welcome}></Text>
         <Text style={styles.title}>Rekisteröidy</Text>
 
         {/* Sähköposti‐kenttä */}
@@ -186,6 +192,19 @@ const styles = StyleSheet.create({
     flex: 1,
     justifyContent: 'center',
     paddingHorizontal: 24,
+  },
+  logo: {
+    width: 120,
+    height: 120,
+    resizeMode: 'contain',
+    alignSelf: 'center',
+    marginBottom: 16,
+  },
+  welcome: {
+    fontSize: 20,
+    color: Colors.textSecondary,
+    marginBottom: 8,
+    textAlign: 'center',
   },
   title: {
     fontSize: 28,
