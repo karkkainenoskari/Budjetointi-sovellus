@@ -14,6 +14,7 @@ import {
 import { useRouter } from 'expo-router';
 import { createUserWithEmailAndPassword } from 'firebase/auth';
 import { auth } from '../src/api/firebaseConfig';
+import { seedDefaultCategories } from '../src/services/categories';
 import Colors from '../constants/Colors';
 
 export default function RegisterScreen() {
@@ -68,7 +69,15 @@ export default function RegisterScreen() {
     // 4) Jos validointi onnistui, luodaan käyttäjä Firebaseen
     setLoading(true);
     try {
-      await createUserWithEmailAndPassword(auth, email.trim(), password);
+       const cred = await createUserWithEmailAndPassword(
+        auth,
+        email.trim(),
+        password
+      );
+      // Lisää oletuskategoriat uudelle käyttäjälle
+      if (cred.user) {
+        await seedDefaultCategories(cred.user.uid);
+      }
       // Rekisteröityminen onnistui: ilmoita ja ohjaa back login‐sivulle
       Alert.alert('Onnistui', 'Rekisteröityminen onnistui! Voit nyt kirjautua.', [
         {

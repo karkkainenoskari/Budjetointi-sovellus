@@ -112,3 +112,44 @@ export async function deleteCategory(
     );
   }
 }
+// ──────────────────────────────────────────────────────────────────────────────
+// Default categories
+// ──────────────────────────────────────────────────────────────────────────────
+
+export interface DefaultCategory {
+  title: string;
+  subs?: string[];
+}
+
+export const DEFAULT_CATEGORIES: DefaultCategory[] = [
+  { title: 'Asuminen', subs: ['Vuokra', 'Sähkö', 'Vesi'] },
+  { title: 'Ruoka', subs: ['Ruokakauppa', 'Ravintolat'] },
+  { title: 'Liikkuminen', subs: ['Julkinen liikenne', 'Polttoaine'] },
+  { title: 'Vapaa-aika', subs: ['Harrastukset', 'Viihde'] },
+  { title: 'Säästäminen' },
+];
+
+/**
+ * Luo käyttäjälle oletuskategoriat. Kutsutaan esim. rekisteröitymisen
+ * jälkeen, jotta budjetointi voi alkaa heti valmiilla pohjalla.
+ */
+export async function seedDefaultCategories(userId: string): Promise<void> {
+  for (const cat of DEFAULT_CATEGORIES) {
+    const mainId = await addCategory(userId, {
+      title: cat.title,
+      allocated: 0,
+      parentId: null,
+      type: 'main',
+    });
+    if (cat.subs) {
+      for (const sub of cat.subs) {
+        await addCategory(userId, {
+          title: sub,
+          allocated: 0,
+          parentId: mainId,
+          type: 'sub',
+        });
+      }
+    }
+  }
+}
