@@ -60,15 +60,16 @@ export async function addCategory(
     parentId,
     type,
   }: { title: string; allocated: number; parentId: string | null; type: 'main' | 'sub' }
-): Promise<void> {
+): Promise<string> {
   const categoriesRef = collection(firestore, 'budjetit', userId, 'categories');
-  await addDoc(categoriesRef, {
+   const docRef = await addDoc(categoriesRef, {
     title,
     allocated,
     parentId,
     type,
     createdAt: serverTimestamp(),
   });
+  return docRef.id;
 }
 
 /**

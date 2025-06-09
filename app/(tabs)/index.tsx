@@ -426,13 +426,13 @@ export default function BudjettiScreen() {
                         return;
                       }
                       try {
-                          const newId = await addCategory(userId, {
+                         const newId = await addCategory(userId, {
                           title: subTitle,
                           allocated: 0,
                           parentId: item.id,
                           type: 'sub',
                         });
-                         if (spentAmount > 0) {
+                        if (spentAmount > 0) {
                           await addExpense(userId, {
                             categoryId: newId,
                             amount: spentAmount,
