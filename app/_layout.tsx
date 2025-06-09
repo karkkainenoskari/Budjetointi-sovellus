@@ -27,13 +27,21 @@ export default function RootLayout() {
       }
 
       if (user) {
-        // Jos kirjautunut, ohjataan pois login/register sivuilta
-        if (pathname === '/login' || pathname === '/register') {
+        // Jos kirjautunut, ohjataan pois login/register/forgot-password sivuilta
+        if (
+          pathname === '/login' ||
+          pathname === '/register' ||
+          pathname === '/forgot-password'
+        ) {
           router.replace('/');
         }
       } else {
         // Jos ei kirjautunut, ohjataan aina login‐sivulle
-        if (pathname !== '/login' && pathname !== '/register') {
+       if (
+          pathname !== '/login' &&
+          pathname !== '/register' &&
+          pathname !== '/forgot-password'
+        ) {
           router.replace('/login');
         }
       }

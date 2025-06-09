@@ -103,6 +103,14 @@ export default function LoginScreen() {
           onChangeText={setPassword}
         />
 
+         {/* Unohtuiko salasana -linkki */}
+        <TouchableOpacity
+          onPress={() => router.replace('/forgot-password')}
+          style={styles.forgotLink}
+        >
+          <Text style={styles.forgotText}>Unohtuiko salasana?</Text>
+        </TouchableOpacity>
+
         {/* Kirjaudu‐painike */}
         <TouchableOpacity
           style={[styles.button, loading && { opacity: 0.6 }]}
@@ -189,6 +197,14 @@ const styles = StyleSheet.create({
   registerLink: {
     marginTop: 16,
     alignSelf: 'center',
+  },
+  forgotLink: {
+    marginBottom: 8,
+    alignSelf: 'flex-end',
+  },
+  forgotText: {
+    color: Colors.moss,
+    fontSize: 14,
   },
   registerText: {
     color: Colors.textSecondary,
