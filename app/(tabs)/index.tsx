@@ -13,6 +13,7 @@ import {
   Modal,
   TextInput,
 } from 'react-native';
+import DateTimePicker from '@react-native-community/datetimepicker';
 import { Ionicons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
 import { signOut } from 'firebase/auth';
@@ -34,6 +35,7 @@ import {
 import {
   getCurrentBudgetPeriod,
   setCurrentBudgetPeriod,
+  startNewBudgetPeriod,
 } from '../../src/services/budget';
 
 export default function BudjettiScreen() {
@@ -62,6 +64,14 @@ export default function BudjettiScreen() {
   const [newSubTitle, setNewSubTitle] = useState<string>('');
   const [newSubAmount, setNewSubAmount] = useState<string>('');
   const [parentForSub, setParentForSub] = useState<string | null>(null);
+
+  // Uuden budjettijakson modalin tilat
+  const [showNewPeriodModal, setShowNewPeriodModal] = useState<boolean>(false);
+  const [newPeriodStart, setNewPeriodStart] = useState<Date>(new Date());
+  const [newPeriodEnd, setNewPeriodEnd] = useState<Date>(new Date());
+  const [newPeriodTotal, setNewPeriodTotal] = useState<string>('');
+  const [showStartPicker, setShowStartPicker] = useState<boolean>(false);
+  const [showEndPicker, setShowEndPicker] = useState<boolean>(false);
 
   // Laske paljonko budjetista on vielä varaamatta pääkategorioihin
   const totalAllocated = categories
@@ -369,6 +379,50 @@ export default function BudjettiScreen() {
     );
   };
 
+ // ─── Start new budget period ───────────────────────────────────────
+  const handleOpenNewPeriod = () => {
+    if (budgetPeriod) {
+      setNewPeriodStart(budgetPeriod.startDate);
+      setNewPeriodEnd(budgetPeriod.endDate);
+      setNewPeriodTotal(String(budgetPeriod.totalAmount));
+    } else {
+      const now = new Date();
+      const start = new Date(now.getFullYear(), now.getMonth(), 1);
+      const end = new Date(now.getFullYear(), now.getMonth() + 1, 0);
+      setNewPeriodStart(start);
+      setNewPeriodEnd(end);
+      setNewPeriodTotal('0');
+    }
+    setShowNewPeriodModal(true);
+  };
+
+  const handleCreateNewPeriod = async () => {
+    if (!userId) return;
+    const total = parseFloat(newPeriodTotal.replace(',', '.'));
+    if (isNaN(total) || total < 0) {
+      Alert.alert('Virhe', 'Anna kelvollinen summa');
+      return;
+    }
+    try {
+      await startNewBudgetPeriod(userId, {
+        startDate: newPeriodStart,
+        endDate: newPeriodEnd,
+        totalAmount: total,
+      });
+      setBudgetPeriod({
+        startDate: newPeriodStart,
+        endDate: newPeriodEnd,
+        totalAmount: total,
+      });
+      const updatedCats = await getCategories(userId);
+      setCategories(updatedCats);
+      setShowNewPeriodModal(false);
+    } catch (e) {
+      console.error('startNewBudgetPeriod virhe:', e);
+      Alert.alert('Virhe', 'Uuden jakson aloitus epäonnistui');
+    }
+  };
+
   // ─── Render category item (shows main categories and option to add sub) ─
   const renderCategoryItem = ({ item }: { item: Category }) => {
     if (item.parentId !== null) return null;
@@ -498,6 +552,84 @@ export default function BudjettiScreen() {
   return (
     <SafeAreaView style={styles.safeContainer}>
 
+
+       {/* Uuden budjettijakson modal */}
+      <Modal
+        transparent
+        visible={showNewPeriodModal}
+        animationType="slide"
+        onRequestClose={() => setShowNewPeriodModal(false)}
+      >
+        <View style={styles.modalOverlay}>
+          <View style={styles.modalContainer}>
+            <Text style={styles.modalTitle}>Aloita uusi jakso</Text>
+            <TouchableOpacity
+              onPress={() => setShowStartPicker(true)}
+              style={styles.dateButton}
+            >
+              <Ionicons name="calendar-outline" size={20} color={Colors.textPrimary} />
+              <Text style={styles.dateButtonText}>
+                {newPeriodStart.toLocaleDateString('fi-FI')}
+              </Text>
+            </TouchableOpacity>
+            {showStartPicker && (
+              <DateTimePicker
+                value={newPeriodStart}
+                mode="date"
+                display="default"
+                onChange={(_, d) => {
+                  setShowStartPicker(false);
+                  if (d) setNewPeriodStart(d);
+                }}
+              />
+            )}
+            <TouchableOpacity
+              onPress={() => setShowEndPicker(true)}
+              style={styles.dateButton}
+            >
+              <Ionicons name="calendar-outline" size={20} color={Colors.textPrimary} />
+              <Text style={styles.dateButtonText}>
+                {newPeriodEnd.toLocaleDateString('fi-FI')}
+              </Text>
+            </TouchableOpacity>
+            {showEndPicker && (
+              <DateTimePicker
+                value={newPeriodEnd}
+                mode="date"
+                display="default"
+                onChange={(_, d) => {
+                  setShowEndPicker(false);
+                  if (d) setNewPeriodEnd(d);
+                }}
+              />
+            )}
+            <TextInput
+              style={styles.modalInput}
+              placeholder="Kokonaisbudjetti (€)"
+              placeholderTextColor="#888"
+              keyboardType="numeric"
+              value={newPeriodTotal}
+              onChangeText={setNewPeriodTotal}
+            />
+            <View style={styles.modalButtons}>
+              <TouchableOpacity
+                onPress={() => setShowNewPeriodModal(false)}
+                style={styles.modalButton}
+              >
+                <Text style={styles.modalButtonText}>Peruuta</Text>
+              </TouchableOpacity>
+              <TouchableOpacity
+                onPress={handleCreateNewPeriod}
+                style={styles.modalButton}
+              >
+                <Text style={styles.modalButtonText}>Luo</Text>
+              </TouchableOpacity>
+            </View>
+          </View>
+        </View>
+      </Modal>
+
+
          {/* Alakategorian lisäysmodal */}
       <Modal
         transparent
@@ -565,6 +697,9 @@ export default function BudjettiScreen() {
         <View style={styles.headerIcons}>
           <TouchableOpacity onPress={handleEditPeriod} style={styles.iconButton}>
             <Ionicons name="pencil" size={22} color={Colors.textSecondary} />
+          </TouchableOpacity>
+            <TouchableOpacity onPress={handleOpenNewPeriod} style={styles.iconButton}>
+            <Ionicons name="add-circle-outline" size={22} color={Colors.moss} />
           </TouchableOpacity>
           <TouchableOpacity onPress={handleLogout} style={styles.iconButton}>
             <Ionicons name="log-out-outline" size={22} color={Colors.evergreen} />
@@ -824,6 +959,22 @@ const styles = StyleSheet.create({
     fontSize: 16,
     color: Colors.textPrimary,
     backgroundColor: Colors.cardBackground,
+  },
+  dateButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingVertical: 10,
+    paddingHorizontal: 12,
+    borderWidth: 1,
+    borderColor: Colors.border,
+    borderRadius: 6,
+    marginBottom: 12,
+    backgroundColor: Colors.cardBackground,
+  },
+  dateButtonText: {
+    marginLeft: 8,
+    fontSize: 16,
+    color: Colors.textPrimary,
   },
   modalButtons: {
     flexDirection: 'row',
