@@ -1,7 +1,14 @@
 // app/(tabs)/valikko.tsx
 
 import React from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, SafeAreaView } from 'react-native';
+import {
+  View,
+  Text,
+  StyleSheet,
+  TouchableOpacity,
+  SafeAreaView,
+} from 'react-native';
+import { Ionicons } from '@expo/vector-icons';
 import { signOut } from 'firebase/auth';
 import { auth } from '../../src/api/firebaseConfig';
 import { useRouter } from 'expo-router';
@@ -20,10 +27,42 @@ export default function ValikkoScreen() {
 
   return (
     <SafeAreaView style={styles.safeContainer}>
-      <Text style={styles.text}>Valikko‐välilehti (esim. profiili, asetukset)</Text>
-      <TouchableOpacity onPress={handleLogout} style={styles.logoutButton}>
-        <Text style={styles.logoutText}>Kirjaudu ulos</Text>
-      </TouchableOpacity>
+     <Text style={styles.title}>Valikko</Text>
+      <View style={styles.menuContainer}>
+        <TouchableOpacity
+          onPress={() => router.push('/profiili')}
+          style={styles.menuItem}
+        >
+          <Ionicons
+            name="person-outline"
+            size={24}
+            color={Colors.evergreen}
+            style={styles.menuIcon}
+          />
+          <Text style={styles.menuText}>Profiili</Text>
+        </TouchableOpacity>
+        <TouchableOpacity
+          onPress={() => router.push('/asetukset')}
+          style={styles.menuItem}
+        >
+          <Ionicons
+            name="settings-outline"
+            size={24}
+            color={Colors.evergreen}
+            style={styles.menuIcon}
+          />
+          <Text style={styles.menuText}>Asetukset</Text>
+        </TouchableOpacity>
+        <TouchableOpacity onPress={handleLogout} style={styles.menuItem}>
+          <Ionicons
+            name="log-out-outline"
+            size={24}
+            color={Colors.evergreen}
+            style={styles.menuIcon}
+          />
+          <Text style={styles.menuText}>Kirjaudu ulos</Text>
+        </TouchableOpacity>
+      </View>
     </SafeAreaView>
   );
 }
@@ -34,20 +73,28 @@ const styles = StyleSheet.create({
     padding: 20,
     backgroundColor: Colors.background,
   },
-  text: {
-    fontSize: 18,
+ title: {
+    fontSize: 24,
+    fontWeight: '600',
+    marginBottom: 20,
     color: Colors.textPrimary,
   },
-  logoutButton: {
-    marginTop: 20,
-    backgroundColor: Colors.moss,
-    padding: 12,
-    borderRadius: 8,
-    alignItems: 'center',
+ menuContainer: {
+    borderTopWidth: 1,
+    borderColor: Colors.border,
   },
-  logoutText: {
-    color: Colors.buttonPrimaryText,
-    fontSize: 16,
-    fontWeight: '600',
+  menuItem: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingVertical: 16,
+    borderBottomWidth: 1,
+    borderColor: Colors.border,
+  },
+  menuIcon: {
+    marginRight: 12,
+  },
+  menuText: {
+    fontSize: 18,
+    color: Colors.textPrimary,
   },
 });

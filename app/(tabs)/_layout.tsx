@@ -50,18 +50,7 @@ export default function TabsLayout() {
           ),
         }}
       />
-
-      {/* Valikko‐välilehti */}
-      <Tabs.Screen
-        name="valikko"
-        options={{
-          title: 'Valikko',
-          tabBarIcon: ({ color, size }) => (
-            <Ionicons name="menu-outline" size={size} color={color} />
-          ),
-        }}
-      />
-
+      
       {/* Lisää kulu ‐välilehti */}
       <Tabs.Screen
         name="addExpense"
