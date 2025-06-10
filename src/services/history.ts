@@ -5,9 +5,10 @@ import {
   getDocs,
   addDoc,
   serverTimestamp,
+  doc,
+  getDoc,
 } from 'firebase/firestore';
 import { firestore } from '../api/firebaseConfig';
-import { getCurrentBudgetPeriod } from './budget';
 import { Category } from './categories';
 
 /**
@@ -39,12 +40,18 @@ export async function copyPreviousMonthCategories(
     return;
   }
 
-  // 3) Haetaan nykyisen jakson periodId (samalla metodilla kuin setCurrentBudgetPeriod luo uuden)
-  const currBudget = await getCurrentBudgetPeriod(userId);
-  if (!currBudget) return;
-  // Oletetaan, että haet nyt “tämän hetkisen” periodId‐arvon, esim. `${vuosi}-${kuukausi}`
-  const currYear = currBudget.startDate.toDate().getFullYear();
-  const currMonthNum = currBudget.startDate.toDate().getMonth() + 1;
+ // 3) Haetaan nykyisen jakson periodId suoraan Firestoresta
+  const currBudgetRef = doc(
+    firestore,
+    'budjetit',
+    userId,
+    'currentBudget',
+    'settings'
+  );
+  const currSnap = await getDoc(currBudgetRef);
+  if (!currSnap.exists()) return;
+  const currYear = currSnap.data().startDate.toDate().getFullYear();
+  const currMonthNum = currSnap.data().startDate.toDate().getMonth() + 1;
   const currMonth = currMonthNum.toString().padStart(2, '0');
   const currPeriodId = `${currYear}-${currMonth}`;
 

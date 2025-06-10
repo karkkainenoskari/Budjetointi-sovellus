@@ -8,6 +8,7 @@ import * as Notifications from 'expo-notifications';
 import * as Permissions from 'expo-permissions';
 import { firestore } from '../src/api/firebaseConfig';
 import { doc, setDoc } from 'firebase/firestore';
+import { getPayday } from '../src/services/userSettings';
 
 // Tuodaan CalendarTriggerInput‐tyyppi (run‐time‐kokonaisuuteen ei tarvita erillistä enum‐kenttää)
 import type { CalendarTriggerInput } from 'expo-notifications';
@@ -81,8 +82,8 @@ export default function RootLayout() {
       }
     );
 
-    // 3) Asetetaan kuukausittainen paikallinen muistutus
-    registerMonthlyReminder();
+    // 3) Asetetaan kuukausittainen palkkapäivämuistutus
+    registerMonthlyReminder(user.uid);
 
     return () => {
       subscription.remove();
@@ -128,34 +129,34 @@ export default function RootLayout() {
     }
   }
 
-  // ───────────────────────────────────────────────────────────────────────────────
-  // registerMonthlyReminder: ajastaa paikallisen muistutuksen joka kuukauden 1. päivä klo 09:00
-  // ───────────────────────────────────────────────────────────────────────────────
-  async function registerMonthlyReminder() {
+  // ───────────────────────────────────────────────────────────────────────────
+  // registerMonthlyReminder: ajastaa palkkapäivää edeltävän muistutuksen
+  // ───────────────────────────────────────────────────────────────────────────
+  async function registerMonthlyReminder(userId: string) {
     try {
-      // Poistetaan kaikki aiemmat ajoitetut ilmoitukset (välttää duplikaatit)
+  
       await Notifications.cancelAllScheduledNotificationsAsync();
 
-      // Määritellään CalendarTriggerInput, joka edellyttää:
-      // { day, hour, minute, repeats, type }
-      // Oikea enum-arvo for type on Notifications.SchedulableTriggerInputType.CALENDAR
+       const payday = await getPayday(userId);
+      if (!payday) return;
+
+
       const trigger: CalendarTriggerInput = {
-        day: 1,    // Kuukauden 1. päivä
-        hour: 9,   // Klo 9
-        minute: 0, // Tasatunnista
+        day: payday > 3 ? payday - 2 : payday,
+        hour: 9,
+        minute: 0,
         repeats: true,
-        // TÄRKEÄ KORJAUS: käytetään enum‐arvoa, ei vain merkkijonoa "calendar"
+
         type: Notifications.SchedulableTriggerInputTypes.CALENDAR,
       };
 
       await Notifications.scheduleNotificationAsync({
         content: {
-          title: 'Budjettitavoitteet',
-          body: 'Muistutus: tarkista tavoitteesi ja kuukausibudjetti!',
+            title: 'Palkkapäivä lähestyy',
+          body: 'Muista tehdä uusi budjetti!',
         },
         trigger,
       });
-      console.log('Kuukausittainen muistutus ajastettu.');
     } catch (e) {
       console.error('Muistutuksen ajoittaminen epäonnistui:', e);
     }

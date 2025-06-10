@@ -7,6 +7,9 @@ import {
   serverTimestamp,
 } from 'firebase/firestore';
 import { firestore } from '../api/firebaseConfig';
+import { getActiveRecurringExpenses } from './recurringExpenses';
+import { addExpense } from './expenses';
+import { copyPreviousMonthCategories } from './history';
 
 export interface BudgetPeriod {
   startDate: any; // Timestamp
@@ -55,4 +58,26 @@ export async function getCurrentBudgetPeriod(
     totalAmount: snap.data().totalAmount,
     createdAt: snap.data().createdAt,
   };
+}
+/**
+ * Aloita uusi budjettijakso ja kopioi mukaan toistuvat menot
+ * sekä edellisen kuukauden kategoriat.
+ */
+export async function startNewBudgetPeriod(
+  userId: string,
+  periodInfo: { startDate: any; endDate: any; totalAmount: number }
+): Promise<void> {
+  await setCurrentBudgetPeriod(userId, periodInfo);
+
+  await copyPreviousMonthCategories(userId);
+
+  const recurring = await getActiveRecurringExpenses(userId);
+  for (const exp of recurring) {
+    await addExpense(userId, {
+      categoryId: exp.categoryId,
+      amount: exp.amount,
+      date: exp.dueDate,
+      description: exp.name,
+    });
+  }
 }
