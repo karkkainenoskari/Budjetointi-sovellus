@@ -59,6 +59,53 @@ export async function getCurrentBudgetPeriod(
     createdAt: snap.data().createdAt,
   };
 }
+
+
+/**
+ * Tallenna budjettijakson tiedot history-kokoelmaan.
+ */
+export async function saveBudgetPeriodToHistory(
+  userId: string,
+  periodId: string,
+  info: { startDate: any; endDate: any; totalAmount: number }
+): Promise<void> {
+  if (!userId) return;
+  const docRef = doc(
+    firestore,
+    'budjetit',
+    userId,
+    'history',
+    periodId,
+    'settings'
+  );
+  await setDoc(docRef, { ...info, createdAt: serverTimestamp() });
+}
+
+/**
+ * Hae budjettijakson tiedot history-kokoelmasta.
+ */
+export async function getBudgetPeriodFromHistory(
+  userId: string,
+  periodId: string
+): Promise<BudgetPeriod | null> {
+  if (!userId) return null;
+  const docRef = doc(
+    firestore,
+    'budjetit',
+    userId,
+    'history',
+    periodId,
+    'settings'
+  );
+  const snap = await getDoc(docRef);
+  if (!snap.exists()) return null;
+  return {
+    startDate: snap.data().startDate,
+    endDate: snap.data().endDate,
+    totalAmount: snap.data().totalAmount,
+    createdAt: snap.data().createdAt,
+  };
+}
 /**
  * Aloita uusi budjettijakso ja kopioi mukaan toistuvat menot
  * sekä edellisen kuukauden kategoriat.
@@ -67,6 +114,17 @@ export async function startNewBudgetPeriod(
   userId: string,
   periodInfo: { startDate: any; endDate: any; totalAmount: number }
 ): Promise<void> {
+  // Tallenna mahdollinen aiempi jakso historyyn
+  const current = await getCurrentBudgetPeriod(userId);
+  if (current) {
+    const d = current.startDate.toDate();
+    const id = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`;
+    await saveBudgetPeriodToHistory(userId, id, {
+      startDate: current.startDate,
+      endDate: current.endDate,
+      totalAmount: current.totalAmount,
+    });
+  }
   await setCurrentBudgetPeriod(userId, periodInfo);
 
   await copyPreviousMonthCategories(userId);

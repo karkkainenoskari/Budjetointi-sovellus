@@ -36,7 +36,9 @@ import {
   getCurrentBudgetPeriod,
   setCurrentBudgetPeriod,
   startNewBudgetPeriod,
+   getBudgetPeriodFromHistory,
 } from '../../src/services/budget';
+import { getHistoryMonths, getHistoryCategories } from '../../src/services/history';
 
 export default function BudjettiScreen() {
   const router = useRouter();
@@ -73,6 +75,12 @@ export default function BudjettiScreen() {
   const [showStartPicker, setShowStartPicker] = useState<boolean>(false);
   const [showEndPicker, setShowEndPicker] = useState<boolean>(false);
 
+  // Jaksojen valinta
+  const [availablePeriods, setAvailablePeriods] = useState<string[]>([]);
+  const [viewPeriodId, setViewPeriodId] = useState<string | null>(null);
+  const [showPeriodModal, setShowPeriodModal] = useState<boolean>(false);
+  const [currentPeriodId, setCurrentPeriodId] = useState<string>('');
+
   // Laske paljonko budjetista on vielä varaamatta pääkategorioihin
   const totalAllocated = categories
     .filter((cat) => cat.parentId === null)
@@ -90,32 +98,47 @@ export default function BudjettiScreen() {
     ? budgetPeriod.totalAmount - totalSpentAll
     : 0;
 
+    const readOnly = viewPeriodId !== currentPeriodId;
   // ─── Fetch current budget period ────────────────────────────────────
   useEffect(() => {
     if (!userId) return;
 
     setLoadingPeriod(true);
     getCurrentBudgetPeriod(userId)
-      .then((bp) => {
+       .then(async (bp) => {
+        let period;
         if (bp) {
-          setBudgetPeriod({
+          period = {
             startDate: bp.startDate.toDate(),
             endDate: bp.endDate.toDate(),
             totalAmount: bp.totalAmount,
-          });
+           };
+          setBudgetPeriod(period);
         } else {
           // Jos ei ole tallennettua jaksoa, aseta oletukseksi nykyinen kalenterikuukausi ja totalAmount = 0
           const now = new Date();
           const start = new Date(now.getFullYear(), now.getMonth(), 1);
           const end = new Date(now.getFullYear(), now.getMonth() + 1, 0);
-          setBudgetPeriod({ startDate: start, endDate: end, totalAmount: 0 });
+           period = { startDate: start, endDate: end, totalAmount: 0 };
+          setBudgetPeriod(period);
           // Kirjoita Firestoreen oletusjaksoksi
           return setCurrentBudgetPeriod(userId, {
             startDate: start,
             endDate: end,
             totalAmount: 0,
           });
+
         }
+         const id = `${period.startDate.getFullYear()}-${String(
+          period.startDate.getMonth() + 1
+        ).padStart(2, '0')}`;
+        setViewPeriodId(id);
+        setCurrentPeriodId(id);
+        const months = await getHistoryMonths(userId);
+        if (!months.includes(id)) months.push(id);
+        months.sort();
+        months.reverse();
+        setAvailablePeriods(months);
       })
       .catch((e) => {
         console.error('getCurrentBudgetPeriod virhe:', e);
@@ -127,12 +150,17 @@ export default function BudjettiScreen() {
 
   // ─── Fetch categories whenever userId or budgetPeriod changes ────────
   useEffect(() => {
-    if (!userId || !budgetPeriod) return;
+     if (!userId || !budgetPeriod || !viewPeriodId) return;
 
     let isActive = true;
     setLoadingCategories(true);
 
-    getCategories(userId)
+    const fetcher =
+      viewPeriodId === currentPeriodId
+        ? getCategories(userId)
+        : getHistoryCategories(userId, viewPeriodId);
+
+    fetcher
       .then((cats) => {
         if (isActive) {
           setCategories(cats);
@@ -148,7 +176,7 @@ export default function BudjettiScreen() {
     return () => {
       isActive = false;
     };
-  }, [userId, budgetPeriod]);
+  }, [userId, budgetPeriod, viewPeriodId]);
 
   // ─── Fetch expenses and sum by category when budgetPeriod changes ────
   useEffect(() => {
@@ -463,12 +491,50 @@ export default function BudjettiScreen() {
       });
       const updatedCats = await getCategories(userId);
       setCategories(updatedCats);
+       const id = `${newPeriodStart.getFullYear()}-${String(
+        newPeriodStart.getMonth() + 1
+      ).padStart(2, '0')}`;
+      setCurrentPeriodId(id);
+      setViewPeriodId(id);
+      setAvailablePeriods((prev) => {
+        const arr = prev.includes(id) ? prev : [id, ...prev];
+        arr.sort();
+        arr.reverse();
+        return arr;
+      });
       setShowNewPeriodModal(false);
     } catch (e) {
       console.error('startNewBudgetPeriod virhe:', e);
       Alert.alert('Virhe', 'Uuden jakson aloitus epäonnistui');
     }
   };
+
+  const handleSelectPeriod = async (pid: string) => {
+    if (!userId || !pid) return;
+    setShowPeriodModal(false);
+    setLoadingPeriod(true);
+    if (pid === currentPeriodId) {
+      setViewPeriodId(pid);
+      setLoadingPeriod(false);
+      return;
+    }
+    const hist = await getBudgetPeriodFromHistory(userId, pid);
+    if (hist) {
+      setBudgetPeriod({
+        startDate: hist.startDate.toDate(),
+        endDate: hist.endDate.toDate(),
+        totalAmount: hist.totalAmount,
+      });
+    } else {
+      const [y, m] = pid.split('-').map((n) => parseInt(n, 10));
+      const start = new Date(y, m - 1, 1);
+      const end = new Date(y, m, 0);
+      setBudgetPeriod({ startDate: start, endDate: end, totalAmount: 0 });
+    }
+    setViewPeriodId(pid);
+    setLoadingPeriod(false);
+  };
+
 
   // ─── Render category item (shows main categories and option to add sub) ─
   const renderCategoryItem = ({ item }: { item: Category }) => {
@@ -506,30 +572,35 @@ export default function BudjettiScreen() {
         <View style={styles.categoryLeft}>
           <View style={styles.categoryTitleRow}>
             <Text style={styles.categoryTitle}>{item.title}</Text>
-            <TouchableOpacity
-              onPress={() => handleEditCategory(item.id, item.title, item.allocated)}
-              style={styles.iconButtonSmall}
-            >
-              <Ionicons name="pencil-outline" size={16} color={Colors.textSecondary} />
-            </TouchableOpacity>
-            <TouchableOpacity
-              onPress={() => handleDeleteCategory(item.id)}
-              style={styles.iconButtonSmall}
-            >
-              <Ionicons name="trash-outline" size={16} color={Colors.evergreen} />
-            </TouchableOpacity>
-             {selectedTab === 'spent' && (
+           
+          {!readOnly && (
+            <>
               <TouchableOpacity
-                onPress={() => handleAddExpenseToCategory(item.id)}
+                onPress={() => handleEditCategory(item.id, item.title, item.allocated)}
                 style={styles.iconButtonSmall}
               >
-                <Ionicons
-                  name="add-circle-outline"
-                  size={16}
-                  color={Colors.moss}
-                />
+                <Ionicons name="pencil-outline" size={16} color={Colors.textSecondary} />
               </TouchableOpacity>
-            )}
+              <TouchableOpacity
+                onPress={() => handleDeleteCategory(item.id)}
+                style={styles.iconButtonSmall}
+              >
+                <Ionicons name="trash-outline" size={16} color={Colors.evergreen} />
+              </TouchableOpacity>
+              {selectedTab === 'spent' && (
+                <TouchableOpacity
+                  onPress={() => handleAddExpenseToCategory(item.id)}
+                  style={styles.iconButtonSmall}
+                >
+                  <Ionicons
+                    name="add-circle-outline"
+                    size={16}
+                    color={Colors.moss}
+                  />
+                </TouchableOpacity>
+              )}
+            </>
+          )}
           </View>
 
 
@@ -548,51 +619,56 @@ export default function BudjettiScreen() {
               <View key={sub.id} style={styles.subCategoryRow}>
                 <View style={styles.subCategoryLeft}>
                   <Text style={styles.subCategoryTitle}>{sub.title}</Text>
-                  <TouchableOpacity
-                    onPress={() =>
-                      handleEditCategory(sub.id, sub.title, sub.allocated)
-                    }
-                    style={styles.iconButtonSmall}
-                  >
-                    <Ionicons
-                      name="pencil-outline"
-                      size={16}
-                      color={Colors.textSecondary}
-                    />
-                  </TouchableOpacity>
-                   <TouchableOpacity
-                  onPress={() => handleDeleteCategory(sub.id)}
-                  style={styles.iconButtonSmall}
-                >
-                  <Ionicons
-                    name="trash-outline"
-                    size={16}
-                    color={Colors.evergreen}
-                  />
-                </TouchableOpacity>
-                {selectedTab === 'spent' && (
-                  <TouchableOpacity
-                     onPress={() => handleAddExpenseToCategory(sub.id)}
-                    style={styles.iconButtonSmall}
-                  >
-                    <Ionicons
-                      name="add-circle-outline"
-                      size={16}
-                      color={Colors.moss}
-                    />
-                  </TouchableOpacity>
-                   )}
+                   {!readOnly && (
+                    <>
+                      <TouchableOpacity
+                        onPress={() =>
+                          handleEditCategory(sub.id, sub.title, sub.allocated)
+                        }
+                        style={styles.iconButtonSmall}
+                      >
+                        <Ionicons
+                          name="pencil-outline"
+                          size={16}
+                          color={Colors.textSecondary}
+                        />
+                      </TouchableOpacity>
+                      <TouchableOpacity
+                        onPress={() => handleDeleteCategory(sub.id)}
+                        style={styles.iconButtonSmall}
+                      >
+                        <Ionicons
+                          name="trash-outline"
+                          size={16}
+                          color={Colors.evergreen}
+                        />
+                      </TouchableOpacity>
+                      {selectedTab === 'spent' && (
+                        <TouchableOpacity
+                          onPress={() => handleAddExpenseToCategory(sub.id)}
+                          style={styles.iconButtonSmall}
+                        >
+                          <Ionicons
+                            name="add-circle-outline"
+                            size={16}
+                            color={Colors.moss}
+                          />
+                        </TouchableOpacity>
+                      )}
+                    </>
+                  )}
+                 
               </View>
               <Text style={styles.subCategoryValue}>{subValue} €</Text>
             </View>
             );
           })}
 
-          <TouchableOpacity
-           onPress={() => handleOpenAddSubcategory(item.id)}
-          >
-            <Text style={styles.addSubcatText}>+ Lisää alakategoria</Text>
-          </TouchableOpacity>
+        {!readOnly && (
+            <TouchableOpacity onPress={() => handleOpenAddSubcategory(item.id)}>
+              <Text style={styles.addSubcatText}>+ Lisää alakategoria</Text>
+            </TouchableOpacity>
+          )}
         </View>
 
         <View style={styles.categoryRight}>
@@ -622,6 +698,38 @@ export default function BudjettiScreen() {
   // ─── Main UI ─────────────────────────────────────────────────────────
   return (
     <SafeAreaView style={styles.safeContainer}>
+
+       {/* Jakson valinta */}
+      <Modal
+        transparent
+        visible={showPeriodModal}
+        animationType="slide"
+        onRequestClose={() => setShowPeriodModal(false)}
+      >
+        <View style={styles.modalOverlay}>
+          <View style={styles.modalContainer}>
+            <Text style={styles.modalTitle}>Valitse jakso</Text>
+            <FlatList
+              data={availablePeriods}
+              keyExtractor={(item) => item}
+              renderItem={({ item }) => (
+                <TouchableOpacity
+                  onPress={() => handleSelectPeriod(item)}
+                  style={styles.periodItem}
+                >
+                  <Text style={styles.periodItemText}>{item}</Text>
+                </TouchableOpacity>
+              )}
+            />
+            <TouchableOpacity
+              onPress={() => setShowPeriodModal(false)}
+              style={styles.modalButton}
+            >
+              <Text style={styles.modalButtonText}>Sulje</Text>
+            </TouchableOpacity>
+          </View>
+        </View>
+      </Modal>
 
 
        {/* Uuden budjettijakson modal */}
@@ -763,15 +871,23 @@ export default function BudjettiScreen() {
             {budgetPeriod
               ? `Budjettijakso: ${budgetPeriod.startDate.getDate()}.${budgetPeriod.startDate.getMonth() + 1} – ${budgetPeriod.endDate.getDate()}.${budgetPeriod.endDate.getMonth() + 1} (Total: ${budgetPeriod.totalAmount} €)`
               : 'Budjettijakso: latautuu…'}
+               {readOnly && ' (arkisto)'}
           </Text>
         </View>
         <View style={styles.headerIcons}>
-          <TouchableOpacity onPress={handleEditPeriod} style={styles.iconButton}>
-            <Ionicons name="pencil" size={22} color={Colors.textSecondary} />
+         <TouchableOpacity onPress={() => setShowPeriodModal(true)} style={styles.iconButton}>
+            <Ionicons name="calendar-outline" size={22} color={Colors.textSecondary} />
           </TouchableOpacity>
-            <TouchableOpacity onPress={handleOpenNewPeriod} style={styles.iconButton}>
-            <Ionicons name="add-circle-outline" size={22} color={Colors.moss} />
-          </TouchableOpacity>
+           {!readOnly && (
+            <>
+              <TouchableOpacity onPress={handleEditPeriod} style={styles.iconButton}>
+                <Ionicons name="pencil" size={22} color={Colors.textSecondary} />
+              </TouchableOpacity>
+              <TouchableOpacity onPress={handleOpenNewPeriod} style={styles.iconButton}>
+                <Ionicons name="add-circle-outline" size={22} color={Colors.moss} />
+              </TouchableOpacity>
+            </>
+          )}
           <TouchableOpacity onPress={handleLogout} style={styles.iconButton}>
             <Ionicons name="log-out-outline" size={22} color={Colors.evergreen} />
           </TouchableOpacity>
@@ -1067,5 +1183,12 @@ const styles = StyleSheet.create({
     fontSize: 16,
     color: Colors.moss,
     fontWeight: '600',
+  },
+   periodItem: {
+    paddingVertical: 8,
+  },
+  periodItemText: {
+    fontSize: 16,
+    color: Colors.textPrimary,
   },
 });
