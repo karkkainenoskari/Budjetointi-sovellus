@@ -81,6 +81,15 @@ export default function BudjettiScreen() {
     ? Math.max(budgetPeriod.totalAmount - totalAllocated, 0)
     : 0;
 
+      // Kokonaisbudjetista jäljellä / käytetty
+  const totalSpentAll = Object.values(expensesByCategory).reduce(
+    (sum, val) => sum + val,
+    0
+  );
+  const budgetLeftOverall = budgetPeriod
+    ? budgetPeriod.totalAmount - totalSpentAll
+    : 0;
+
   // ─── Fetch current budget period ────────────────────────────────────
   useEffect(() => {
     if (!userId) return;
@@ -339,6 +348,44 @@ export default function BudjettiScreen() {
     );
   };
 
+   // ─── Add expense to category ────────────────────────────────────────
+  const handleAddExpenseToCategory = (categoryId: string) => {
+    if (!userId) return;
+    Alert.prompt(
+      'Lisää kulu',
+      'Syötä summa (€):',
+      [
+        { text: 'Peruuta', style: 'cancel' },
+        {
+          text: 'Tallenna',
+          onPress: async (input) => {
+            const amount = parseFloat((input || '').replace(',', '.'));
+            if (isNaN(amount) || amount <= 0) {
+              Alert.alert('Virhe', 'Anna kelvollinen summa');
+              return;
+            }
+            try {
+              await addExpense(userId, {
+                categoryId,
+                amount,
+                date: new Date(),
+                description: '',
+              });
+              setExpensesByCategory((prev) => ({
+                ...prev,
+                [categoryId]: (prev[categoryId] || 0) + amount,
+              }));
+            } catch (e) {
+              console.error('addExpense virhe:', e);
+              Alert.alert('Virhe', 'Kulun lisääminen epäonnistui');
+            }
+          },
+        },
+      ],
+      'plain-text'
+    );
+  };
+
   // ─── Edit budget period ─────────────────────────────────────────────
   const handleEditPeriod = () => {
     if (!budgetPeriod || !userId) return;
@@ -471,6 +518,18 @@ export default function BudjettiScreen() {
             >
               <Ionicons name="trash-outline" size={16} color={Colors.evergreen} />
             </TouchableOpacity>
+             {selectedTab === 'spent' && (
+              <TouchableOpacity
+                onPress={() => handleAddExpenseToCategory(item.id)}
+                style={styles.iconButtonSmall}
+              >
+                <Ionicons
+                  name="add-circle-outline"
+                  size={16}
+                  color={Colors.moss}
+                />
+              </TouchableOpacity>
+            )}
           </View>
 
 
@@ -501,19 +560,31 @@ export default function BudjettiScreen() {
                       color={Colors.textSecondary}
                     />
                   </TouchableOpacity>
+                   <TouchableOpacity
+                  onPress={() => handleDeleteCategory(sub.id)}
+                  style={styles.iconButtonSmall}
+                >
+                  <Ionicons
+                    name="trash-outline"
+                    size={16}
+                    color={Colors.evergreen}
+                  />
+                </TouchableOpacity>
+                {selectedTab === 'spent' && (
                   <TouchableOpacity
-                    onPress={() => handleDeleteCategory(sub.id)}
+                     onPress={() => handleAddExpenseToCategory(sub.id)}
                     style={styles.iconButtonSmall}
                   >
                     <Ionicons
-                      name="trash-outline"
+                      name="add-circle-outline"
                       size={16}
-                      color={Colors.evergreen}
+                      color={Colors.moss}
                     />
                   </TouchableOpacity>
-                </View>
-                <Text style={styles.subCategoryValue}>{subValue} €</Text>
+                   )}
               </View>
+              <Text style={styles.subCategoryValue}>{subValue} €</Text>
+            </View>
             );
           })}
 
@@ -711,6 +782,15 @@ export default function BudjettiScreen() {
       <View style={styles.unallocatedContainer}>
         <Text style={styles.unallocatedText}>Budjetoimatta: {unallocated} €</Text>
       </View>
+
+      {selectedTab === 'left' && (
+        <View style={styles.unallocatedContainer}>
+          <Text style={styles.unallocatedText}>
+            Jäljellä yhteensä: {budgetLeftOverall} €
+          </Text>
+        </View>
+      )}
+
 
       {/* ─── Tilannevälilehdet ────────────────────────────────────────── */}
       <View style={styles.tabsContainer}>
