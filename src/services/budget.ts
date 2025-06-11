@@ -5,6 +5,7 @@ import {
   setDoc,
   getDoc,
   serverTimestamp,
+  collection,
 } from 'firebase/firestore';
 import { firestore } from '../api/firebaseConfig';
 import { getActiveRecurringExpenses } from './recurringExpenses';
@@ -70,15 +71,11 @@ export async function saveBudgetPeriodToHistory(
   info: { startDate: any; endDate: any; totalAmount: number }
 ): Promise<void> {
   if (!userId) return;
-  const docRef = doc(
-    firestore,
-    'budjetit',
-    userId,
-    'history',
-    periodId,
+   const historySettingsRef = doc(
+    collection(firestore, 'budjetit', userId, 'history', periodId),
     'settings'
   );
-  await setDoc(docRef, { ...info, createdAt: serverTimestamp() });
+  await setDoc(historySettingsRef, { ...info, createdAt: serverTimestamp() });
 }
 
 /**
@@ -90,11 +87,7 @@ export async function getBudgetPeriodFromHistory(
 ): Promise<BudgetPeriod | null> {
   if (!userId) return null;
   const docRef = doc(
-    firestore,
-    'budjetit',
-    userId,
-    'history',
-    periodId,
+    collection(firestore, 'budjetit', userId, 'history', periodId),
     'settings'
   );
   const snap = await getDoc(docRef);
