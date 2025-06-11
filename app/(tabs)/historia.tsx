@@ -9,12 +9,14 @@ import {
   Alert,
   SafeAreaView,
 } from 'react-native';
+import { Ionicons } from '@expo/vector-icons';
 import { auth } from '../../src/api/firebaseConfig';
 import {
   getHistoryMonths,
   getHistoryCategories,
   copyPreviousMonthCategories,
 } from '../../src/services/history';
+import { deleteBudgetPeriod } from '../../src/services/budget';
 import { getExpensesByPeriod, Expense } from '../../src/services/expenses';
 import Colors from '../../constants/Colors';
 import { Category } from '../../src/services/categories';
@@ -79,6 +81,27 @@ export default function HistoriaScreen() {
     }
   };
 
+  const handleDeleteMonth = (m: string) => {
+    if (!userId) return;
+    Alert.alert('Poista jakso', `Poistetaanko jakso ${m}?`, [
+      { text: 'Peruuta', style: 'cancel' },
+      {
+        text: 'Poista',
+        style: 'destructive',
+        onPress: async () => {
+          try {
+            await deleteBudgetPeriod(userId, m);
+            setMonths((prev) => prev.filter((mon) => mon !== m));
+          } catch (e) {
+            console.error('deleteBudgetPeriod error:', e);
+            Alert.alert('Virhe', 'Poistaminen epäonnistui.');
+          }
+        },
+      },
+    ]);
+  };
+
+
   if (!userId) {
     return (
       <View style={styles.loaderContainer}>
@@ -108,9 +131,17 @@ export default function HistoriaScreen() {
           const data = monthData[item];
           return (
             <View style={styles.monthCard}>
-              <TouchableOpacity onPress={() => toggleMonth(item)}>
-                <Text style={styles.monthTitle}>{item}</Text>
-              </TouchableOpacity>
+               <View style={styles.monthHeader}>
+                <TouchableOpacity onPress={() => toggleMonth(item)} style={{ flex: 1 }}>
+                  <Text style={styles.monthTitle}>{item}</Text>
+                </TouchableOpacity>
+                <TouchableOpacity
+                  onPress={() => handleDeleteMonth(item)}
+                  style={styles.iconButtonSmall}
+                >
+                  <Ionicons name="trash-outline" size={18} color={Colors.evergreen} />
+                </TouchableOpacity>
+              </View>
               {expanded === item && (
                 <View style={styles.monthContent}>
                   {data?.loading ? (
@@ -169,10 +200,18 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: Colors.border,
   },
+   monthHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+  },
   monthTitle: {
     fontSize: 18,
     fontWeight: '600',
     color: Colors.textPrimary,
+  },
+  iconButtonSmall: {
+    marginLeft: 8,
   },
   monthContent: {
     marginTop: 8,

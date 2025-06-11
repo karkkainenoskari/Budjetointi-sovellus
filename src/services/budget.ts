@@ -6,6 +6,8 @@ import {
   getDoc,
   serverTimestamp,
   collection,
+  deleteDoc,
+  getDocs,
 } from 'firebase/firestore';
 import { firestore } from '../api/firebaseConfig';
 import { getActiveRecurringExpenses } from './recurringExpenses';
@@ -72,8 +74,11 @@ export async function saveBudgetPeriodToHistory(
 ): Promise<void> {
   if (!userId) return;
    const historySettingsRef = doc(
-    collection(firestore, 'budjetit', userId, 'history', periodId),
-    'settings'
+    firestore,
+    'budjetit',
+    userId,
+    'history',
+    periodId,
   );
   await setDoc(historySettingsRef, { ...info, createdAt: serverTimestamp() });
 }
@@ -87,8 +92,11 @@ export async function getBudgetPeriodFromHistory(
 ): Promise<BudgetPeriod | null> {
   if (!userId) return null;
   const docRef = doc(
-    collection(firestore, 'budjetit', userId, 'history', periodId),
-    'settings'
+    firestore,
+    'budjetit',
+    userId,
+    'history',
+    periodId,
   );
   const snap = await getDoc(docRef);
   if (!snap.exists()) return null;
@@ -131,4 +139,32 @@ export async function startNewBudgetPeriod(
       description: exp.name,
     });
   }
+}
+
+/**
+ * Poista budjettijakso historiasta.
+ */
+export async function deleteBudgetPeriod(
+  userId: string,
+  periodId: string
+): Promise<void> {
+  if (!userId) return;
+
+  // Poista jakson kategoriat, jos niitä on tallennettu
+  const catsRef = collection(
+    firestore,
+    'budjetit',
+    userId,
+    'history',
+    periodId,
+    'categories'
+  );
+  const snap = await getDocs(catsRef);
+  for (const docSnap of snap.docs) {
+    await deleteDoc(doc(firestore, 'budjetit', userId, 'history', periodId, 'categories', docSnap.id));
+  }
+
+  // Poista itse jakso
+  const periodRef = doc(firestore, 'budjetit', userId, 'history', periodId);
+  await deleteDoc(periodRef);
 }
