@@ -83,6 +83,46 @@ export default function BudjettiScreen() {
   const [showPeriodModal, setShowPeriodModal] = useState<boolean>(false);
   const [currentPeriodId, setCurrentPeriodId] = useState<string>('');
 
+   const loadCurrentPeriod = async (active: { current: boolean }) => {
+    if (!userId) return;
+    try {
+      const bp = await getCurrentBudgetPeriod(userId);
+      if (!active.current) return;
+      if (!bp) {
+        setBudgetPeriod(null);
+        setViewPeriodId(null);
+        setCurrentPeriodId('');
+        setCategories([]);
+        setExpensesByCategory({});
+        setLoadingCategories(false);
+        setLoadingExpenses(false);
+        const months = await getHistoryMonths(userId);
+        months.sort();
+        months.reverse();
+        setAvailablePeriods(months);
+        return;
+      }
+      const period = {
+        startDate: bp.startDate.toDate(),
+        endDate: bp.endDate.toDate(),
+        totalAmount: bp.totalAmount,
+      };
+      setBudgetPeriod(period);
+      const id = `${period.startDate.getFullYear()}-${String(
+        period.startDate.getMonth() + 1
+      ).padStart(2, '0')}`;
+      setViewPeriodId(id);
+      setCurrentPeriodId(id);
+      const months = await getHistoryMonths(userId);
+      if (!months.includes(id)) months.push(id);
+      months.sort();
+      months.reverse();
+      setAvailablePeriods(months);
+    } catch (e) {
+      console.error('getCurrentBudgetPeriod virhe:', e);
+    }
+  };
+
   // Laske paljonko budjetista on vielä varaamatta pääkategorioihin
   const totalAllocated = categories
     .filter((cat) => cat.parentId === null)
@@ -105,71 +145,31 @@ export default function BudjettiScreen() {
   useEffect(() => {
     if (!userId) return;
 
+    const active = { current: true };
+
     setLoadingPeriod(true);
-    getCurrentBudgetPeriod(userId)
-
-     .then(async (bp) => {
-        if (!bp) {
-          setBudgetPeriod(null);
-          setViewPeriodId(null);
-          setCurrentPeriodId('');
-           setCategories([]);
-          setExpensesByCategory({});
-          setLoadingCategories(false);
-          setLoadingExpenses(false);
-          const months = await getHistoryMonths(userId);
-          months.sort();
-          months.reverse();
-          setAvailablePeriods(months);
-          return;
-      
-
-        }
-        const period = {
-          startDate: bp.startDate.toDate(),
-          endDate: bp.endDate.toDate(),
-          totalAmount: bp.totalAmount,
-        };
-        setBudgetPeriod(period);
-        const id = `${period.startDate.getFullYear()}-${String(
-          period.startDate.getMonth() + 1
-        ).padStart(2, '0')}`;
-        setViewPeriodId(id);
-        setCurrentPeriodId(id);
-        const months = await getHistoryMonths(userId);
-        if (!months.includes(id)) months.push(id);
-        months.sort();
-        months.reverse();
-        setAvailablePeriods(months);
-      })
-      .catch((e) => {
-        console.error('getCurrentBudgetPeriod virhe:', e);
-      })
-      .finally(() => {
-        setLoadingPeriod(false);
-      });
+    
+    loadCurrentPeriod(active).finally(() => {
+      if (active.current) setLoadingPeriod(false);
+    });
+    return () => {
+      active.current = false;
+    };
   }, [userId]);
 
    useFocusEffect(
     React.useCallback(() => {
-      if (!userId || !currentPeriodId) return;
-      let isActive = true;
-      const fetchMonths = async () => {
-        try {
-          const months = await getHistoryMonths(userId);
-          if (!months.includes(currentPeriodId)) months.push(currentPeriodId);
-          months.sort();
-          months.reverse();
-          if (isActive) setAvailablePeriods(months);
-        } catch (e) {
-          console.error('getHistoryMonths virhe:', e);
-        }
-      };
-      fetchMonths();
+      if (!userId) return;
+      const active = { current: true };
+      setLoadingPeriod(true);
+      loadCurrentPeriod(active).finally(() => {
+        if (active.current) setLoadingPeriod(false);
+      });
+      
       return () => {
-        isActive = false;
+        active.current = false;
       };
-    }, [userId, currentPeriodId])
+   }, [userId])
   );
 
   // ─── Fetch categories whenever userId or budgetPeriod changes ────────
