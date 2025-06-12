@@ -902,10 +902,14 @@ export default function BudjettiScreen() {
             </TouchableOpacity>
             <View style={styles.budgetPeriodContainer}>
               <Text style={styles.budgetPeriodText}>
-                {`Budjettijakso: ${budgetPeriod.startDate.getDate()}.${
-                  budgetPeriod.startDate.getMonth() + 1
-                } – ${budgetPeriod.endDate.getDate()}.${
-                  budgetPeriod.endDate.getMonth() + 1
+               {`Budjettijakso: ${
+                  viewPeriodId
+                    ? formatMonthRange(viewPeriodId)
+                    : `${budgetPeriod.startDate.getDate()}.${
+                        budgetPeriod.startDate.getMonth() + 1
+                      } – ${budgetPeriod.endDate.getDate()}.${
+                        budgetPeriod.endDate.getMonth() + 1
+                      }`
                 } (Total: ${budgetPeriod.totalAmount} €)`}
                 {readOnly && ' (arkisto)'}
               </Text>
