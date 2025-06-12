@@ -920,16 +920,12 @@ export default function BudjettiScreen() {
               </TouchableOpacity>
 
 
-              {!readOnly && (
-                <>
-                  <TouchableOpacity onPress={handleEditPeriod} style={styles.iconButton}>
-                    <Ionicons name="pencil" size={22} color={Colors.textSecondary} />
-                  </TouchableOpacity>
-                  <TouchableOpacity onPress={handleOpenNewPeriod} style={styles.iconButton}>
-                    <Ionicons name="add-circle-outline" size={22} color={Colors.moss} />
-                  </TouchableOpacity>
-                </>
-              )}
+               <TouchableOpacity onPress={handleEditPeriod} style={styles.iconButton}>
+                <Ionicons name="pencil" size={22} color={Colors.textSecondary} />
+              </TouchableOpacity>
+              <TouchableOpacity onPress={handleOpenNewPeriod} style={styles.iconButton}>
+                <Ionicons name="add-circle-outline" size={22} color={Colors.moss} />
+              </TouchableOpacity>
               <TouchableOpacity onPress={handleLogout} style={styles.iconButton}>
                 <Ionicons name="log-out-outline" size={22} color={Colors.evergreen} />
               </TouchableOpacity>
