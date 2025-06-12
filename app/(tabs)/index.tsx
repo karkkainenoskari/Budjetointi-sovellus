@@ -37,8 +37,9 @@ import {
   getCurrentBudgetPeriod,
   setCurrentBudgetPeriod,
   startNewBudgetPeriod,
-   getBudgetPeriodFromHistory,
+getBudgetPeriodFromHistory,
 } from '../../src/services/budget';
+import { formatMonthRange } from '@/src/utils';
 import { getHistoryMonths, getHistoryCategories } from '../../src/services/history';
 
 export default function BudjettiScreen() {
@@ -112,6 +113,10 @@ export default function BudjettiScreen() {
           setBudgetPeriod(null);
           setViewPeriodId(null);
           setCurrentPeriodId('');
+           setCategories([]);
+          setExpensesByCategory({});
+          setLoadingCategories(false);
+          setLoadingExpenses(false);
           const months = await getHistoryMonths(userId);
           months.sort();
           months.reverse();
@@ -736,7 +741,7 @@ export default function BudjettiScreen() {
                   onPress={() => handleSelectPeriod(item)}
                   style={styles.periodItem}
                 >
-                  <Text style={styles.periodItemText}>{item}</Text>
+                  <Text style={styles.periodItemText}>{formatMonthRange(item)}</Text>
                 </TouchableOpacity>
               )}
             />

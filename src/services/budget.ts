@@ -64,6 +64,14 @@ export async function getCurrentBudgetPeriod(
   };
 }
 
+/**
+ * Poista nykyisen budjettijakson tiedot kokonaan.
+ */
+export async function clearCurrentBudgetPeriod(userId: string): Promise<void> {
+  if (!userId) return;
+  const budgetDocRef = doc(firestore, 'budjetit', userId, 'currentBudget', 'settings');
+  await deleteDoc(budgetDocRef);
+}
 
 /**
  * Tallenna budjettijakson tiedot history-kokoelmaan.

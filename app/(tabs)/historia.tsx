@@ -16,7 +16,12 @@ import {
   getHistoryCategories,
   copyPreviousMonthCategories,
 } from '../../src/services/history';
-import { deleteBudgetPeriod, getCurrentBudgetPeriod } from '../../src/services/budget';
+import {
+  deleteBudgetPeriod,
+  getCurrentBudgetPeriod,
+  clearCurrentBudgetPeriod,
+} from '../../src/services/budget';
+import { formatMonthRange } from '@/src/utils';
 import { getExpensesByPeriod, Expense } from '../../src/services/expenses';
 import Colors from '../../constants/Colors';
 import { Category } from '../../src/services/categories';
@@ -29,6 +34,7 @@ export default function HistoriaScreen() {
   const [loadingMonths, setLoadingMonths] = useState<boolean>(true);
   const [expanded, setExpanded] = useState<string | null>(null);
   const [monthData, setMonthData] = useState<Record<string, {loading: boolean; categories: Category[]; expenses: Record<string, number>;}>>({});
+  const [currentPeriodId, setCurrentPeriodId] = useState<string | null>(null);
 
   useEffect(() => {
     if (!userId) return;
@@ -39,6 +45,9 @@ export default function HistoriaScreen() {
           const d = curr.startDate.toDate();
           const id = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`;
           if (!m.includes(id)) m.push(id);
+          setCurrentPeriodId(id);
+        } else {
+          setCurrentPeriodId(null);
         }
         m.sort();
         m.reverse();
@@ -97,6 +106,10 @@ export default function HistoriaScreen() {
           try {
             await deleteBudgetPeriod(userId, m);
             setMonths((prev) => prev.filter((mon) => mon !== m));
+             if (m === currentPeriodId) {
+              await clearCurrentBudgetPeriod(userId);
+              setCurrentPeriodId(null);
+            }
           } catch (e) {
             console.error('deleteBudgetPeriod error:', e);
             Alert.alert('Virhe', 'Poistaminen epäonnistui.');
@@ -138,7 +151,7 @@ export default function HistoriaScreen() {
             <View style={styles.monthCard}>
                <View style={styles.monthHeader}>
                 <TouchableOpacity onPress={() => toggleMonth(item)} style={{ flex: 1 }}>
-                  <Text style={styles.monthTitle}>{item}</Text>
+                  <Text style={styles.monthTitle}>{formatMonthRange(item)}</Text>
                 </TouchableOpacity>
                 <TouchableOpacity
                   onPress={() => handleDeleteMonth(item)}
