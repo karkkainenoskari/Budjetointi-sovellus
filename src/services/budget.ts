@@ -8,11 +8,12 @@ import {
   collection,
   deleteDoc,
   getDocs,
+  updateDoc,
 } from 'firebase/firestore';
 import { firestore } from '../api/firebaseConfig';
 import { getActiveRecurringExpenses } from './recurringExpenses';
 import { addExpense } from './expenses';
-import { copyPreviousMonthCategories } from './history';
+import { getCategories } from './categories';
 
 export interface BudgetPeriod {
   startDate: any; // Timestamp
@@ -107,6 +108,35 @@ export async function getBudgetPeriodFromHistory(
     createdAt: snap.data().createdAt,
   };
 }
+
+export async function archiveCurrentCategories(
+  userId: string,
+  periodId: string
+): Promise<void> {
+  if (!userId) return;
+  const categories = await getCategories(userId);
+  for (const cat of categories) {
+    const histRef = doc(
+      firestore,
+      'budjetit',
+      userId,
+      'history',
+      periodId,
+      'categories',
+      cat.id
+    );
+    await setDoc(histRef, {
+      title: cat.title,
+      allocated: cat.allocated,
+      parentId: cat.parentId,
+      type: cat.type,
+      createdAt: cat.createdAt || serverTimestamp(),
+    });
+
+    const catRef = doc(firestore, 'budjetit', userId, 'categories', cat.id);
+    await updateDoc(catRef, { allocated: 0 });
+  }
+}
 /**
  * Aloita uusi budjettijakso ja kopioi mukaan toistuvat menot
  * sekä edellisen kuukauden kategoriat.
@@ -125,10 +155,10 @@ export async function startNewBudgetPeriod(
       endDate: current.endDate,
       totalAmount: current.totalAmount,
     });
+    await archiveCurrentCategories(userId, id);
   }
   await setCurrentBudgetPeriod(userId, periodInfo);
 
-  await copyPreviousMonthCategories(userId);
 
   const recurring = await getActiveRecurringExpenses(userId);
   for (const exp of recurring) {

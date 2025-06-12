@@ -16,7 +16,7 @@ import {
   getHistoryCategories,
   copyPreviousMonthCategories,
 } from '../../src/services/history';
-import { deleteBudgetPeriod } from '../../src/services/budget';
+import { deleteBudgetPeriod, getCurrentBudgetPeriod } from '../../src/services/budget';
 import { getExpensesByPeriod, Expense } from '../../src/services/expenses';
 import Colors from '../../constants/Colors';
 import { Category } from '../../src/services/categories';
@@ -33,8 +33,13 @@ export default function HistoriaScreen() {
   useEffect(() => {
     if (!userId) return;
     setLoadingMonths(true);
-    getHistoryMonths(userId)
-      .then((m) => {
+    Promise.all([getHistoryMonths(userId), getCurrentBudgetPeriod(userId)])
+      .then(([m, curr]) => {
+        if (curr) {
+          const d = curr.startDate.toDate();
+          const id = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`;
+          if (!m.includes(id)) m.push(id);
+        }
         m.sort();
         m.reverse();
         setMonths(m);

@@ -16,6 +16,7 @@ import {
 import DateTimePicker from '@react-native-community/datetimepicker';
 import { Ionicons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
+import { useFocusEffect } from '@react-navigation/native';
 import { signOut } from 'firebase/auth';
 import { auth } from '../../src/api/firebaseConfig';
 import Colors from '../../constants/Colors';
@@ -105,31 +106,27 @@ export default function BudjettiScreen() {
 
     setLoadingPeriod(true);
     getCurrentBudgetPeriod(userId)
-       .then(async (bp) => {
-        let period;
-        if (bp) {
-          period = {
-            startDate: bp.startDate.toDate(),
-            endDate: bp.endDate.toDate(),
-            totalAmount: bp.totalAmount,
-           };
-          setBudgetPeriod(period);
-        } else {
-          // Jos ei ole tallennettua jaksoa, aseta oletukseksi nykyinen kalenterikuukausi ja totalAmount = 0
-          const now = new Date();
-          const start = new Date(now.getFullYear(), now.getMonth(), 1);
-          const end = new Date(now.getFullYear(), now.getMonth() + 1, 0);
-           period = { startDate: start, endDate: end, totalAmount: 0 };
-          setBudgetPeriod(period);
-          // Kirjoita Firestoreen oletusjaksoksi
-          return setCurrentBudgetPeriod(userId, {
-            startDate: start,
-            endDate: end,
-            totalAmount: 0,
-          });
+
+     .then(async (bp) => {
+        if (!bp) {
+          setBudgetPeriod(null);
+          setViewPeriodId(null);
+          setCurrentPeriodId('');
+          const months = await getHistoryMonths(userId);
+          months.sort();
+          months.reverse();
+          setAvailablePeriods(months);
+          return;
+      
 
         }
-         const id = `${period.startDate.getFullYear()}-${String(
+        const period = {
+          startDate: bp.startDate.toDate(),
+          endDate: bp.endDate.toDate(),
+          totalAmount: bp.totalAmount,
+        };
+        setBudgetPeriod(period);
+        const id = `${period.startDate.getFullYear()}-${String(
           period.startDate.getMonth() + 1
         ).padStart(2, '0')}`;
         setViewPeriodId(id);
@@ -147,6 +144,28 @@ export default function BudjettiScreen() {
         setLoadingPeriod(false);
       });
   }, [userId]);
+
+   useFocusEffect(
+    React.useCallback(() => {
+      if (!userId || !currentPeriodId) return;
+      let isActive = true;
+      const fetchMonths = async () => {
+        try {
+          const months = await getHistoryMonths(userId);
+          if (!months.includes(currentPeriodId)) months.push(currentPeriodId);
+          months.sort();
+          months.reverse();
+          if (isActive) setAvailablePeriods(months);
+        } catch (e) {
+          console.error('getHistoryMonths virhe:', e);
+        }
+      };
+      fetchMonths();
+      return () => {
+        isActive = false;
+      };
+    }, [userId, currentPeriodId])
+  );
 
   // ─── Fetch categories whenever userId or budgetPeriod changes ────────
   useEffect(() => {
@@ -858,100 +877,107 @@ export default function BudjettiScreen() {
         </View>
       </Modal>
 
-      {/* ─── Budjetti‐header ──────────────────────────────────────────── */}
-      <View style={styles.headerContainer}>
-        <TouchableOpacity
-          onPress={() => router.push('/valikko')}
-          style={styles.hamburgerButton}
-        >
-          <Ionicons name="menu-outline" size={26} color={Colors.evergreen} />
-        </TouchableOpacity>
-        <View style={styles.budgetPeriodContainer}>
-          <Text style={styles.budgetPeriodText}>
-            {budgetPeriod
-              ? `Budjettijakso: ${budgetPeriod.startDate.getDate()}.${budgetPeriod.startDate.getMonth() + 1} – ${budgetPeriod.endDate.getDate()}.${budgetPeriod.endDate.getMonth() + 1} (Total: ${budgetPeriod.totalAmount} €)`
-              : 'Budjettijakso: latautuu…'}
-               {readOnly && ' (arkisto)'}
-          </Text>
-        </View>
-        <View style={styles.headerIcons}>
-         <TouchableOpacity onPress={() => setShowPeriodModal(true)} style={styles.iconButton}>
-            <Ionicons name="calendar-outline" size={22} color={Colors.textSecondary} />
+    {!budgetPeriod ? (
+        <View style={styles.noPeriodContainer}>
+          <Text style={styles.noPeriodText}>Ei budjettijaksoa</Text>
+          <TouchableOpacity onPress={handleOpenNewPeriod} style={styles.modalButton}>
+            <Text style={styles.modalButtonText}>Luo budjettijakso</Text>
           </TouchableOpacity>
-           {!readOnly && (
-            <>
-              <TouchableOpacity onPress={handleEditPeriod} style={styles.iconButton}>
-                <Ionicons name="pencil" size={22} color={Colors.textSecondary} />
+          
+               </View>
+      ) : (
+        <>
+          {/* ─── Budjetti‐header ──────────────────────────────────────────── */}
+          <View style={styles.headerContainer}>
+            <TouchableOpacity
+              onPress={() => router.push('/valikko')}
+              style={styles.hamburgerButton}
+            >
+              <Ionicons name="menu-outline" size={26} color={Colors.evergreen} />
+            </TouchableOpacity>
+            <View style={styles.budgetPeriodContainer}>
+              <Text style={styles.budgetPeriodText}>
+                {`Budjettijakso: ${budgetPeriod.startDate.getDate()}.${
+                  budgetPeriod.startDate.getMonth() + 1
+                } – ${budgetPeriod.endDate.getDate()}.${
+                  budgetPeriod.endDate.getMonth() + 1
+                } (Total: ${budgetPeriod.totalAmount} €)`}
+                {readOnly && ' (arkisto)'}
+              </Text>
+            </View>
+            <View style={styles.headerIcons}>
+              <TouchableOpacity onPress={() => setShowPeriodModal(true)} style={styles.iconButton}>
+                <Ionicons name="calendar-outline" size={22} color={Colors.textSecondary} />
               </TouchableOpacity>
-              <TouchableOpacity onPress={handleOpenNewPeriod} style={styles.iconButton}>
-                <Ionicons name="add-circle-outline" size={22} color={Colors.moss} />
+
+
+              {!readOnly && (
+                <>
+                  <TouchableOpacity onPress={handleEditPeriod} style={styles.iconButton}>
+                    <Ionicons name="pencil" size={22} color={Colors.textSecondary} />
+                  </TouchableOpacity>
+                  <TouchableOpacity onPress={handleOpenNewPeriod} style={styles.iconButton}>
+                    <Ionicons name="add-circle-outline" size={22} color={Colors.moss} />
+                  </TouchableOpacity>
+                </>
+              )}
+              <TouchableOpacity onPress={handleLogout} style={styles.iconButton}>
+                <Ionicons name="log-out-outline" size={22} color={Colors.evergreen} />
               </TouchableOpacity>
-            </>
+
+             </View> 
+          </View>
+          {/* Näytä jäljellä budjetoitava määrä */}
+          <View style={styles.unallocatedContainer}>
+            <Text style={styles.unallocatedText}>Budjetoimatta: {unallocated} €</Text>
+          </View>
+
+          {selectedTab === 'left' && (
+            <View style={styles.unallocatedContainer}>
+              <Text style={styles.unallocatedText}>Jäljellä yhteensä: {budgetLeftOverall} €</Text>
+            </View>
           )}
-          <TouchableOpacity onPress={handleLogout} style={styles.iconButton}>
-            <Ionicons name="log-out-outline" size={22} color={Colors.evergreen} />
-          </TouchableOpacity>
-        </View>
-      </View>
 
-       {/* Näytä jäljellä budjetoitava määrä */}
-      <View style={styles.unallocatedContainer}>
-        <Text style={styles.unallocatedText}>Budjetoimatta: {unallocated} €</Text>
-      </View>
+          {/* ─── Tilannevälilehdet ────────────────────────────────────────── */}
+          <View style={styles.tabsContainer}>
+            <TouchableOpacity
+              style={[styles.tabButton, selectedTab === 'plan' && styles.tabButtonSelected]}
+              onPress={() => setSelectedTab('plan')}
+            >
+              <Text style={[styles.tabText, selectedTab === 'plan' && styles.tabTextSelected]}>Suunnitelma</Text>
+            </TouchableOpacity>
+            <TouchableOpacity
+              style={[styles.tabButton, selectedTab === 'spent' && styles.tabButtonSelected]}
+              onPress={() => setSelectedTab('spent')}
+            >
+              <Text style={[styles.tabText, selectedTab === 'spent' && styles.tabTextSelected]}>Käytetty</Text>
+            </TouchableOpacity>
+            <TouchableOpacity
+              style={[styles.tabButton, selectedTab === 'left' && styles.tabButtonSelected]}
+              onPress={() => setSelectedTab('left')}
+            >
+              <Text style={[styles.tabText, selectedTab === 'left' && styles.tabTextSelected]}>Jäljellä</Text>
+            </TouchableOpacity>
+          </View>
 
-      {selectedTab === 'left' && (
-        <View style={styles.unallocatedContainer}>
-          <Text style={styles.unallocatedText}>
-            Jäljellä yhteensä: {budgetLeftOverall} €
-          </Text>
-        </View>
+          {/* ─── Pääkategoriat‐otsikko + Lisää ──────────────────────────────── */}
+          <View style={styles.mainCategoryHeader}>
+            <Text style={styles.mainCategoryTitle}>Pääkategoriat</Text>
+            <TouchableOpacity style={styles.addMainCategoryButton} onPress={handleAddMainCategory}>
+              <Ionicons name="add-circle-outline" size={20} color={Colors.moss} />
+              <Text style={styles.addMainCategoryText}>Lisää kategoria</Text>
+            </TouchableOpacity>
+          </View>
+
+          {/* ─── Kategoriat FlatListillä ─────────────────────────────────── */}
+          <FlatList
+            data={categories}
+            keyExtractor={(item) => item.id}
+            renderItem={renderCategoryItem}
+            contentContainerStyle={styles.listContent}
+          />
+        </>
       )}
-
-
-      {/* ─── Tilannevälilehdet ────────────────────────────────────────── */}
-      <View style={styles.tabsContainer}>
-        <TouchableOpacity
-          style={[styles.tabButton, selectedTab === 'plan' && styles.tabButtonSelected]}
-          onPress={() => setSelectedTab('plan')}
-        >
-          <Text style={[styles.tabText, selectedTab === 'plan' && styles.tabTextSelected]}>
-            Suunnitelma
-          </Text>
-        </TouchableOpacity>
-        <TouchableOpacity
-          style={[styles.tabButton, selectedTab === 'spent' && styles.tabButtonSelected]}
-          onPress={() => setSelectedTab('spent')}
-        >
-          <Text style={[styles.tabText, selectedTab === 'spent' && styles.tabTextSelected]}>
-            Käytetty
-          </Text>
-        </TouchableOpacity>
-        <TouchableOpacity
-          style={[styles.tabButton, selectedTab === 'left' && styles.tabButtonSelected]}
-          onPress={() => setSelectedTab('left')}
-        >
-          <Text style={[styles.tabText, selectedTab === 'left' && styles.tabTextSelected]}>
-            Jäljellä
-          </Text>
-        </TouchableOpacity>
-      </View>
-
-      {/* ─── Pääkategoriat‐otsikko + Lisää ──────────────────────────────── */}
-      <View style={styles.mainCategoryHeader}>
-        <Text style={styles.mainCategoryTitle}>Pääkategoriat</Text>
-        <TouchableOpacity style={styles.addMainCategoryButton} onPress={handleAddMainCategory}>
-          <Ionicons name="add-circle-outline" size={20} color={Colors.moss} />
-          <Text style={styles.addMainCategoryText}>Lisää kategoria</Text>
-        </TouchableOpacity>
-      </View>
-
-      {/* ─── Kategoriat FlatListillä ─────────────────────────────────── */}
-      <FlatList
-        data={categories}
-        keyExtractor={(item) => item.id}
-        renderItem={renderCategoryItem}
-        contentContainerStyle={styles.listContent}
-      />
     </SafeAreaView>
   );
 }
@@ -1184,7 +1210,18 @@ const styles = StyleSheet.create({
     color: Colors.moss,
     fontWeight: '600',
   },
-   periodItem: {
+    noPeriodContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    paddingHorizontal: 16,
+  },
+  noPeriodText: {
+    fontSize: 18,
+    color: Colors.textPrimary,
+    marginBottom: 12,
+  },
+  periodItem: {
     paddingVertical: 8,
   },
   periodItemText: {
