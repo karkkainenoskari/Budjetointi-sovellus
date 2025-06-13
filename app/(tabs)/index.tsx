@@ -715,9 +715,7 @@ export default function BudjettiScreen() {
           )}
         </View>
 
-        <View style={styles.categoryRight}>
-          <Text style={styles.categoryValue}>{mainValue} €</Text>
-        </View>
+         {/* Kokonaissumma näytetään vain alakategorioiden "Yhteensä"-rivillä */}
       </View>
     );
   };
