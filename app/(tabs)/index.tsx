@@ -124,13 +124,11 @@ export default function BudjettiScreen() {
     }
   };
 
-  // Laske paljonko budjetista on vielä varaamatta pääkategorioihin
+ // Kokonaissummat
   const totalAllocated = categories
     .filter((cat) => cat.parentId === null)
     .reduce((sum, cat) => sum + cat.allocated, 0);
-  const unallocated = budgetPeriod
-    ? Math.max(budgetPeriod.totalAmount - totalAllocated, 0)
-    : 0;
+ 
 
       // Kokonaisbudjetista jäljellä / käytetty
   const totalSpentAll = Object.values(expensesByCategory).reduce(
@@ -569,11 +567,15 @@ export default function BudjettiScreen() {
   const renderCategoryItem = ({ item }: { item: Category }) => {
     if (item.parentId !== null) return null;
 
-    // Laske pääkategorian yhteiset kulut (myös alakategoriat)
-     let totalAllocatedForMain = item.allocated;
+     // Laske pääkategorian varatut ja käytetyt summat alakategoriat huomioiden
+    let totalAllocatedForMain = item.allocated;
     let totalSpentForMain = 0;
     categories.forEach((cat) => {
       if (cat.parentId === item.id) {
+        // Älä lisää "yhteensä"-riviä varattuihin summiin
+        if (!cat.title.toLowerCase().includes('yhteensä')) {
+          totalAllocatedForMain += cat.allocated;
+        }
         totalSpentForMain += expensesByCategory[cat.id] || 0;
       }
     });
@@ -585,14 +587,13 @@ export default function BudjettiScreen() {
     let mainLabel: string;
 
     if (selectedTab === 'plan') {
-       mainValue = totalAllocatedForMain;
-      mainLabel = 'Suunniteltu';
+      mainValue = totalAllocatedForMain;
     } else if (selectedTab === 'spent') {
       mainValue = spent;
-      mainLabel = 'Käytetty';
+
     } else {
       mainValue = left;
-      mainLabel = 'Jäljellä';
+
     }
 
     const subCategories = categories.filter((c) => c.parentId === item.id);
@@ -605,12 +606,7 @@ export default function BudjettiScreen() {
            
           {!readOnly && (
             <>
-              <TouchableOpacity
-                onPress={() => handleEditCategory(item.id, item.title, item.allocated)}
-                style={styles.iconButtonSmall}
-              >
-                <Ionicons name="pencil-outline" size={16} color={Colors.textSecondary} />
-              </TouchableOpacity>
+              
               <TouchableOpacity
                 onPress={() => handleDeleteCategory(item.id)}
                 style={styles.iconButtonSmall}
@@ -720,7 +716,6 @@ export default function BudjettiScreen() {
         </View>
 
         <View style={styles.categoryRight}>
-          <Text style={styles.categoryValueLabel}>{mainLabel}</Text>
           <Text style={styles.categoryValue}>{mainValue} €</Text>
         </View>
       </View>
@@ -956,17 +951,14 @@ export default function BudjettiScreen() {
 
              </View> 
           </View>
-          {/* Näytä jäljellä budjetoitava määrä */}
+           {/* Kokonaissummat */}
           <View style={styles.unallocatedContainer}>
-            <Text style={styles.unallocatedText}>Budjetoimatta: {unallocated} €</Text>
+             <Text style={styles.unallocatedText}>Lainat yhteensä: {totalAllocated} €</Text>
+            <Text style={styles.unallocatedText}>Käytetty yhteensä: {totalSpentAll} €</Text>
+            <Text style={styles.unallocatedText}>Jäljellä yhteensä: {budgetLeftOverall} €</Text>
           </View>
 
-          {selectedTab === 'left' && (
-            <View style={styles.unallocatedContainer}>
-              <Text style={styles.unallocatedText}>Jäljellä yhteensä: {budgetLeftOverall} €</Text>
-            </View>
-          )}
-
+         
           {/* ─── Tilannevälilehdet ────────────────────────────────────────── */}
           <View style={styles.tabsContainer}>
             <TouchableOpacity
@@ -1182,10 +1174,7 @@ const styles = StyleSheet.create({
     alignItems: 'flex-end',
     justifyContent: 'center',
   },
-  categoryValueLabel: {
-    fontSize: 12,
-    color: Colors.textSecondary,
-  },
+ 
   categoryValue: {
     fontSize: 20,
     fontWeight: '600',
