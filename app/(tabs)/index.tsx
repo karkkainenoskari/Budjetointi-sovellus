@@ -642,8 +642,19 @@ export default function BudjettiScreen() {
               subValue = subLeft;
             }
 
-             const isTotalRow = sub.title.toLowerCase().includes('yhteensä');
+            const isTotalRow = sub.title.toLowerCase().includes('yhteensä');
             const displayValue = isTotalRow ? mainValue : subValue;
+
+            let subTitle = sub.title;
+            if (isTotalRow) {
+              if (selectedTab === 'plan') {
+                subTitle = 'Lainat yhteensä';
+              } else if (selectedTab === 'spent') {
+                subTitle = 'Käytetty yhteensä';
+              } else {
+                subTitle = 'Jäljellä yhteensä';
+              }
+            }
 
             return (
               <View key={sub.id} style={styles.subCategoryRow}>
@@ -654,7 +665,7 @@ export default function BudjettiScreen() {
                       isTotalRow && styles.subCategoryTotalTitle,
                     ]}
                   >
-                    {sub.title}
+                    {subTitle}
                   </Text>
                    {!readOnly && (
                     <>
@@ -951,9 +962,21 @@ export default function BudjettiScreen() {
           </View>
            {/* Kokonaissummat */}
           <View style={styles.unallocatedContainer}>
-             <Text style={styles.unallocatedText}>Lainat yhteensä: {totalAllocated} €</Text>
-            <Text style={styles.unallocatedText}>Käytetty yhteensä: {totalSpentAll} €</Text>
-            <Text style={styles.unallocatedText}>Jäljellä yhteensä: {budgetLeftOverall} €</Text>
+            {selectedTab === 'plan' && (
+              <Text style={styles.unallocatedText}>
+                Lainat yhteensä: {totalAllocated} €
+              </Text>
+            )}
+            {selectedTab === 'spent' && (
+              <Text style={styles.unallocatedText}>
+                Käytetty yhteensä: {totalSpentAll} €
+              </Text>
+            )}
+            {selectedTab === 'left' && (
+              <Text style={styles.unallocatedText}>
+                Jäljellä yhteensä: {budgetLeftOverall} €
+              </Text>
+            )}
           </View>
 
          
