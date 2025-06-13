@@ -26,6 +26,7 @@ import {
   addCategory,
   updateCategory,
   deleteCategory,
+   seedDefaultCategories,
   Category,
 } from '../../src/services/categories';
 import {
@@ -513,7 +514,11 @@ export default function BudjettiScreen() {
         endDate: newPeriodEnd,
         totalAmount: total,
       });
-      const updatedCats = await getCategories(userId);
+       let updatedCats = await getCategories(userId);
+      if (updatedCats.length === 0) {
+        await seedDefaultCategories(userId);
+        updatedCats = await getCategories(userId);
+      }
       setCategories(updatedCats);
        const id = `${newPeriodStart.getFullYear()}-${String(
         newPeriodStart.getMonth() + 1
@@ -565,6 +570,7 @@ export default function BudjettiScreen() {
     if (item.parentId !== null) return null;
 
     // Laske pääkategorian yhteiset kulut (myös alakategoriat)
+     let totalAllocatedForMain = item.allocated;
     let totalSpentForMain = 0;
     categories.forEach((cat) => {
       if (cat.parentId === item.id) {
@@ -574,12 +580,12 @@ export default function BudjettiScreen() {
     totalSpentForMain += expensesByCategory[item.id] || 0;
 
     const spent = totalSpentForMain;
-    const left = item.allocated - spent;
+     const left = totalAllocatedForMain - spent;
     let mainValue: number;
     let mainLabel: string;
 
     if (selectedTab === 'plan') {
-      mainValue = item.allocated;
+       mainValue = totalAllocatedForMain;
       mainLabel = 'Suunniteltu';
     } else if (selectedTab === 'spent') {
       mainValue = spent;
@@ -628,7 +634,7 @@ export default function BudjettiScreen() {
           </View>
 
 
-{subCategories.map((sub) => {
+ {subCategories.map((sub) => {
             const subSpent = expensesByCategory[sub.id] || 0;
             const subLeft = sub.allocated - subSpent;
             let subValue: number;
@@ -639,10 +645,21 @@ export default function BudjettiScreen() {
             } else {
               subValue = subLeft;
             }
+
+             const isTotalRow = sub.title.toLowerCase().includes('yhteensä');
+            const displayValue = isTotalRow ? mainValue : subValue;
+
             return (
               <View key={sub.id} style={styles.subCategoryRow}>
                 <View style={styles.subCategoryLeft}>
-                  <Text style={styles.subCategoryTitle}>{sub.title}</Text>
+                   <Text
+                    style={[
+                      styles.subCategoryTitle,
+                      isTotalRow && styles.subCategoryTotalTitle,
+                    ]}
+                  >
+                    {sub.title}
+                  </Text>
                    {!readOnly && (
                     <>
                       <TouchableOpacity
@@ -683,7 +700,14 @@ export default function BudjettiScreen() {
                   )}
                  
               </View>
-              <Text style={styles.subCategoryValue}>{subValue} €</Text>
+              <Text
+                style={[
+                  styles.subCategoryValue,
+                  isTotalRow && styles.subCategoryTotalValue,
+                ]}
+              >
+                {displayValue} €
+              </Text>
             </View>
             );
           })}
@@ -1140,8 +1164,18 @@ const styles = StyleSheet.create({
     fontSize: 16,
     color: Colors.textPrimary,
   },
+  subCategoryTotalTitle: {
+    fontSize: 16,
+    fontWeight: '600',
+    color: Colors.textPrimary,
+  },
   subCategoryValue: {
     fontSize: 16,
+    color: Colors.textPrimary,
+  },
+   subCategoryTotalValue: {
+    fontSize: 16,
+    fontWeight: '600',
     color: Colors.textPrimary,
   },
   categoryRight: {

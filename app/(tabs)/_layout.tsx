@@ -1,5 +1,3 @@
-// app/(tabs)/_layout.tsx
-
 import React from 'react';
 import { Tabs } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
@@ -15,6 +13,11 @@ export default function TabsLayout() {
         tabBarStyle: {
           backgroundColor: Colors.background,
           borderTopColor: Colors.border,
+          justifyContent: 'space-evenly',
+        },
+        tabBarItemStyle: {
+          flex: 1,
+          alignItems: 'center',
         },
       }}
     >
@@ -28,7 +31,8 @@ export default function TabsLayout() {
           ),
         }}
       />
-         {/* Historia-välilehti */}
+
+      {/* Historia-välilehti */}
       <Tabs.Screen
         name="historia"
         options={{
@@ -38,7 +42,6 @@ export default function TabsLayout() {
           ),
         }}
       />
-
 
       {/* Tavoitteet‐välilehti */}
       <Tabs.Screen
@@ -50,7 +53,7 @@ export default function TabsLayout() {
           ),
         }}
       />
-      
+
       {/* Lisää kulu ‐välilehti */}
       <Tabs.Screen
         name="addExpense"
@@ -59,6 +62,14 @@ export default function TabsLayout() {
           tabBarIcon: ({ color, size }) => (
             <Ionicons name="add-circle-outline" size={size} color={color} />
           ),
+        }}
+      />
+
+      {/* Piilota automaattisesti generoitu Valikko-välilehti */}
+      <Tabs.Screen
+        name="valikko"
+        options={{
+          tabBarButton: () => null,
         }}
       />
     </Tabs>

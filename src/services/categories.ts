@@ -122,11 +122,72 @@ export interface DefaultCategory {
 }
 
 export const DEFAULT_CATEGORIES: DefaultCategory[] = [
-  { title: 'Asuminen', subs: ['Vuokra', 'Sähkö', 'Vesi'] },
-  { title: 'Ruoka', subs: ['Ruokakauppa', 'Ravintolat'] },
-  { title: 'Liikkuminen', subs: ['Julkinen liikenne', 'Polttoaine'] },
-  { title: 'Vapaa-aika', subs: ['Harrastukset', 'Viihde'] },
-  { title: 'Säästäminen' },
+  {
+    title: 'Lainat',
+    subs: [
+      'Asuntolaina',
+      'Taloyhtiölaina',
+      'Opintolaina',
+      'Autolaina',
+      'Kulutusluotto',
+      'Luottokortti',
+      'Lainat yhteensä',
+    ],
+  },
+  {
+    title: 'Asuminen',
+    subs: ['Yhtiövastike/vuokra', 'Vesi', 'Sähkö', 'Asuminen yhteensä'],
+  },
+  {
+    title: 'Vakuutukset',
+    subs: ['Kotivakuutus', 'Autovakuutus', 'Sairauskuluvakuutus', 'Vakuutukset yhteensä'],
+  },
+  {
+    title: 'Ruoka',
+    subs: ['Ruokakauppa', 'Ulkona syönti', 'Tilausruoka', 'Ruoka yhteensä'],
+  },
+  {
+    title: 'Liikenne',
+    subs: [
+      'Bensa',
+      'Bussi',
+      'Autohuolto- ja renkaanvaihdot',
+      'Pysäköintimaksut',
+      'Ajoneuvovero',
+      'Liikenne yhteensä',
+    ],
+  },
+  {
+    title: 'Harrastukset',
+    subs: ['Kuntosali', 'Padel', 'Harrastukset yhteensä'],
+  },
+  {
+    title: 'Terveys',
+    subs: ['Lääkäri', 'Lääkkeet', 'Hieroja', 'Terveydenhuolto yhteensä'],
+  },
+  {
+    title: 'Kauneus',
+    subs: ['Kampaaja/parturi', 'Meikit', 'Ihonhoito', 'Kauneudenhoito yhteensä'],
+  },
+  {
+    title: 'Viihde ja elektroniikka',
+    subs: ['Puhelinlasku', 'Netflix', 'Spotify', 'Netti', 'Viihde ja elektroniikka yhteensä'],
+  },
+  {
+    title: 'Lemmikit',
+    subs: ['Ruoka', 'Harrastukset', 'Lääkärit', 'Lemmikit yhteensä'],
+  },
+  {
+    title: 'Muut menot',
+    subs: [
+      'Vaatteet',
+      'Juhliminen',
+      'Sisustaminen',
+      'Oma hupitili',
+      'Varaus budjetin ylitykselle',
+      'Muut menot yhteensä',
+    ],
+  },
 ];
 
 /**
