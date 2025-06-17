@@ -844,11 +844,13 @@ export default function BudjettiScreen() {
                 {newPeriodStart.toLocaleDateString('fi-FI')}
               </Text>
             </TouchableOpacity>
-             {Platform.OS !== 'android' && showStartPicker && (
+              {Platform.OS !== 'android' && showStartPicker && (
               <DateTimePicker
                 value={newPeriodStart}
                 mode="date"
-                display="default"
+                  display={Platform.OS === 'ios' ? 'inline' : 'default'}
+                locale="fi-FI"
+                style={Platform.OS === 'ios' ? styles.inlinePicker : undefined}
                 onChange={(_, d) => {
                   setShowStartPicker(false);
                   if (d) setNewPeriodStart(d);
@@ -868,7 +870,9 @@ export default function BudjettiScreen() {
               <DateTimePicker
                 value={newPeriodEnd}
                 mode="date"
-                display="default"
+               display={Platform.OS === 'ios' ? 'inline' : 'default'}
+                locale="fi-FI"
+                style={Platform.OS === 'ios' ? styles.inlinePicker : undefined}
                 onChange={(_, d) => {
                   setShowEndPicker(false);
                   if (d) setNewPeriodEnd(d);
@@ -1266,6 +1270,7 @@ const styles = StyleSheet.create({
     backgroundColor: Colors.background,
     padding: 20,
     borderRadius: 8,
+    alignItems: 'center',
   },
   modalTitle: {
     fontSize: 18,
@@ -1312,7 +1317,10 @@ const styles = StyleSheet.create({
     color: Colors.moss,
     fontWeight: '600',
   },
-    noPeriodContainer: {
+    inlinePicker: {
+    alignSelf: 'center',
+  },
+  noPeriodContainer: {
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',

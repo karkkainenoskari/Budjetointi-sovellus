@@ -119,7 +119,9 @@ export default function BudgetPeriodScreen() {
         <DateTimePicker
           value={startDate}
           mode="date"
-          display="default"
+          display={Platform.OS === 'ios' ? 'inline' : 'default'}
+          locale="fi-FI"
+          style={Platform.OS === 'ios' ? styles.inlinePicker : undefined}
           onChange={(_, d) => {
             setShowStartPicker(false);
             if (d) setStartDate(d);
@@ -139,7 +141,9 @@ export default function BudgetPeriodScreen() {
         <DateTimePicker
           value={endDate}
           mode="date"
-          display="default"
+          display={Platform.OS === 'ios' ? 'inline' : 'default'}
+          locale="fi-FI"
+          style={Platform.OS === 'ios' ? styles.inlinePicker : undefined}
           onChange={(_, d) => {
             setShowEndPicker(false);
             if (d) setEndDate(d);
@@ -237,5 +241,8 @@ const styles = StyleSheet.create({
     fontWeight: '600',
     color: Colors.textPrimary,
     marginBottom: 12,
+  },
+  inlinePicker: {
+    alignSelf: 'center',
   },
 });
