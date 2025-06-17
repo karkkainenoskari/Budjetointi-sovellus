@@ -52,6 +52,18 @@ export default function ValikkoScreen() {
             style={styles.menuIcon}
           />
           <Text style={styles.menuText}>Asetukset</Text>
+           <TouchableOpacity
+          onPress={() => router.push('/budgetPeriod')}
+          style={styles.menuItem}
+        >
+          <Ionicons
+            name="calendar-outline"
+            size={24}
+            color={Colors.evergreen}
+            style={styles.menuIcon}
+          />
+          <Text style={styles.menuText}>Budjettijakso</Text>
+        </TouchableOpacity>
         </TouchableOpacity>
         <TouchableOpacity onPress={handleLogout} style={styles.menuItem}>
           <Ionicons

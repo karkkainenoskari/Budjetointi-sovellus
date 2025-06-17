@@ -128,6 +128,11 @@ export default function BudjettiScreen() {
   const totalAllocated = categories
     .filter((cat) => cat.parentId === null)
     .reduce((sum, cat) => sum + cat.allocated, 0);
+    
+  const budgetUnallocated = budgetPeriod
+    ? budgetPeriod.totalAmount - totalAllocated
+    : 0;
+ 
  
 
       // Kokonaisbudjetista jäljellä / käytetty
@@ -963,9 +968,14 @@ export default function BudjettiScreen() {
            {/* Kokonaissummat */}
           <View style={styles.unallocatedContainer}>
             {selectedTab === 'plan' && (
-              <Text style={styles.unallocatedText}>
-                Lainat yhteensä: {totalAllocated} €
-              </Text>
+              <>
+                <Text style={styles.unallocatedText}>
+                  Lainat yhteensä: {totalAllocated} €
+                </Text>
+                <Text style={[styles.unallocatedText, styles.remainingHighlight]}>
+                  Jäljellä budjetoitavaa: {budgetUnallocated} €
+                </Text>
+              </>
             )}
             {selectedTab === 'spent' && (
               <Text style={styles.unallocatedText}>
@@ -1071,6 +1081,11 @@ const styles = StyleSheet.create({
     fontSize: 16,
     color: Colors.textPrimary,
     fontWeight: '500',
+  },
+   remainingHighlight: {
+    backgroundColor: '#FFF3B0',
+    borderRadius: 4,
+    paddingHorizontal: 4,
   },
 
   /* ── Tilannevälilehdet ── */

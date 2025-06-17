@@ -43,7 +43,15 @@ export async function setCurrentBudgetPeriod(
     createdAt: serverTimestamp(),
   });
 }
-
+/**
+ * Luo uuden budjettijakson ilman aiempien tietojen arkistointia.
+ */
+export async function createBudgetPeriod(
+  userId: string,
+  info: { startDate: any; endDate: any; totalAmount: number }
+): Promise<void> {
+  await setCurrentBudgetPeriod(userId, info);
+}
 /**
  * Hae nykyinen budjettijakso (tai palauta null, jos ei ole)
  */
