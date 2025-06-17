@@ -6,8 +6,10 @@ import {
   StyleSheet,
   TouchableOpacity,
   TextInput,
+  Platform,
+
 } from 'react-native';
-import DateTimePicker from '@react-native-community/datetimepicker';
+import DateTimePicker, { DateTimePickerAndroid } from '@react-native-community/datetimepicker';
 import { Ionicons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
 import { auth } from '../src/api/firebaseConfig';
@@ -27,6 +29,36 @@ export default function BudgetPeriodScreen() {
   const [showEndPicker, setShowEndPicker] = useState(false);
   const [allocated, setAllocated] = useState(0);
   const [error, setError] = useState('');
+
+  const openStartPicker = () => {
+    if (Platform.OS === 'android') {
+      DateTimePickerAndroid.open({
+        value: startDate,
+        mode: 'date',
+        display: 'calendar',
+        onChange: (_, d) => {
+          if (d) setStartDate(d);
+        },
+      });
+    } else {
+      setShowStartPicker(true);
+    }
+  };
+
+  const openEndPicker = () => {
+    if (Platform.OS === 'android') {
+      DateTimePickerAndroid.open({
+        value: endDate,
+        mode: 'date',
+        display: 'calendar',
+        onChange: (_, d) => {
+          if (d) setEndDate(d);
+        },
+      });
+    } else {
+      setShowEndPicker(true);
+    }
+  };
 
   useEffect(() => {
     if (!userId) return;
@@ -76,14 +108,14 @@ export default function BudgetPeriodScreen() {
       </View>
       <TouchableOpacity
         style={styles.dateButton}
-        onPress={() => setShowStartPicker(true)}
+         onPress={openStartPicker}
       >
         <Ionicons name="calendar-outline" size={20} color={Colors.textPrimary} />
         <Text style={styles.dateButtonText}>
           {startDate.toLocaleDateString('fi-FI')}
         </Text>
       </TouchableOpacity>
-      {showStartPicker && (
+      {Platform.OS !== 'android' && showStartPicker && (
         <DateTimePicker
           value={startDate}
           mode="date"
@@ -96,14 +128,14 @@ export default function BudgetPeriodScreen() {
       )}
       <TouchableOpacity
         style={styles.dateButton}
-        onPress={() => setShowEndPicker(true)}
+         onPress={openEndPicker}
       >
         <Ionicons name="calendar-outline" size={20} color={Colors.textPrimary} />
         <Text style={styles.dateButtonText}>
           {endDate.toLocaleDateString('fi-FI')}
         </Text>
       </TouchableOpacity>
-      {showEndPicker && (
+      {Platform.OS !== 'android' && showEndPicker && (
         <DateTimePicker
           value={endDate}
           mode="date"

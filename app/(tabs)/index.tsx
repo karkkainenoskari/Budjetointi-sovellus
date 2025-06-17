@@ -12,8 +12,9 @@ import {
   ActivityIndicator,
   Modal,
   TextInput,
+  Platform,
 } from 'react-native';
-import DateTimePicker from '@react-native-community/datetimepicker';
+import DateTimePicker, { DateTimePickerAndroid } from '@react-native-community/datetimepicker';
 import { Ionicons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
 import { useFocusEffect } from '@react-navigation/native';
@@ -78,6 +79,35 @@ export default function BudjettiScreen() {
   const [showStartPicker, setShowStartPicker] = useState<boolean>(false);
   const [showEndPicker, setShowEndPicker] = useState<boolean>(false);
 
+     const openStartPicker = () => {
+    if (Platform.OS === 'android') {
+      DateTimePickerAndroid.open({
+        value: newPeriodStart,
+        mode: 'date',
+        display: 'calendar',
+        onChange: (_, d) => {
+          if (d) setNewPeriodStart(d);
+        },
+      });
+    } else {
+      setShowStartPicker(true);
+    }
+  };
+
+  const openEndPicker = () => {
+    if (Platform.OS === 'android') {
+      DateTimePickerAndroid.open({
+        value: newPeriodEnd,
+        mode: 'date',
+        display: 'calendar',
+        onChange: (_, d) => {
+          if (d) setNewPeriodEnd(d);
+        },
+      });
+    } else {
+      setShowEndPicker(true);
+    }
+  };
   // Jaksojen valinta
   const [availablePeriods, setAvailablePeriods] = useState<string[]>([]);
   const [viewPeriodId, setViewPeriodId] = useState<string | null>(null);
@@ -806,7 +836,7 @@ export default function BudjettiScreen() {
           <View style={styles.modalContainer}>
             <Text style={styles.modalTitle}>Aloita uusi jakso</Text>
             <TouchableOpacity
-              onPress={() => setShowStartPicker(true)}
+              onPress={openStartPicker}
               style={styles.dateButton}
             >
               <Ionicons name="calendar-outline" size={20} color={Colors.textPrimary} />
@@ -814,7 +844,7 @@ export default function BudjettiScreen() {
                 {newPeriodStart.toLocaleDateString('fi-FI')}
               </Text>
             </TouchableOpacity>
-            {showStartPicker && (
+             {Platform.OS !== 'android' && showStartPicker && (
               <DateTimePicker
                 value={newPeriodStart}
                 mode="date"
@@ -826,7 +856,7 @@ export default function BudjettiScreen() {
               />
             )}
             <TouchableOpacity
-              onPress={() => setShowEndPicker(true)}
+              onPress={openEndPicker}
               style={styles.dateButton}
             >
               <Ionicons name="calendar-outline" size={20} color={Colors.textPrimary} />
@@ -834,7 +864,7 @@ export default function BudjettiScreen() {
                 {newPeriodEnd.toLocaleDateString('fi-FI')}
               </Text>
             </TouchableOpacity>
-            {showEndPicker && (
+            {Platform.OS !== 'android' && showEndPicker && (
               <DateTimePicker
                 value={newPeriodEnd}
                 mode="date"
