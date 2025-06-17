@@ -612,12 +612,14 @@ export default function BudjettiScreen() {
           {!readOnly && (
             <>
               
-              <TouchableOpacity
-                onPress={() => handleDeleteCategory(item.id)}
-                style={styles.iconButtonSmall}
-              >
-                <Ionicons name="trash-outline" size={16} color={Colors.evergreen} />
-              </TouchableOpacity>
+              {selectedTab === 'plan' && (
+                <TouchableOpacity
+                  onPress={() => handleDeleteCategory(item.id)}
+                  style={styles.iconButtonSmall}
+                >
+                  <Ionicons name="trash-outline" size={16} color={Colors.evergreen} />
+                </TouchableOpacity>
+              )}
               {selectedTab === 'spent' && (
                 <TouchableOpacity
                   onPress={() => handleAddExpenseToCategory(item.id)}
@@ -674,28 +676,32 @@ export default function BudjettiScreen() {
                   </Text>
                    {!readOnly && (
                     <>
-                      <TouchableOpacity
-                        onPress={() =>
-                          handleEditCategory(sub.id, sub.title, sub.allocated)
-                        }
-                        style={styles.iconButtonSmall}
-                      >
-                        <Ionicons
-                          name="pencil-outline"
-                          size={16}
-                          color={Colors.textSecondary}
-                        />
-                      </TouchableOpacity>
-                      <TouchableOpacity
-                        onPress={() => handleDeleteCategory(sub.id)}
-                        style={styles.iconButtonSmall}
-                      >
-                        <Ionicons
-                          name="trash-outline"
-                          size={16}
-                          color={Colors.evergreen}
-                        />
-                      </TouchableOpacity>
+                      {selectedTab === 'plan' && (
+                        <>
+                          <TouchableOpacity
+                            onPress={() =>
+                              handleEditCategory(sub.id, sub.title, sub.allocated)
+                            }
+                            style={styles.iconButtonSmall}
+                          >
+                            <Ionicons
+                              name="pencil-outline"
+                              size={16}
+                              color={Colors.textSecondary}
+                            />
+                          </TouchableOpacity>
+                          <TouchableOpacity
+                            onPress={() => handleDeleteCategory(sub.id)}
+                            style={styles.iconButtonSmall}
+                          >
+                            <Ionicons
+                              name="trash-outline"
+                              size={16}
+                              color={Colors.evergreen}
+                            />
+                          </TouchableOpacity>
+                        </>
+                      )}
                       {selectedTab === 'spent' && (
                         <TouchableOpacity
                           onPress={() => handleAddExpenseToCategory(sub.id)}
