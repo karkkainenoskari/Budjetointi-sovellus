@@ -7,6 +7,8 @@ import {
   TouchableOpacity,
   TextInput,
   Platform,
+   Modal,
+  TouchableWithoutFeedback,
 
 } from 'react-native';
 import DateTimePicker, { DateTimePickerAndroid } from '@react-native-community/datetimepicker';
@@ -106,6 +108,7 @@ export default function BudgetPeriodScreen() {
         </TouchableOpacity>
         <Text style={styles.title}>Budjettijakso</Text>
       </View>
+       <Text style={styles.label}>Aloitus ajankohta</Text>
       <TouchableOpacity
         style={styles.dateButton}
          onPress={openStartPicker}
@@ -116,18 +119,36 @@ export default function BudgetPeriodScreen() {
         </Text>
       </TouchableOpacity>
       {Platform.OS !== 'android' && showStartPicker && (
-        <DateTimePicker
-          value={startDate}
-          mode="date"
-          display={Platform.OS === 'ios' ? 'inline' : 'default'}
-          locale="fi-FI"
-          style={Platform.OS === 'ios' ? styles.inlinePicker : undefined}
-          onChange={(_, d) => {
-            setShowStartPicker(false);
-            if (d) setStartDate(d);
-          }}
-        />
+       <Modal
+          transparent
+          animationType="fade"
+          visible={showStartPicker}
+          onRequestClose={() => setShowStartPicker(false)}
+        >
+          <TouchableOpacity
+            style={styles.pickerOverlay}
+            activeOpacity={1}
+            onPressOut={() => setShowStartPicker(false)}
+          >
+            <TouchableWithoutFeedback>
+              <View style={styles.pickerContainer}>
+                <DateTimePicker
+                  value={startDate}
+                  mode="date"
+                  display={Platform.OS === 'ios' ? 'inline' : 'default'}
+                  locale="fi-FI"
+                  style={Platform.OS === 'ios' ? styles.inlinePicker : undefined}
+                  onChange={(_, d) => {
+                    setShowStartPicker(false);
+                    if (d) setStartDate(d);
+                  }}
+                />
+              </View>
+            </TouchableWithoutFeedback>
+          </TouchableOpacity>
+        </Modal>
       )}
+      <Text style={styles.label}>Päättymis ajankohta</Text>
       <TouchableOpacity
         style={styles.dateButton}
          onPress={openEndPicker}
@@ -138,21 +159,39 @@ export default function BudgetPeriodScreen() {
         </Text>
       </TouchableOpacity>
       {Platform.OS !== 'android' && showEndPicker && (
-        <DateTimePicker
-          value={endDate}
-          mode="date"
-          display={Platform.OS === 'ios' ? 'inline' : 'default'}
-          locale="fi-FI"
-          style={Platform.OS === 'ios' ? styles.inlinePicker : undefined}
-          onChange={(_, d) => {
-            setShowEndPicker(false);
-            if (d) setEndDate(d);
-          }}
-        />
+         <Modal
+          transparent
+          animationType="fade"
+          visible={showEndPicker}
+          onRequestClose={() => setShowEndPicker(false)}
+        >
+          <TouchableOpacity
+            style={styles.pickerOverlay}
+            activeOpacity={1}
+            onPressOut={() => setShowEndPicker(false)}
+          >
+            <TouchableWithoutFeedback>
+              <View style={styles.pickerContainer}>
+                <DateTimePicker
+                  value={endDate}
+                  mode="date"
+                  display={Platform.OS === 'ios' ? 'inline' : 'default'}
+                  locale="fi-FI"
+                  style={Platform.OS === 'ios' ? styles.inlinePicker : undefined}
+                  onChange={(_, d) => {
+                    setShowEndPicker(false);
+                    if (d) setEndDate(d);
+                  }}
+                />
+              </View>
+            </TouchableWithoutFeedback>
+          </TouchableOpacity>
+        </Modal>
       )}
+       <Text style={styles.label}>Kokonais budjetti (€)</Text>
       <TextInput
         style={styles.input}
-        placeholder="Tulot yhteensä (€)"
+         placeholder="Kokonais budjetti (€)"
         placeholderTextColor="#888"
         keyboardType="numeric"
         value={income}
@@ -215,6 +254,13 @@ const styles = StyleSheet.create({
     color: Colors.textPrimary,
     backgroundColor: Colors.cardBackground,
   },
+  label: {
+    fontSize: 16,
+    fontWeight: '500',
+    color: Colors.textPrimary,
+    marginBottom: 4,
+    alignSelf: 'flex-start',
+  },
   saveButton: {
     height: 48,
     backgroundColor: Colors.moss,
@@ -244,5 +290,16 @@ const styles = StyleSheet.create({
   },
   inlinePicker: {
     alignSelf: 'center',
+  },
+   pickerOverlay: {
+    flex: 1,
+    backgroundColor: 'rgba(0,0,0,0.3)',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  pickerContainer: {
+    backgroundColor: Colors.background,
+    padding: 10,
+    borderRadius: 8,
   },
 });

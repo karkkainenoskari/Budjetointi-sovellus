@@ -11,6 +11,7 @@ import {
   FlatList,
   ActivityIndicator,
   Modal,
+   TouchableWithoutFeedback,
   TextInput,
   Platform,
 } from 'react-native';
@@ -478,7 +479,7 @@ export default function BudjettiScreen() {
     // Tämän esimerkin tarkoitus on demo, joten kysytään vain totalAmount
     Alert.prompt(
       'Muokkaa budjettijaksoa',
-      `Anna uusi budjetin loppusumma tiedonny: nykyinen ${budgetPeriod.totalAmount} €`,
+      `Anna uusi budjetin loppusumma. Nykyinen budjettisi on: ${budgetPeriod.totalAmount} €`,
       [
         { text: 'Peruuta', style: 'cancel' },
         {
@@ -835,6 +836,7 @@ export default function BudjettiScreen() {
         <View style={styles.modalOverlay}>
           <View style={styles.modalContainer}>
             <Text style={styles.modalTitle}>Aloita uusi jakso</Text>
+            <Text style={styles.label}>Aloitus ajankohta</Text>
             <TouchableOpacity
               onPress={openStartPicker}
               style={styles.dateButton}
@@ -844,19 +846,37 @@ export default function BudjettiScreen() {
                 {newPeriodStart.toLocaleDateString('fi-FI')}
               </Text>
             </TouchableOpacity>
-              {Platform.OS !== 'android' && showStartPicker && (
-              <DateTimePicker
-                value={newPeriodStart}
-                mode="date"
-                  display={Platform.OS === 'ios' ? 'inline' : 'default'}
-                locale="fi-FI"
-                style={Platform.OS === 'ios' ? styles.inlinePicker : undefined}
-                onChange={(_, d) => {
-                  setShowStartPicker(false);
-                  if (d) setNewPeriodStart(d);
-                }}
-              />
+             {Platform.OS !== 'android' && showStartPicker && (
+              <Modal
+                transparent
+                animationType="fade"
+                visible={showStartPicker}
+                onRequestClose={() => setShowStartPicker(false)}
+              >
+                <TouchableOpacity
+                  style={styles.modalOverlay}
+                  activeOpacity={1}
+                  onPressOut={() => setShowStartPicker(false)}
+                >
+                  <TouchableWithoutFeedback>
+                    <View style={styles.pickerContainer}>
+                      <DateTimePicker
+                        value={newPeriodStart}
+                        mode="date"
+                        display={Platform.OS === 'ios' ? 'inline' : 'default'}
+                        locale="fi-FI"
+                        style={Platform.OS === 'ios' ? styles.inlinePicker : undefined}
+                        onChange={(_, d) => {
+                          setShowStartPicker(false);
+                          if (d) setNewPeriodStart(d);
+                        }}
+                      />
+                    </View>
+                  </TouchableWithoutFeedback>
+                </TouchableOpacity>
+              </Modal>
             )}
+            <Text style={styles.label}>Päättymis ajankohta</Text>
             <TouchableOpacity
               onPress={openEndPicker}
               style={styles.dateButton}
@@ -867,21 +887,39 @@ export default function BudjettiScreen() {
               </Text>
             </TouchableOpacity>
             {Platform.OS !== 'android' && showEndPicker && (
-              <DateTimePicker
-                value={newPeriodEnd}
-                mode="date"
-               display={Platform.OS === 'ios' ? 'inline' : 'default'}
-                locale="fi-FI"
-                style={Platform.OS === 'ios' ? styles.inlinePicker : undefined}
-                onChange={(_, d) => {
-                  setShowEndPicker(false);
-                  if (d) setNewPeriodEnd(d);
-                }}
-              />
+               <Modal
+                transparent
+                animationType="fade"
+                visible={showEndPicker}
+                onRequestClose={() => setShowEndPicker(false)}
+              >
+                <TouchableOpacity
+                  style={styles.modalOverlay}
+                  activeOpacity={1}
+                  onPressOut={() => setShowEndPicker(false)}
+                >
+                  <TouchableWithoutFeedback>
+                    <View style={styles.pickerContainer}>
+                      <DateTimePicker
+                        value={newPeriodEnd}
+                        mode="date"
+                        display={Platform.OS === 'ios' ? 'inline' : 'default'}
+                        locale="fi-FI"
+                        style={Platform.OS === 'ios' ? styles.inlinePicker : undefined}
+                        onChange={(_, d) => {
+                          setShowEndPicker(false);
+                          if (d) setNewPeriodEnd(d);
+                        }}
+                      />
+                    </View>
+                  </TouchableWithoutFeedback>
+                </TouchableOpacity>
+              </Modal>
             )}
+             <Text style={styles.label}>Kokonais budjetti (€)</Text>
             <TextInput
               style={styles.modalInput}
-              placeholder="Kokonaisbudjetti (€)"
+               placeholder="Kokonais budjetti (€)"
               placeholderTextColor="#888"
               keyboardType="numeric"
               value={newPeriodTotal}
@@ -1289,6 +1327,13 @@ const styles = StyleSheet.create({
     color: Colors.textPrimary,
     backgroundColor: Colors.cardBackground,
   },
+  label: {
+    fontSize: 16,
+    fontWeight: '500',
+    color: Colors.textPrimary,
+    marginBottom: 4,
+    alignSelf: 'flex-start',
+  },
   dateButton: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -1319,6 +1364,11 @@ const styles = StyleSheet.create({
   },
     inlinePicker: {
     alignSelf: 'center',
+  },
+   pickerContainer: {
+    backgroundColor: Colors.background,
+    padding: 10,
+    borderRadius: 8,
   },
   noPeriodContainer: {
     flex: 1,
