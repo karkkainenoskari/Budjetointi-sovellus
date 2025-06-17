@@ -126,7 +126,7 @@ export default function BudjettiScreen() {
 
  // Kokonaissummat
   const totalAllocated = categories
-    .filter((cat) => cat.parentId === null)
+     .filter((cat) => !cat.title.toLowerCase().includes('yhteensä'))
     .reduce((sum, cat) => sum + cat.allocated, 0);
     
   const budgetUnallocated = budgetPeriod
@@ -344,14 +344,14 @@ export default function BudjettiScreen() {
               Alert.alert('Virhe', 'Anna kelvollinen summa');
               return;
             }
-            // Laske muiden pääkategorioiden varaukset
-            const mainCats = categories.filter((c) => c.parentId === null);
-            let sumOthers = 0;
-            mainCats.forEach((cat) => {
-              if (cat.id !== categoryId) {
-                sumOthers += cat.allocated;
-              }
-            });
+              // Laske kaikkien muiden kategorioiden varaukset (paitsi "yhteensä"-rivien)
+            const sumOthers = categories
+              .filter(
+                (c) =>
+                  c.id !== categoryId &&
+                  !c.title.toLowerCase().includes('yhteensä')
+              )
+              .reduce((sum, c) => sum + c.allocated, 0);
             if (sumOthers + newAlloc > totalBudget) {
               Alert.alert(
                 'Virhe',
@@ -969,12 +969,14 @@ export default function BudjettiScreen() {
           <View style={styles.unallocatedContainer}>
             {selectedTab === 'plan' && (
               <>
+                <>
                 <Text style={styles.unallocatedText}>
                   Lainat yhteensä: {totalAllocated} €
                 </Text>
                 <Text style={[styles.unallocatedText, styles.remainingHighlight]}>
                   Jäljellä budjetoitavaa: {budgetUnallocated} €
                 </Text>
+              </>
               </>
             )}
             {selectedTab === 'spent' && (
