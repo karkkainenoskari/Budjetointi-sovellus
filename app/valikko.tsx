@@ -1,4 +1,4 @@
-// app/(tabs)/valikko.tsx
+// app/valikko.tsx
 
 import React from 'react';
 import {
@@ -10,9 +10,9 @@ import {
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { signOut } from 'firebase/auth';
-import { auth } from '../../src/api/firebaseConfig';
+import { auth } from '../src/api/firebaseConfig';
 import { useRouter } from 'expo-router';
-import Colors from '../../constants/Colors';
+import Colors from '../constants/Colors';
 
 export default function ValikkoScreen() {
   const router = useRouter();

@@ -13,7 +13,6 @@ export default function TabsLayout() {
         tabBarStyle: {
           backgroundColor: Colors.background,
           borderTopColor: Colors.border,
-          justifyContent: 'space-evenly',
         },
         tabBarItemStyle: {
           flex: 1,
@@ -62,14 +61,6 @@ export default function TabsLayout() {
           tabBarIcon: ({ color, size }) => (
             <Ionicons name="add-circle-outline" size={size} color={color} />
           ),
-        }}
-      />
-
-      {/* Piilota automaattisesti generoitu Valikko-välilehti */}
-      <Tabs.Screen
-        name="valikko"
-        options={{
-          tabBarButton: () => null,
         }}
       />
     </Tabs>
