@@ -5,7 +5,6 @@ import { ActivityIndicator, View, StyleSheet, Alert } from 'react-native';
 import { Slot, useRouter, usePathname } from 'expo-router';
 import { auth } from '../src/api/firebaseConfig';
 import * as Notifications from 'expo-notifications';
-import * as Permissions from 'expo-permissions';
 import { firestore } from '../src/api/firebaseConfig';
 import { doc, setDoc } from 'firebase/firestore';
 import { getPayday } from '../src/services/userSettings';
@@ -96,16 +95,12 @@ export default function RootLayout() {
   async function registerForPushNotificationsAsync(): Promise<string | null> {
     try {
       // 1) Tarkistetaan nykyinen lupatila
-      const { status: existingStatus } = await Permissions.getAsync(
-        Permissions.NOTIFICATIONS
-      );
+      const { status: existingStatus } = await Notifications.getPermissionsAsync();
       let finalStatus = existingStatus;
 
       // 2) Jos lupaa ei annettu, pyydetään uudelleen
       if (existingStatus !== 'granted') {
-        const { status } = await Permissions.askAsync(
-          Permissions.NOTIFICATIONS
-        );
+        const { status } = await Notifications.requestPermissionsAsync();
         finalStatus = status;
       }
 
