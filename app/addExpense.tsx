@@ -1,4 +1,4 @@
-// app/(tabs)/addExpense.tsx
+// app/addExpense.tsx
 
 import React, { useState, useEffect } from 'react';
 import {
@@ -16,13 +16,13 @@ import { Picker } from '@react-native-picker/picker';
 import DateTimePicker from '@react-native-community/datetimepicker';
 import { Ionicons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
-import { auth } from '../../src/api/firebaseConfig';
+import { auth } from '../src/api/firebaseConfig';
 import {
   addExpense as addExpenseToFirestore,
   Expense,
-} from '../../src/services/expenses';
-import { getCategories, Category } from '../../src/services/categories';
-import Colors from '../../constants/Colors';
+} from '../src/services/expenses';
+import { getCategories, Category } from '../src/services/categories';
+import Colors from '../constants/Colors';
 
 export default function AddExpenseScreen() {
   const router = useRouter();

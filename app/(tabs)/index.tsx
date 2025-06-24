@@ -1032,12 +1032,6 @@ export default function BudjettiScreen() {
         <>
           {/* ─── Budjetti‐header ──────────────────────────────────────────── */}
           <View style={styles.headerContainer}>
-            <TouchableOpacity
-              onPress={() => router.push('/valikko')}
-              style={styles.hamburgerButton}
-            >
-              <Ionicons name="menu-outline" size={26} color={Colors.evergreen} />
-            </TouchableOpacity>
             <View style={styles.budgetPeriodContainer}>
               <Text style={styles.budgetPeriodText}>
                 {`Budjettijakso: ${
@@ -1145,14 +1139,6 @@ export default function BudjettiScreen() {
             renderItem={renderCategoryItem}
             contentContainerStyle={styles.listContent}
           />
-  {/* Alaosan valikko-painike */}
-          <TouchableOpacity
-            onPress={() => router.push('/valikko')}
-            style={styles.bottomMenuButton}
-          >
-            <Ionicons name="menu-outline" size={26} color={Colors.evergreen} />
-          </TouchableOpacity>
-
         </>
       )}
     </SafeAreaView>
@@ -1179,9 +1165,6 @@ const styles = StyleSheet.create({
     paddingHorizontal: 16,
     paddingTop: 16,
     paddingBottom: 8,
-  },
-  hamburgerButton: {
-    marginRight: 12,
   },
   budgetPeriodContainer: {
     flex: 1,
@@ -1474,10 +1457,5 @@ categoryHeaderButtons: {
   periodItemText: {
     fontSize: 16,
     color: Colors.textPrimary,
-  },
-   bottomMenuButton: {
-    position: 'absolute',
-    bottom: 16,
-    right: 16,
   },
 });
