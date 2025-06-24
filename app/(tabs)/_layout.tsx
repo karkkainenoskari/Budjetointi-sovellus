@@ -53,16 +53,6 @@ export default function TabsLayout() {
         }}
       />
 
-      {/* Lisää kulu ‐välilehti */}
-      <Tabs.Screen
-        name="addExpense"
-        options={{
-          title: 'Lisää kulu',
-          tabBarIcon: ({ color, size }) => (
-            <Ionicons name="add-circle-outline" size={size} color={color} />
-          ),
-        }}
-      />
     </Tabs>
   );
 }

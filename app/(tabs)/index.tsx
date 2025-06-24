@@ -11,9 +11,10 @@ import {
   FlatList,
   ActivityIndicator,
   Modal,
-   TouchableWithoutFeedback,
+  TouchableWithoutFeedback,
   TextInput,
   Platform,
+  Image,
 } from 'react-native';
 import DateTimePicker, { DateTimePickerAndroid } from '@react-native-community/datetimepicker';
 import { Ionicons } from '@expo/vector-icons';
@@ -79,6 +80,23 @@ export default function BudjettiScreen() {
   const [newPeriodTotal, setNewPeriodTotal] = useState<string>('');
   const [showStartPicker, setShowStartPicker] = useState<boolean>(false);
   const [showEndPicker, setShowEndPicker] = useState<boolean>(false);
+
+   const formatBudgetText = (text: string) => {
+    const cleaned = text.replace(/\s/g, '');
+    const decimals = (cleaned.split(/[,.]/)[1] || '').length;
+    const num = parseFloat(cleaned.replace(',', '.'));
+    if (isNaN(num)) return '';
+    return num
+      .toLocaleString('fi-FI', {
+        minimumFractionDigits: decimals,
+        maximumFractionDigits: decimals,
+      })
+      .replace(/\u00A0/g, ' ');
+  };
+
+  const handleNewPeriodTotalChange = (value: string) => {
+    setNewPeriodTotal(formatBudgetText(value));
+  };
 
      const openStartPicker = () => {
     if (Platform.OS === 'android') {
@@ -518,7 +536,7 @@ export default function BudjettiScreen() {
     if (budgetPeriod) {
       setNewPeriodStart(budgetPeriod.startDate);
       setNewPeriodEnd(budgetPeriod.endDate);
-      setNewPeriodTotal(String(budgetPeriod.totalAmount));
+      setNewPeriodTotal(formatBudgetText(String(budgetPeriod.totalAmount)));
     } else {
       const now = new Date();
       const start = new Date(now.getFullYear(), now.getMonth(), 1);
@@ -532,7 +550,7 @@ export default function BudjettiScreen() {
 
   const handleCreateNewPeriod = async () => {
     if (!userId) return;
-    const total = parseFloat(newPeriodTotal.replace(',', '.'));
+    const total = parseFloat(newPeriodTotal.replace(/\s/g, '').replace(',', '.'));
     if (isNaN(total) || total < 0) {
       Alert.alert('Virhe', 'Anna kelvollinen summa');
       return;
@@ -923,7 +941,7 @@ export default function BudjettiScreen() {
               placeholderTextColor="#888"
               keyboardType="numeric"
               value={newPeriodTotal}
-              onChangeText={setNewPeriodTotal}
+               onChangeText={handleNewPeriodTotalChange}
             />
             <View style={styles.modalButtons}>
               <TouchableOpacity
@@ -995,10 +1013,19 @@ export default function BudjettiScreen() {
 
     {!budgetPeriod ? (
         <View style={styles.noPeriodContainer}>
-          <Text style={styles.noPeriodText}>Ei budjettijaksoa</Text>
-          <TouchableOpacity onPress={handleOpenNewPeriod} style={styles.modalButton}>
-            <Text style={styles.modalButtonText}>Luo budjettijakso</Text>
+           <Image
+            source={require('@/assets/images/budjettikoutsi_logo.png')}
+            style={styles.noPeriodLogo}
+          />
+          <Text style={styles.noPeriodText}>
+            Sinulla ei ole vielä yhtään luotua budjettijaksoa.
+          </Text>
+          <TouchableOpacity onPress={handleOpenNewPeriod} style={styles.noPeriodButton}>
+            <Text style={styles.noPeriodButtonText}>
+              Klikkaa tästä luodaksesi budjettijakson
+            </Text>
           </TouchableOpacity>
+
           
                </View>
       ) : (
@@ -1013,7 +1040,7 @@ export default function BudjettiScreen() {
             </TouchableOpacity>
             <View style={styles.budgetPeriodContainer}>
               <Text style={styles.budgetPeriodText}>
-               {`Budjettijakso: ${
+                {`Budjettijakso: ${
                   viewPeriodId
                     ? formatMonthRange(viewPeriodId)
                     : `${budgetPeriod.startDate.getDate()}.${
@@ -1021,7 +1048,7 @@ export default function BudjettiScreen() {
                       } – ${budgetPeriod.endDate.getDate()}.${
                         budgetPeriod.endDate.getMonth() + 1
                       }`
-                } (Total: ${budgetPeriod.totalAmount} €)`}
+                }`}
                 {readOnly && ' (arkisto)'}
               </Text>
             </View>
@@ -1070,6 +1097,7 @@ export default function BudjettiScreen() {
           </View>
 
          
+        
           {/* ─── Tilannevälilehdet ────────────────────────────────────────── */}
           <View style={styles.tabsContainer}>
             <TouchableOpacity
@@ -1095,10 +1123,19 @@ export default function BudjettiScreen() {
           {/* ─── Pääkategoriat‐otsikko + Lisää ──────────────────────────────── */}
           <View style={styles.mainCategoryHeader}>
             <Text style={styles.mainCategoryTitle}>Pääkategoriat</Text>
-            <TouchableOpacity style={styles.addMainCategoryButton} onPress={handleAddMainCategory}>
-              <Ionicons name="add-circle-outline" size={20} color={Colors.moss} />
-              <Text style={styles.addMainCategoryText}>Lisää kategoria</Text>
-            </TouchableOpacity>
+           <View style={styles.categoryHeaderButtons}>
+              <TouchableOpacity
+                style={[styles.addExpenseButton, styles.headerButtonSpacing]}
+                onPress={() => router.push('/addExpense')}
+              >
+                <Ionicons name="add-circle-outline" size={20} color={Colors.moss} />
+                <Text style={styles.addExpenseText}>Lisää kulu</Text>
+              </TouchableOpacity>
+              <TouchableOpacity style={styles.addMainCategoryButton} onPress={handleAddMainCategory}>
+                <Ionicons name="add-circle-outline" size={20} color={Colors.moss} />
+                <Text style={styles.addMainCategoryText}>Lisää kategoria</Text>
+              </TouchableOpacity>
+            </View>
           </View>
 
           {/* ─── Kategoriat FlatListillä ─────────────────────────────────── */}
@@ -1108,6 +1145,14 @@ export default function BudjettiScreen() {
             renderItem={renderCategoryItem}
             contentContainerStyle={styles.listContent}
           />
+  {/* Alaosan valikko-painike */}
+          <TouchableOpacity
+            onPress={() => router.push('/valikko')}
+            style={styles.bottomMenuButton}
+          >
+            <Ionicons name="menu-outline" size={26} color={Colors.evergreen} />
+          </TouchableOpacity>
+
         </>
       )}
     </SafeAreaView>
@@ -1221,6 +1266,26 @@ const styles = StyleSheet.create({
     fontWeight: '600',
   },
 
+categoryHeaderButtons: {
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  headerButtonSpacing: {
+    marginRight: 12,
+  },
+
+  /* ── Lisää kulu -painike ── */
+  addExpenseButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  addExpenseText: {
+    marginLeft: 6,
+    fontSize: 16,
+    color: Colors.moss,
+    fontWeight: '600',
+  },
+
   /* ── Kategoriakortin tyylit ── */
   listContent: {
     paddingHorizontal: 16,
@@ -1317,6 +1382,7 @@ const styles = StyleSheet.create({
     marginBottom: 12,
   },
   modalInput: {
+     width: '100%',
     height: 44,
     borderColor: Colors.border,
     borderWidth: 1,
@@ -1335,6 +1401,7 @@ const styles = StyleSheet.create({
     alignSelf: 'flex-start',
   },
   dateButton: {
+     width: '100%',
     flexDirection: 'row',
     alignItems: 'center',
     paddingVertical: 10,
@@ -1377,9 +1444,29 @@ const styles = StyleSheet.create({
     paddingHorizontal: 16,
   },
   noPeriodText: {
-    fontSize: 18,
+    fontSize: 22,
     color: Colors.textPrimary,
     marginBottom: 12,
+    textAlign: 'center',
+  },
+  noPeriodLogo: {
+    width: 250,
+    height: 250,
+    resizeMode: 'contain',
+    marginBottom: 18,
+  },
+  noPeriodButton: {
+    backgroundColor: Colors.moss,
+    borderRadius: 8,
+    paddingVertical: 12,
+    paddingHorizontal: 20,
+    marginTop: 4,
+  },
+  noPeriodButtonText: {
+    color: Colors.background,
+    fontSize: 18,
+    fontWeight: '600',
+    textAlign: 'center',
   },
   periodItem: {
     paddingVertical: 8,
@@ -1387,5 +1474,10 @@ const styles = StyleSheet.create({
   periodItemText: {
     fontSize: 16,
     color: Colors.textPrimary,
+  },
+   bottomMenuButton: {
+    position: 'absolute',
+    bottom: 16,
+    right: 16,
   },
 });
