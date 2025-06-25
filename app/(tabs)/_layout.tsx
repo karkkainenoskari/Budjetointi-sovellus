@@ -31,6 +31,18 @@ export default function TabsLayout() {
         }}
       />
 
+       {/* Tilitapahtumat-välilehti */}
+      <Tabs.Screen
+        name="tilitapahtumat"
+        options={{
+          title: 'Tilitapahtumat',
+          tabBarIcon: ({ color, size }) => (
+            <Ionicons name="list-outline" size={size} color={color} />
+          ),
+        }}
+      />
+
+
       {/* Historia-välilehti */}
       <Tabs.Screen
         name="historia"

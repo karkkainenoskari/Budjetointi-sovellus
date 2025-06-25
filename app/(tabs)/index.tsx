@@ -1122,14 +1122,7 @@ export default function BudjettiScreen() {
           {/* ─── Pääkategoriat‐otsikko + Lisää ──────────────────────────────── */}
           <View style={styles.mainCategoryHeader}>
             <Text style={styles.mainCategoryTitle}>Pääkategoriat</Text>
-           <View style={styles.categoryHeaderButtons}>
-              <TouchableOpacity
-                style={[styles.addExpenseButton, styles.headerButtonSpacing]}
-                onPress={() => router.push('/addExpense')}
-              >
-                <Ionicons name="add-circle-outline" size={20} color={Colors.moss} />
-                <Text style={styles.addExpenseText}>Lisää kulu</Text>
-              </TouchableOpacity>
+            <View style={styles.categoryHeaderButtons}>
               <TouchableOpacity style={styles.addMainCategoryButton} onPress={handleAddMainCategory}>
                 <Ionicons name="add-circle-outline" size={20} color={Colors.moss} />
                 <Text style={styles.addMainCategoryText}>Lisää kategoria</Text>
@@ -1281,22 +1274,7 @@ categoryHeaderButtons: {
     flexDirection: 'row',
     alignItems: 'center',
   },
-  headerButtonSpacing: {
-    marginRight: 12,
-  },
-
-  /* ── Lisää kulu -painike ── */
-  addExpenseButton: {
-    flexDirection: 'row',
-    alignItems: 'center',
-  },
-  addExpenseText: {
-    marginLeft: 6,
-    fontSize: 16,
-    color: Colors.moss,
-    fontWeight: '600',
-  },
-
+ 
   /* ── Kategoriakortin tyylit ── */
   listContent: {
     paddingHorizontal: 16,
