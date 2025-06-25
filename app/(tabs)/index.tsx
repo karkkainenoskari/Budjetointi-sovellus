@@ -666,7 +666,7 @@ export default function BudjettiScreen() {
                   onPress={() => handleDeleteCategory(item.id)}
                   style={styles.iconButtonSmall}
                 >
-                  <Ionicons name="trash-outline" size={16} color={Colors.evergreen} />
+                  <Ionicons name="trash-outline" size={14} color={Colors.evergreen} />
                 </TouchableOpacity>
               )}
               {selectedTab === 'spent' && (
@@ -745,7 +745,7 @@ export default function BudjettiScreen() {
                           >
                             <Ionicons
                               name="trash-outline"
-                              size={16}
+                              size={14}
                               color={Colors.evergreen}
                             />
                           </TouchableOpacity>
@@ -1068,14 +1068,15 @@ export default function BudjettiScreen() {
           <View style={styles.unallocatedContainer}>
             {selectedTab === 'plan' && (
               <>
-                <>
-                <Text style={styles.unallocatedText}>
-                  Lainat yhteensä: {totalAllocated} €
-                </Text>
-                <Text style={[styles.unallocatedText, styles.remainingHighlight]}>
-                  Budjetoitavaa jäljellä: {budgetUnallocated} €
-                </Text>
-              </>
+               <View style={styles.budgetSummaryContainer}>
+  <Text style={styles.unallocatedText}>
+    Lainat yhteensä: {totalAllocated} €
+  </Text>
+  <Text style={[styles.unallocatedText, styles.remainingHighlight]}>
+    Budjetoitavaa jäljellä: {budgetUnallocated} €
+  </Text>
+</View>
+
               </>
             )}
             {selectedTab === 'spent' && (
@@ -1181,31 +1182,46 @@ const styles = StyleSheet.create({
     marginLeft: 12,
   },
 
-   unallocatedContainer: {
-    paddingHorizontal: 16,
-    marginTop: 4,
-  },
-  unallocatedText: {
-    fontSize: 16,
-    color: Colors.textPrimary,
-    fontWeight: '500',
-  },
-   remainingHighlight: {
-    backgroundColor: '#FFF3B0',
-    borderRadius: 4,
-    paddingHorizontal: 4,
-  },
+ unallocatedContainer: {
+  marginTop: 4,
+},
+
+
+  budgetSummaryContainer: {
+  paddingHorizontal: 16, // tämä siirtää molemmat tekstit hieman oikealle
+  marginTop: 8,
+  marginBottom: 8,
+},
+unallocatedText: {
+  fontSize: 16,
+  color: Colors.textPrimary,
+  fontWeight: '500',
+  marginBottom: 4,
+},
+remainingHighlight: {
+  backgroundColor: '#FFF3B0',
+  borderRadius: 4,
+  paddingHorizontal: 1,
+  paddingVertical: 2,
+},
+
 
   /* ── Tilannevälilehdet ── */
-  tabsContainer: {
-    flexDirection: 'row',
-    justifyContent: 'space-around',
-    marginHorizontal: 16,
-    marginTop: 12,
-    marginBottom: 8,
-    borderRadius: 8,
-    backgroundColor: Colors.tabInactiveBg,
-  },
+tabsContainer: {
+  flexDirection: 'row',
+  justifyContent: 'space-around',
+  marginHorizontal: 16,
+  marginTop: 16,
+  marginBottom: 12,
+  borderRadius: 12,
+  backgroundColor: Colors.tabInactiveBg,
+  shadowColor: '#000',
+  shadowOpacity: 0.05,
+  shadowOffset: { width: 0, height: 2 },
+  shadowRadius: 4,
+  elevation: 1,
+},
+
   tabButton: {
     flex: 1,
     paddingVertical: 10,
@@ -1225,18 +1241,18 @@ const styles = StyleSheet.create({
   },
 
   /* ── Pääkategoriat otsikko ja Lisää painike ── */
-  mainCategoryHeader: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    paddingHorizontal: 16,
-    marginTop: 12,
-    marginBottom: 8,
-  },
-  mainCategoryTitle: {
-    fontSize: 20,
-    fontWeight: '600',
-    color: Colors.textPrimary,
+mainCategoryHeader: {
+  flexDirection: 'row',
+  alignItems: 'center',
+  justifyContent: 'space-between',
+  paddingHorizontal: 16,
+  marginTop: 20, // aiemmin 12
+  marginBottom: 12, // aiemmin 8
+},
+mainCategoryTitle: {
+  fontSize: 22, // aiemmin 20
+  fontWeight: '700', // vahvempi korostus
+
   },
   addMainCategoryButton: {
     flexDirection: 'row',
@@ -1274,16 +1290,22 @@ categoryHeaderButtons: {
     paddingHorizontal: 16,
     paddingBottom: 24,
   },
-  categoryCard: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    backgroundColor: Colors.cardBackground,
-    borderRadius: 8,
-    padding: 12,
-    marginBottom: 12,
-    borderWidth: 1,
-    borderColor: Colors.border,
-  },
+categoryCard: {
+  flexDirection: 'row',
+  justifyContent: 'space-between',
+  backgroundColor: Colors.cardBackground,
+  borderRadius: 12, // aiemmin 8
+  padding: 16,      // aiemmin 12
+  marginBottom: 16, // enemmän tilaa
+  borderWidth: 1,
+  borderColor: Colors.border,
+  shadowColor: '#000',
+  shadowOpacity: 0.05,
+  shadowOffset: { width: 0, height: 2 },
+  shadowRadius: 6,
+  elevation: 2, // Android
+},
+
   categoryLeft: {
     flex: 1,
   },
@@ -1426,12 +1448,15 @@ categoryHeaderButtons: {
     alignItems: 'center',
     paddingHorizontal: 16,
   },
-  noPeriodText: {
-    fontSize: 22,
-    color: Colors.textPrimary,
-    marginBottom: 12,
-    textAlign: 'center',
-  },
+noPeriodText: {
+  fontSize: 20,
+  fontWeight: '500',
+  color: Colors.textPrimary,
+  marginBottom: 16,
+  textAlign: 'center',
+  maxWidth: 300,
+},
+
   noPeriodLogo: {
     width: 250,
     height: 250,
