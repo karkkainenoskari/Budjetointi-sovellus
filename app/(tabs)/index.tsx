@@ -1073,7 +1073,7 @@ export default function BudjettiScreen() {
                   Lainat yhteensä: {totalAllocated} €
                 </Text>
                 <Text style={[styles.unallocatedText, styles.remainingHighlight]}>
-                  Jäljellä budjetoitavaa: {budgetUnallocated} €
+                  Budjetoitavaa jäljellä: {budgetUnallocated} €
                 </Text>
               </>
               </>

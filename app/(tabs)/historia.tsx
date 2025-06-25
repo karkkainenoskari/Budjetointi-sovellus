@@ -136,62 +136,71 @@ export default function HistoriaScreen() {
     );
   }
 
-  return (
-    <SafeAreaView style={styles.safeContainer}>
-      <TouchableOpacity style={styles.copyButton} onPress={handleCopyPrevious}>
-        <Text style={styles.copyButtonText}>Kopioi edellisen kuukauden kategoriat</Text>
-      </TouchableOpacity>
-      <FlatList
-        data={months}
-        keyExtractor={(item) => item}
-        contentContainerStyle={styles.listContent}
-        renderItem={({ item }) => {
-          const data = monthData[item];
-          return (
-            <View style={styles.monthCard}>
-               <View style={styles.monthHeader}>
-                <TouchableOpacity onPress={() => toggleMonth(item)} style={{ flex: 1 }}>
-                  <Text style={styles.monthTitle}>{formatMonthRange(item)}</Text>
-                </TouchableOpacity>
-                <TouchableOpacity
-                  onPress={() => handleDeleteMonth(item)}
-                  style={styles.iconButtonSmall}
-                >
-                  <Ionicons name="trash-outline" size={18} color={Colors.evergreen} />
-                </TouchableOpacity>
-              </View>
-              {expanded === item && (
-                <View style={styles.monthContent}>
-                  {data?.loading ? (
-                    <ActivityIndicator color={Colors.moss} />
-                  ) : (
-                    data?.categories.map((cat) => (
-                      <View key={cat.id} style={styles.catRow}>
-                        <Text style={styles.catTitle}>{cat.title}</Text>
-                        <Text style={styles.catAmount}>
-                          {data.expenses[cat.id] || 0} / {cat.allocated} €
-                        </Text>
-                      </View>
-                    ))
-                  )}
-                </View>
-              )}
+return (
+  <SafeAreaView style={styles.safeContainer}>
+   <View style={{ marginLeft: 8, marginBottom: 16 }}>
+  <Text style={styles.header}>Budjettihistoria</Text>
+  <View style={{ height: 1, backgroundColor: Colors.border, marginTop: 4, width: '95%' }} />
+</View>
+
+
+    <TouchableOpacity style={styles.copyButton} onPress={handleCopyPrevious}>
+      <Text style={styles.copyButtonText}>Kopioi edellisen kuukauden kategoriat</Text>
+    </TouchableOpacity>
+
+    <FlatList
+      data={months}
+      keyExtractor={(item) => item}
+      contentContainerStyle={styles.listContent}
+      renderItem={({ item }) => {
+        const data = monthData[item];
+        return (
+          <View style={styles.monthCard}>
+            <View style={styles.monthHeader}>
+              <TouchableOpacity onPress={() => toggleMonth(item)} style={{ flex: 1 }}>
+                <Text style={styles.monthTitle}>{formatMonthRange(item)}</Text>
+              </TouchableOpacity>
+              <TouchableOpacity
+                onPress={() => handleDeleteMonth(item)}
+                style={styles.iconButtonSmall}
+              >
+                <Ionicons name="trash-outline" size={18} color={Colors.evergreen} />
+              </TouchableOpacity>
             </View>
-          );
-        }}
-      />
-    </SafeAreaView>
-  );
+            {expanded === item && (
+              <View style={styles.monthContent}>
+                {data?.loading ? (
+                  <ActivityIndicator color={Colors.moss} />
+                ) : (
+                  data?.categories.map((cat) => (
+                    <View key={cat.id} style={styles.catRow}>
+                      <Text style={styles.catTitle}>{cat.title}</Text>
+                      <Text style={styles.catAmount}>
+                        {data.expenses[cat.id] || 0} / {cat.allocated} €
+                      </Text>
+                    </View>
+                  ))
+                )}
+              </View>
+            )}
+          </View>
+        );
+      }}
+    />
+  </SafeAreaView>
+);
+
 }
 
 const styles = StyleSheet.create({
-  safeContainer: {
-    flex: 1,
-    backgroundColor: Colors.background,
-    paddingBottom: 16,
-    paddingHorizontal: 16,
-    paddingTop: 24,
-  },
+ safeContainer: {
+  flex: 1,
+  backgroundColor: Colors.background,
+  paddingHorizontal: 16,
+  paddingTop: 24,
+  paddingBottom: 16,
+},
+
   loaderContainer: {
     flex: 1,
     justifyContent: 'center',
@@ -203,27 +212,35 @@ const styles = StyleSheet.create({
   padding: 16,
   borderRadius: 8,
   alignItems: 'center',
-  marginTop: 24,       // Siirtää nappia alaspäin (voit säätää esim. 24 tai enemmän)
+  marginTop: 8,       // Siirtää nappia alaspäin (voit säätää esim. 24 tai enemmän)
   marginBottom: 12,
   width: 375,          // Asettaa napille kiinteän leveyden (voit kokeilla eri arvoja esim. 150)
   alignSelf: 'center',
   },
   copyButtonText: {
-    color: Colors.buttonPrimaryText,
-    fontWeight: '600',
-  },
+  color: Colors.buttonPrimaryText,
+  fontWeight: '600',
+  fontSize: 14,
+},
+
   listContent: {
      paddingTop: 8,
     paddingBottom: 24,
   },
-  monthCard: {
-    backgroundColor: Colors.cardBackground,
-    borderRadius: 8,
-    padding: 12,
-    marginBottom: 12,
-    borderWidth: 1,
-    borderColor: Colors.border,
-  },
+ monthCard: {
+  backgroundColor: Colors.cardBackground,
+  borderRadius: 12,
+  padding: 12,
+  marginBottom: 12,
+  borderWidth: 1,
+  borderColor: Colors.border,
+  shadowColor: '#000',
+  shadowOpacity: 0.05,
+  shadowOffset: { width: 0, height: 2 },
+  shadowRadius: 4,
+  elevation: 2,
+},
+
    monthHeader: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -253,4 +270,14 @@ const styles = StyleSheet.create({
     fontSize: 16,
     color: Colors.textSecondary,
   },
+header: {
+  fontSize: 24,
+  fontWeight: 'bold',
+  color: Colors.textPrimary,
+  marginBottom: 16, // nostettu arvoa
+  marginLeft: 8,
+  alignSelf: 'flex-start',
+},
+
+
 });
