@@ -704,7 +704,7 @@ export default function BudjettiScreen() {
             let subTitle = sub.title;
             if (isTotalRow) {
               if (selectedTab === 'plan') {
-                subTitle = 'Lainat yhteensä';
+                subTitle = 'Yhteensä:';
               } else if (selectedTab === 'spent') {
                 subTitle = 'Käytetty yhteensä';
               } else {
@@ -1072,9 +1072,13 @@ export default function BudjettiScreen() {
   <Text style={styles.unallocatedText}>
     Lainat yhteensä: {totalAllocated} €
   </Text>
-  <Text style={[styles.unallocatedText, styles.remainingHighlight]}>
+  <View style={styles.highlightBox}>
+  <Text style={styles.unallocatedText}>
     Budjetoitavaa jäljellä: {budgetUnallocated} €
   </Text>
+</View>
+
+
 </View>
 
               </>
@@ -1239,6 +1243,14 @@ tabsContainer: {
     color: Colors.background,
     fontWeight: '600',
   },
+  highlightBox: {
+  alignSelf: 'flex-start',
+  backgroundColor: '#FFF3B0',
+  borderRadius: 4,
+  paddingHorizontal: 4,
+  paddingVertical: 2,
+},
+
 
   /* ── Pääkategoriat otsikko ja Lisää painike ── */
 mainCategoryHeader: {
