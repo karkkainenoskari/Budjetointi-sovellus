@@ -82,8 +82,10 @@ export default function ValikkoScreen() {
 const styles = StyleSheet.create({
   safeContainer: {
     flex: 1,
-    padding: 20,
     backgroundColor: Colors.background,
+    paddingHorizontal: 24,
+    paddingTop: 24,
+    paddingBottom: 16,
   },
  title: {
     fontSize: 24,

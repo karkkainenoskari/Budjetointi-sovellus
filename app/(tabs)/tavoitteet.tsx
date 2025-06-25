@@ -220,7 +220,9 @@ const styles = StyleSheet.create({
   safeContainer: {
     flex: 1,
     backgroundColor: Colors.background,
-    padding: 16,
+     paddingHorizontal: 24,
+    paddingTop: 24,
+    paddingBottom: 16,
   },
   loaderContainer: {
     flex: 1,

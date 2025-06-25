@@ -188,7 +188,9 @@ const styles = StyleSheet.create({
   safeContainer: {
     flex: 1,
     backgroundColor: Colors.background,
-    padding: 16,
+    paddingBottom: 16,
+    paddingHorizontal: 16,
+    paddingTop: 24,
   },
   loaderContainer: {
     flex: 1,
@@ -197,17 +199,21 @@ const styles = StyleSheet.create({
     backgroundColor: Colors.background,
   },
   copyButton: {
-    backgroundColor: Colors.moss,
-    padding: 12,
-    borderRadius: 8,
-    alignItems: 'center',
-    marginBottom: 12,
+  backgroundColor: Colors.moss,
+  padding: 16,
+  borderRadius: 8,
+  alignItems: 'center',
+  marginTop: 24,       // Siirtää nappia alaspäin (voit säätää esim. 24 tai enemmän)
+  marginBottom: 12,
+  width: 375,          // Asettaa napille kiinteän leveyden (voit kokeilla eri arvoja esim. 150)
+  alignSelf: 'center',
   },
   copyButtonText: {
     color: Colors.buttonPrimaryText,
     fontWeight: '600',
   },
   listContent: {
+     paddingTop: 8,
     paddingBottom: 24,
   },
   monthCard: {
