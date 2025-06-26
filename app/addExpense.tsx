@@ -131,9 +131,9 @@ export default function AddExpenseScreen() {
         {/* Tyhjä näkymä tasaamaan tilaa */}
         <View style={{ width: 24 }} />
       </View>
-      <ScrollView
+       <ScrollView
         contentContainerStyle={styles.content}
-        style={{ flex: 1, overflow: 'visible' }}  
+        style={{ flex: 1, overflow: 'visible' }}
         keyboardShouldPersistTaps="handled"
       >
         {/* Summa‐kenttä */}
@@ -181,14 +181,16 @@ export default function AddExpenseScreen() {
           {date.toLocaleDateString('fi-FI')}
         </Text>
       </TouchableOpacity>
-      {showDatePicker && (
-        <DateTimePicker
-          value={date}
-          mode="date"
-          display={Platform.OS === 'ios' ? 'spinner' : 'default'}
-          onChange={onChangeDate}
-        />
-      )}
+     {showDatePicker && (
+  <View style={styles.datePickerContainer}>
+    <DateTimePicker
+      value={date}
+      mode="date"
+      display={Platform.OS === 'ios' ? 'spinner' : 'default'}
+      onChange={onChangeDate}
+    />
+  </View>
+)}
 
       {/* Tallenna‐painike */}
       <TouchableOpacity
@@ -208,10 +210,18 @@ export default function AddExpenseScreen() {
 }
 
 const styles = StyleSheet.create({
+    datePickerContainer: {
+   position: 'relative',
+    zIndex: 500,           // pienempi kuin pickerContainer
+   elevation: 5,
+    overflow: 'visible',
+    marginTop: 4,
+  },
   safeContainer: {
     flex: 1,
     backgroundColor: Colors.background,
     padding: 16,
+    overflow: 'visible',
   },
    header: {
     flexDirection: 'row',
@@ -225,7 +235,7 @@ const styles = StyleSheet.create({
     color: Colors.textPrimary,
   },
   content: {
-    paddingBottom: 32,
+    paddingBottom: 80,
   },
   loaderContainer: {
     flex: 1,
@@ -254,18 +264,17 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: Colors.border,
     borderRadius: 6,
-    marginTop: 4,
+    marginTop: 20,
+    marginBottom: 8,
     backgroundColor: Colors.cardBackground,
-    position: 'relative',
-    zIndex: 2000,
-    elevation: 10,
-    overflow: 'visible',
+    position: 'relative',    // ilman position, zIndex ei toimi
+      zIndex: 1000,            // tuo pickerin muiden sibliksien päälle
+      elevation: 10,           // Android+      overflow: 'visible',
   },
   picker: {
     height: 50,
     width: '100%',
     color: Colors.textPrimary,
-    zIndex: 2000,
   },
   dateButton: {
     flexDirection: 'row',
@@ -275,7 +284,7 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: Colors.border,
     borderRadius: 6,
-    marginTop: 4,
+    marginTop: 150,
     backgroundColor: Colors.cardBackground,
     zIndex: 0,
   },
@@ -285,7 +294,7 @@ const styles = StyleSheet.create({
     color: Colors.textPrimary,
   },
   saveButton: {
-    marginTop: 24,
+    marginTop: 20,
     backgroundColor: Colors.moss,
     paddingVertical: 14,
     borderRadius: 8,
