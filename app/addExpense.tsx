@@ -133,6 +133,7 @@ export default function AddExpenseScreen() {
       </View>
       <ScrollView
         contentContainerStyle={styles.content}
+        style={{ flex: 1, overflow: 'visible' }}  
         keyboardShouldPersistTaps="handled"
       >
         {/* Summa‐kenttä */}
@@ -161,6 +162,7 @@ export default function AddExpenseScreen() {
           selectedValue={selectedCategory}
           onValueChange={(itemValue) => setSelectedCategory(itemValue)}
           style={styles.picker}
+           mode="dropdown"
         >
           {categories.map((cat) => (
             <Picker.Item key={cat.id} label={cat.title} value={cat.id} />
@@ -254,13 +256,16 @@ const styles = StyleSheet.create({
     borderRadius: 6,
     marginTop: 4,
     backgroundColor: Colors.cardBackground,
-    zIndex: 1000,
-    elevation: 6,
+    position: 'relative',
+    zIndex: 2000,
+    elevation: 10,
+    overflow: 'visible',
   },
   picker: {
     height: 50,
     width: '100%',
     color: Colors.textPrimary,
+    zIndex: 2000,
   },
   dateButton: {
     flexDirection: 'row',
