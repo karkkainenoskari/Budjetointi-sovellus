@@ -254,8 +254,8 @@ const styles = StyleSheet.create({
     borderRadius: 6,
     marginTop: 4,
     backgroundColor: Colors.cardBackground,
-    zIndex: 100,
-    elevation: 5,
+    zIndex: 1000,
+    elevation: 6,
   },
   picker: {
     height: 50,
