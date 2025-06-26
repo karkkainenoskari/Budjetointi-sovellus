@@ -4,6 +4,7 @@ import {
   Text,
   StyleSheet,
   TouchableOpacity,
+  SafeAreaView,
   FlatList,
   ActivityIndicator,
 } from 'react-native';
@@ -76,7 +77,7 @@ export default function TilitapahtumatScreen() {
   }
 
   return (
-    <View style={styles.safeContainer}>
+     <SafeAreaView style={styles.safeContainer}>
       <View style={styles.header}>
         <Text style={styles.title}>Tilitapahtumat</Text>
         <TouchableOpacity
@@ -93,7 +94,7 @@ export default function TilitapahtumatScreen() {
         renderItem={renderItem}
         contentContainerStyle={styles.listContent}
       />
-    </View>
+    </SafeAreaView>
   );
 }
 

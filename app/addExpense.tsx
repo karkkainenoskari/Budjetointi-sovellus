@@ -11,6 +11,7 @@ import {
   Alert,
   Platform,
   SafeAreaView,
+  ScrollView,
 } from 'react-native';
 import { Picker } from '@react-native-picker/picker';
 import DateTimePicker from '@react-native-community/datetimepicker';
@@ -118,15 +119,31 @@ export default function AddExpenseScreen() {
 
   return (
     <SafeAreaView style={styles.safeContainer}>
-      {/* Summa‐kenttä */}
-      <Text style={styles.label}>Summa (€)</Text>
-      <TextInput
-        style={styles.input}
-        keyboardType="decimal-pad"
-        placeholder="Esim. 29.90"
-        value={amount}
-        onChangeText={setAmount}
-      />
+       <View style={styles.header}>
+        <TouchableOpacity onPress={() => router.back()}>
+          <Ionicons
+            name="arrow-back"
+            size={24}
+            color={Colors.textPrimary}
+          />
+        </TouchableOpacity>
+        <Text style={styles.headerTitle}>Lisää kulu</Text>
+        {/* Tyhjä näkymä tasaamaan tilaa */}
+        <View style={{ width: 24 }} />
+      </View>
+      <ScrollView
+        contentContainerStyle={styles.content}
+        keyboardShouldPersistTaps="handled"
+      >
+        {/* Summa‐kenttä */}
+        <Text style={styles.label}>Summa (€)</Text>
+        <TextInput
+          style={styles.input}
+          keyboardType="decimal-pad"
+          placeholder="Esim. 29.90"
+          value={amount}
+          onChangeText={setAmount}
+        />
 
       {/* Kuvaus‐kenttä */}
       <Text style={styles.label}>Kuvaus (valinnainen)</Text>
@@ -183,6 +200,7 @@ export default function AddExpenseScreen() {
           <Text style={styles.saveButtonText}>Tallenna kulu</Text>
         )}
       </TouchableOpacity>
+       </ScrollView>
     </SafeAreaView>
   );
 }
@@ -192,6 +210,20 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: Colors.background,
     padding: 16,
+  },
+   header: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    marginBottom: 16,
+  },
+  headerTitle: {
+    fontSize: 20,
+    fontWeight: '600',
+    color: Colors.textPrimary,
+  },
+  content: {
+    paddingBottom: 32,
   },
   loaderContainer: {
     flex: 1,
@@ -222,6 +254,8 @@ const styles = StyleSheet.create({
     borderRadius: 6,
     marginTop: 4,
     backgroundColor: Colors.cardBackground,
+    zIndex: 100,
+    elevation: 5,
   },
   picker: {
     height: 50,
@@ -238,6 +272,7 @@ const styles = StyleSheet.create({
     borderRadius: 6,
     marginTop: 4,
     backgroundColor: Colors.cardBackground,
+    zIndex: 0,
   },
   dateButtonText: {
     marginLeft: 8,
@@ -250,6 +285,7 @@ const styles = StyleSheet.create({
     paddingVertical: 14,
     borderRadius: 8,
     alignItems: 'center',
+    zIndex: 0,
   },
   saveButtonText: {
     color: Colors.background,
