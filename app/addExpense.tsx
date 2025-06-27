@@ -210,18 +210,30 @@ export default function AddExpenseScreen() {
 }
 
 const styles = StyleSheet.create({
-    datePickerContainer: {
-   position: 'relative',
-    zIndex: 500,           // pienempi kuin pickerContainer
-   elevation: 5,
-    overflow: 'visible',
+   pickerContainer: {
+    borderWidth: 1,
+    borderColor: Colors.border,
+    borderRadius: 6,
+    marginTop: 20,
+    marginBottom: 120,
+    backgroundColor: Colors.cardBackground,
+    position: 'relative',  // ilman tätä zIndex ei toimi
+    zIndex: 1000,          // nostaa pickerin kaikkien sibliksien yli
+    elevation: 10,         // Androidissa
+    overflow: 'visible',   // TÄMÄ PUUTUI – lisää tämä
+  },
+  datePickerContainer: {
+    position: 'relative',
+    zIndex: 500,
+    elevation: 5,
     marginTop: 4,
+    overflow: 'visible',
   },
   safeContainer: {
     flex: 1,
     backgroundColor: Colors.background,
     padding: 16,
-    overflow: 'visible',
+    overflow: 'visible',  // varmista myös täällä
   },
    header: {
     flexDirection: 'row',
@@ -260,17 +272,7 @@ const styles = StyleSheet.create({
     color: Colors.textPrimary,
     backgroundColor: Colors.cardBackground,
   },
-  pickerContainer: {
-    borderWidth: 1,
-    borderColor: Colors.border,
-    borderRadius: 6,
-    marginTop: 20,
-    marginBottom: 8,
-    backgroundColor: Colors.cardBackground,
-    position: 'relative',    // ilman position, zIndex ei toimi
-      zIndex: 1000,            // tuo pickerin muiden sibliksien päälle
-      elevation: 10,           // Android+      overflow: 'visible',
-  },
+
   picker: {
     height: 50,
     width: '100%',
