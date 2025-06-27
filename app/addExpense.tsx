@@ -215,7 +215,7 @@ const styles = StyleSheet.create({
     borderColor: Colors.border,
     borderRadius: 6,
     marginTop: 20,
-    marginBottom: 120,
+    marginBottom: 170,
     backgroundColor: Colors.cardBackground,
     position: 'relative',  // ilman tätä zIndex ei toimi
     zIndex: 1000,          // nostaa pickerin kaikkien sibliksien yli
