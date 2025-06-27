@@ -284,7 +284,7 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: Colors.border,
     borderRadius: 6,
-    marginTop: 150,
+    marginTop: 16,
     backgroundColor: Colors.cardBackground,
     zIndex: 0,
   },

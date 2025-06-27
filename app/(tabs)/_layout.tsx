@@ -37,7 +37,7 @@ export default function TabsLayout() {
         options={{
           title: 'Tilitapahtumat',
           tabBarIcon: ({ color, size }) => (
-            <Ionicons name="list-outline" size={size} color={color} />
+           <Ionicons name="receipt-outline" size={size} color={color} />
           ),
         }}
       />
