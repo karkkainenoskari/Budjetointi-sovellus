@@ -24,6 +24,9 @@ export default {
   buttonPrimaryText: '#FFFFFF', // valkoinen teksti nappeihin
   buttonSecondary: '#9EA58C',   // Sage – toissijaisille painikkeille
 
+  /* Ilmaiseva väri negatiivisille arvoille */
+  danger: '#CC3333',
+
   /* Rajaviivat ja varjostukset */
   border: '#CED4C2',       // Hillitty rajaviiva korttien ympärille
 };

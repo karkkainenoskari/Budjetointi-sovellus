@@ -94,6 +94,12 @@ export default function BudjettiScreen() {
       .replace(/\u00A0/g, ' ');
   };
 
+   const formatCurrency = (value: number) =>
+    value.toLocaleString('fi-FI', {
+      minimumFractionDigits: 0,
+      maximumFractionDigits: 0,
+    });
+
   const handleNewPeriodTotalChange = (value: string) => {
     setNewPeriodTotal(formatBudgetText(value));
   };
@@ -1032,20 +1038,7 @@ export default function BudjettiScreen() {
         <>
           {/* ─── Budjetti‐header ──────────────────────────────────────────── */}
           <View style={styles.headerContainer}>
-            <View style={styles.budgetPeriodContainer}>
-              <Text style={styles.budgetPeriodText}>
-                {`Budjettijakso: ${
-                  viewPeriodId
-                    ? formatMonthRange(viewPeriodId)
-                    : `${budgetPeriod.startDate.getDate()}.${
-                        budgetPeriod.startDate.getMonth() + 1
-                      } – ${budgetPeriod.endDate.getDate()}.${
-                        budgetPeriod.endDate.getMonth() + 1
-                      }`
-                }`}
-                {readOnly && ' (arkisto)'}
-              </Text>
-            </View>
+           <Text style={styles.headerTitle}>Budjetti</Text>
             <View style={styles.headerIcons}>
               <TouchableOpacity onPress={() => setShowPeriodModal(true)} style={styles.iconButton}>
                 <Ionicons name="calendar-outline" size={22} color={Colors.textSecondary} />
@@ -1062,25 +1055,42 @@ export default function BudjettiScreen() {
                 <Ionicons name="log-out-outline" size={22} color={Colors.evergreen} />
               </TouchableOpacity>
 
-             </View> 
+              </View>
+            <View style={styles.budgetPeriodContainer}>
+              <Text style={styles.budgetPeriodText}>
+                {`Budjettijakso: ${
+                  viewPeriodId
+                    ? formatMonthRange(viewPeriodId)
+                    : `${budgetPeriod.startDate.getDate()}.${
+                        budgetPeriod.startDate.getMonth() + 1
+                      } – ${budgetPeriod.endDate.getDate()}.${
+                        budgetPeriod.endDate.getMonth() + 1
+                      }`
+                }`}
+                {readOnly && ' (arkisto)'}
+              </Text>
+            </View>
           </View>
            {/* Kokonaissummat */}
           <View style={styles.unallocatedContainer}>
             {selectedTab === 'plan' && (
               <>
                <View style={styles.budgetSummaryContainer}>
-  <Text style={styles.unallocatedText}>
-    Lainat yhteensä: {totalAllocated} €
-  </Text>
-  <View style={styles.highlightBox}>
-  <Text style={styles.unallocatedText}>
-    Budjetoitavaa jäljellä: {budgetUnallocated} €
-  </Text>
-</View>
-
-
-</View>
-
+                <Text style={styles.unallocatedText}>
+                  Lainat yhteensä: {totalAllocated} €
+                </Text>
+                <Text style={styles.unallocatedText}>
+                  Budjetoitavaa jäljellä:{' '}
+                  <Text
+                    style={[
+                      styles.unallocatedValue,
+                      budgetPeriod && budgetUnallocated < 0 && styles.unallocatedNegative,
+                    ]}
+                  >
+                    {budgetPeriod ? `${formatCurrency(budgetUnallocated)} €` : '-'}
+                  </Text>
+                </Text>
+              </View>
               </>
             )}
             {selectedTab === 'spent' && (
@@ -1158,22 +1168,31 @@ const styles = StyleSheet.create({
 
   /* ── Header ── */
   headerContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
+     backgroundColor: Colors.cardBackground,
     paddingHorizontal: 16,
     paddingTop: 16,
     paddingBottom: 8,
   },
+  headerTitle: {
+    fontSize: 22,
+    fontWeight: '600',
+    color: Colors.textPrimary,
+    textAlign: 'center',
+  },
   budgetPeriodContainer: {
-    flex: 1,
+     marginTop: 4,
   },
   budgetPeriodText: {
     fontSize: 18,
     fontWeight: '600',
     color: Colors.textPrimary,
+     textAlign: 'center',
   },
   headerIcons: {
     flexDirection: 'row',
+     position: 'absolute',
+    right: 16,
+    top: 16,
   },
   iconButton: {
     marginLeft: 12,
@@ -1189,18 +1208,24 @@ const styles = StyleSheet.create({
   marginTop: 8,
   marginBottom: 8,
 },
-unallocatedText: {
-  fontSize: 16,
-  color: Colors.textPrimary,
-  fontWeight: '500',
-  marginBottom: 4,
-},
-remainingHighlight: {
-  backgroundColor: '#FFF3B0',
-  borderRadius: 4,
-  paddingHorizontal: 1,
-  paddingVertical: 2,
-},
+ unallocatedText: {
+    fontSize: 16,
+    color: Colors.textPrimary,
+    fontWeight: '500',
+    marginBottom: 4,
+  },
+  unallocatedValue: {
+    fontWeight: '700',
+  },
+  unallocatedNegative: {
+    color: Colors.danger,
+  },
+  remainingHighlight: {
+    backgroundColor: '#FFF3B0',
+    borderRadius: 4,
+    paddingHorizontal: 1,
+    paddingVertical: 2,
+    },
 
 
   /* ── Tilannevälilehdet ── */
@@ -1236,13 +1261,7 @@ tabsContainer: {
     color: Colors.background,
     fontWeight: '600',
   },
-  highlightBox: {
-  alignSelf: 'flex-start',
-  backgroundColor: '#FFF3B0',
-  borderRadius: 4,
-  paddingHorizontal: 4,
-  paddingVertical: 2,
-},
+ 
 
 
   /* ── Pääkategoriat otsikko ja Lisää painike ── */

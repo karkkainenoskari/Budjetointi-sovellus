@@ -138,11 +138,9 @@ export default function HistoriaScreen() {
 
 return (
   <SafeAreaView style={styles.safeContainer}>
-   <View style={{ marginLeft: 8, marginBottom: 16 }}>
-  <Text style={styles.header}>Budjettihistoria</Text>
-  <View style={{ height: 1, backgroundColor: Colors.border, marginTop: 4, width: '95%' }} />
-</View>
-
+  <View style={styles.headerContainer}>
+      <Text style={styles.headerTitle}>Budjettihistoria</Text>
+    </View>
 
     <TouchableOpacity style={styles.copyButton} onPress={handleCopyPrevious}>
       <Text style={styles.copyButtonText}>Kopioi edellisen kuukauden kategoriat</Text>
@@ -270,13 +268,18 @@ const styles = StyleSheet.create({
     fontSize: 16,
     color: Colors.textSecondary,
   },
-header: {
+headerContainer: {
+  backgroundColor: Colors.cardBackground,
+  paddingHorizontal: 16,
+  paddingTop: 16,
+  paddingBottom: 8,
+  marginBottom: 16,
+},
+headerTitle: {
   fontSize: 24,
   fontWeight: 'bold',
   color: Colors.textPrimary,
-  marginBottom: 16, // nostettu arvoa
-  marginLeft: 8,
-  alignSelf: 'flex-start',
+ textAlign: 'center',
 },
 
 

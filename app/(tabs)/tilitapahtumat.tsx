@@ -78,8 +78,8 @@ export default function TilitapahtumatScreen() {
 
   return (
      <SafeAreaView style={styles.safeContainer}>
-      <View style={styles.header}>
-        <Text style={styles.title}>Tilitapahtumat</Text>
+      <View style={styles.headerContainer}>
+        <Text style={styles.headerTitle}>Tilitapahtumat</Text>
         <TouchableOpacity
           style={styles.addButton}
           onPress={() => router.push('/addExpense')}
@@ -103,15 +103,16 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: Colors.background,
   },
-  header: {
+  headerContainer: {
+    backgroundColor: Colors.cardBackground,
     flexDirection: 'row',
-    justifyContent: 'space-between',
     alignItems: 'center',
+    justifyContent: 'space-between',
     paddingHorizontal: 16,
     paddingTop: 16,
     paddingBottom: 8,
   },
-  title: {
+headerTitle: {
     fontSize: 24,
     fontWeight: '600',
     color: Colors.textPrimary,
