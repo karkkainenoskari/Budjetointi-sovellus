@@ -732,30 +732,16 @@ export default function BudjettiScreen() {
                    {!readOnly && (
                     <>
                       {selectedTab === 'plan' && (
-                        <>
-                          <TouchableOpacity
-                            onPress={() =>
-                              handleEditCategory(sub.id, sub.title, sub.allocated)
-                            }
-                            style={styles.iconButtonSmall}
-                          >
-                            <Ionicons
-                              name="pencil-outline"
-                              size={16}
-                              color={Colors.textSecondary}
-                            />
-                          </TouchableOpacity>
-                          <TouchableOpacity
-                            onPress={() => handleDeleteCategory(sub.id)}
-                            style={styles.iconButtonSmall}
-                          >
-                            <Ionicons
-                              name="trash-outline"
-                              size={14}
-                              color={Colors.evergreen}
-                            />
-                          </TouchableOpacity>
-                        </>
+                         <TouchableOpacity
+                          onPress={() => handleDeleteCategory(sub.id)}
+                          style={styles.iconButtonSmall}
+                        >
+                          <Ionicons
+                            name="trash-outline"
+                            size={14}
+                            color={Colors.evergreen}
+                          />
+                        </TouchableOpacity>
                       )}
                       {selectedTab === 'spent' && (
                         <TouchableOpacity
@@ -771,16 +757,22 @@ export default function BudjettiScreen() {
                       )}
                     </>
                   )}
-                 
-              </View>
-              <Text
-                style={[
-                  styles.subCategoryValue,
-                  isTotalRow && styles.subCategoryTotalValue,
-                ]}
+                 </View>
+              <TouchableOpacity
+                disabled={readOnly || selectedTab !== 'plan' || isTotalRow}
+                onPress={() =>
+                  handleEditCategory(sub.id, sub.title, sub.allocated)
+                }
               >
-                {displayValue} €
-              </Text>
+                <Text
+                  style={[
+                    styles.subCategoryValue,
+                    isTotalRow && styles.subCategoryTotalValue,
+                  ]}
+                >
+                  {displayValue} €
+                </Text>
+              </TouchableOpacity>
             </View>
             );
           })}
@@ -1038,25 +1030,19 @@ export default function BudjettiScreen() {
         <>
           {/* ─── Budjetti‐header ──────────────────────────────────────────── */}
           <View style={styles.headerContainer}>
-           <Text style={styles.headerTitle}>Budjetti</Text>
+              <Text style={styles.headerTitle}>Budjetti Koutsi</Text>
             <View style={styles.headerIcons}>
+               <TouchableOpacity onPress={handleEditPeriod} style={styles.iconButton}></TouchableOpacity>
               <TouchableOpacity onPress={() => setShowPeriodModal(true)} style={styles.iconButton}>
                 <Ionicons name="calendar-outline" size={22} color={Colors.textSecondary} />
               </TouchableOpacity>
-
-
-               <TouchableOpacity onPress={handleEditPeriod} style={styles.iconButton}>
-                <Ionicons name="pencil" size={22} color={Colors.textSecondary} />
-              </TouchableOpacity>
-              <TouchableOpacity onPress={handleOpenNewPeriod} style={styles.iconButton}>
-                <Ionicons name="add-circle-outline" size={22} color={Colors.moss} />
-              </TouchableOpacity>
+          
               <TouchableOpacity onPress={handleLogout} style={styles.iconButton}>
-                <Ionicons name="log-out-outline" size={22} color={Colors.evergreen} />
+                 <Ionicons name="lock-closed-outline" size={22} color="orange" />
               </TouchableOpacity>
 
-              </View>
-            <View style={styles.budgetPeriodContainer}>
+             </View>
+            <View style={styles.budgetPeriodRow}>
               <Text style={styles.budgetPeriodText}>
                 {`Budjettijakso: ${
                   viewPeriodId
@@ -1069,16 +1055,41 @@ export default function BudjettiScreen() {
                 }`}
                 {readOnly && ' (arkisto)'}
               </Text>
+              <TouchableOpacity onPress={() => setShowPeriodModal(true)} style={styles.iconButton}>
+                <Ionicons name="calendar-outline" size={22} color={Colors.textSecondary} />
+              </TouchableOpacity>
+              <TouchableOpacity onPress={handleOpenNewPeriod} style={styles.iconButton}>
+                <Ionicons name="add-circle-outline" size={22} color={Colors.moss} />
+              </TouchableOpacity>
             </View>
           </View>
-           {/* Kokonaissummat */}
+     {/* ─── Tilannevälilehdet ────────────────────────────────────────── */}
+          <View style={styles.tabsContainer}>
+            <TouchableOpacity
+              style={[styles.tabButton, selectedTab === 'plan' && styles.tabButtonSelected]}
+              onPress={() => setSelectedTab('plan')}
+            >
+              <Text style={[styles.tabText, selectedTab === 'plan' && styles.tabTextSelected]}>Suunnitelma</Text>
+            </TouchableOpacity>
+            <TouchableOpacity
+              style={[styles.tabButton, selectedTab === 'spent' && styles.tabButtonSelected]}
+              onPress={() => setSelectedTab('spent')}
+            >
+              <Text style={[styles.tabText, selectedTab === 'spent' && styles.tabTextSelected]}>Käytetty</Text>
+            </TouchableOpacity>
+            <TouchableOpacity
+              style={[styles.tabButton, selectedTab === 'left' && styles.tabButtonSelected]}
+              onPress={() => setSelectedTab('left')}
+            >
+              <Text style={[styles.tabText, selectedTab === 'left' && styles.tabTextSelected]}>Jäljellä</Text>
+            </TouchableOpacity>
+          </View>
+
+          {/* Kokonaissummat */}
           <View style={styles.unallocatedContainer}>
             {selectedTab === 'plan' && (
               <>
                <View style={styles.budgetSummaryContainer}>
-                <Text style={styles.unallocatedText}>
-                  Lainat yhteensä: {totalAllocated} €
-                </Text>
                 <Text style={styles.unallocatedText}>
                   Budjetoitavaa jäljellä:{' '}
                   <Text
@@ -1103,30 +1114,6 @@ export default function BudjettiScreen() {
                 Jäljellä yhteensä: {budgetLeftOverall} €
               </Text>
             )}
-          </View>
-
-         
-        
-          {/* ─── Tilannevälilehdet ────────────────────────────────────────── */}
-          <View style={styles.tabsContainer}>
-            <TouchableOpacity
-              style={[styles.tabButton, selectedTab === 'plan' && styles.tabButtonSelected]}
-              onPress={() => setSelectedTab('plan')}
-            >
-              <Text style={[styles.tabText, selectedTab === 'plan' && styles.tabTextSelected]}>Suunnitelma</Text>
-            </TouchableOpacity>
-            <TouchableOpacity
-              style={[styles.tabButton, selectedTab === 'spent' && styles.tabButtonSelected]}
-              onPress={() => setSelectedTab('spent')}
-            >
-              <Text style={[styles.tabText, selectedTab === 'spent' && styles.tabTextSelected]}>Käytetty</Text>
-            </TouchableOpacity>
-            <TouchableOpacity
-              style={[styles.tabButton, selectedTab === 'left' && styles.tabButtonSelected]}
-              onPress={() => setSelectedTab('left')}
-            >
-              <Text style={[styles.tabText, selectedTab === 'left' && styles.tabTextSelected]}>Jäljellä</Text>
-            </TouchableOpacity>
           </View>
 
           {/* ─── Pääkategoriat‐otsikko + Lisää ──────────────────────────────── */}
@@ -1179,8 +1166,11 @@ const styles = StyleSheet.create({
     color: Colors.textPrimary,
     textAlign: 'center',
   },
-  budgetPeriodContainer: {
-     marginTop: 4,
+   budgetPeriodRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginTop: 4,
   },
   budgetPeriodText: {
     fontSize: 18,
@@ -1357,11 +1347,11 @@ categoryCard: {
     color: Colors.textPrimary,
   },
   subCategoryValue: {
-    fontSize: 16,
+    fontSize: 21,
     color: Colors.textPrimary,
   },
-   subCategoryTotalValue: {
-    fontSize: 16,
+    subCategoryTotalValue: {
+    fontSize: 21,
     fontWeight: '600',
     color: Colors.textPrimary,
   },
