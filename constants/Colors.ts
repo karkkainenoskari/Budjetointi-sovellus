@@ -27,6 +27,10 @@ export default {
   /* Ilmaiseva väri negatiivisille arvoille */
   danger: '#CC3333',
 
+    /* Varoitus ja onnistuminen */
+  warning: '#FFA500', // oranssi progressbarille
+  success: '#4CAF50', // vihreä progressbarille
+
   /* Rajaviivat ja varjostukset */
   border: '#CED4C2',       // Hillitty rajaviiva korttien ympärille
   iconMuted: '#888888',    // Hillitty ikoniväri

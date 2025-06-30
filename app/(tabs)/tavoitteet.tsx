@@ -26,6 +26,12 @@ export default function TavoitteetScreen() {
   const [goals, setGoals] = useState<Goal[]>([]);
   const [loadingGoals, setLoadingGoals] = useState<boolean>(true);
 
+   const getProgressColor = (percent: number) => {
+    if (percent < 25) return Colors.danger;
+    if (percent < 75) return Colors.warning;
+    return Colors.success;
+  };
+
   // Hae tavoitteet Firestoresta
   useEffect(() => {
     if (!userId) return;
@@ -204,7 +210,7 @@ export default function TavoitteetScreen() {
                 <View
                   style={[
                     styles.progressBarFill,
-                    { width: `${percent}%`, backgroundColor: Colors.moss },
+                    { width: `${percent}%`, backgroundColor: getProgressColor(percent) },
                   ]}
                 />
               </View>

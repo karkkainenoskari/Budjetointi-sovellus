@@ -86,6 +86,12 @@ export default function BudjettiScreen() {
     // Progress animation for budget allocation
   const progressAnim = useRef(new Animated.Value(0)).current;
 
+  const getProgressColor = (percent: number) => {
+    if (percent < 0.25) return Colors.danger;
+    if (percent < 0.75) return Colors.warning;
+    return Colors.success;
+  };
+
    const formatBudgetText = (text: string) => {
     const cleaned = text.replace(/\s/g, '');
     const decimals = (cleaned.split(/[,.]/)[1] || '').length;
@@ -101,8 +107,8 @@ export default function BudjettiScreen() {
 
    const formatCurrency = (value: number) =>
     value.toLocaleString('fi-FI', {
-      minimumFractionDigits: 0,
-      maximumFractionDigits: 0,
+       minimumFractionDigits: 2,
+      maximumFractionDigits: 2,
     });
 
   const handleNewPeriodTotalChange = (value: string) => {
@@ -737,7 +743,10 @@ export default function BudjettiScreen() {
             }
 
             return (
-              <View key={sub.id} style={styles.subCategoryRow}>
+               <View
+                key={sub.id}
+                style={[styles.subCategoryRow, isTotalRow && styles.subCategoryTotalRow]}
+              >
                 <Text
                   style={[
                     styles.subCategoryTitle,
@@ -1122,18 +1131,24 @@ export default function BudjettiScreen() {
                       ({Math.round(budgetedPercent * 100)} % budjetoitu)
                     </Text>
                   </View>
-                  <View style={styles.progressBarBackground}>
-                    <Animated.View
-                      style={[
-                        styles.progressBarFill,
-                        {
-                          width: progressAnim.interpolate({
-                            inputRange: [0, 1],
-                            outputRange: ['0%', '100%'],
-                          }),
-                        },
-                      ]}
-                    />
+                  <View style={styles.progressBarContainer}>
+                    <View style={styles.progressBarBackground}>
+                      <Animated.View
+                        style={[
+                          styles.progressBarFill,
+                          {
+                            width: progressAnim.interpolate({
+                              inputRange: [0, 1],
+                              outputRange: ['0%', '100%'],
+                            }),
+                            backgroundColor: getProgressColor(budgetedPercent),
+                          },
+                        ]}
+                      />
+                    </View>
+                    <Text style={styles.progressPercentText}>
+                      {Math.round(budgetedPercent * 100)} %
+                    </Text>
                   </View>
                 </View>
               </>
@@ -1272,7 +1287,13 @@ unallocatedContainer: {
     padding: 8,
     marginBottom: 8,
   },
+  progressBarContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginTop: 4,
+  },
   progressBarBackground: {
+    flex: 1,
     height: 10,
     backgroundColor: Colors.tabInactiveBg,
     borderRadius: 5,
@@ -1280,7 +1301,11 @@ unallocatedContainer: {
   },
   progressBarFill: {
     height: 10,
-    backgroundColor: Colors.moss,
+    },
+  progressPercentText: {
+    marginLeft: 8,
+    fontWeight: '600',
+    color: Colors.textPrimary,
   },
 
 
@@ -1409,6 +1434,12 @@ categoryCard: {
     alignItems: 'center',
     paddingLeft: 12,
     marginTop: 4,
+     },
+     subCategoryTotalRow: {
+    marginTop: 8,
+    paddingVertical: 4,
+    borderTopWidth: 1,
+    borderColor: Colors.border,
   },
   subCategoryLeft: {
     flexDirection: 'row',
