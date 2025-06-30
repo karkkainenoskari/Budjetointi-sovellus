@@ -29,4 +29,5 @@ export default {
 
   /* Rajaviivat ja varjostukset */
   border: '#CED4C2',       // Hillitty rajaviiva korttien ympärille
+  iconMuted: '#888888',    // Hillitty ikoniväri
 };

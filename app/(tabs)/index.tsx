@@ -664,18 +664,16 @@ export default function BudjettiScreen() {
           <View style={styles.categoryTitleRow}>
             <Text style={styles.categoryTitle}>{item.title}</Text>
            
-          {!readOnly && (
-            <>
-              
-              {selectedTab === 'plan' && (
+          <View style={styles.categoryIcons}>
+              {!readOnly && selectedTab === 'plan' && (
                 <TouchableOpacity
                   onPress={() => handleDeleteCategory(item.id)}
                   style={styles.iconButtonSmall}
                 >
-                  <Ionicons name="trash-outline" size={14} color={Colors.evergreen} />
+                   <Ionicons name="trash-outline" size={14} color={Colors.iconMuted} />
                 </TouchableOpacity>
               )}
-              {selectedTab === 'spent' && (
+                {!readOnly && selectedTab === 'spent' && (
                 <TouchableOpacity
                   onPress={() => handleAddExpenseToCategory(item.id)}
                   style={styles.iconButtonSmall}
@@ -683,12 +681,11 @@ export default function BudjettiScreen() {
                   <Ionicons
                     name="add-circle-outline"
                     size={16}
-                    color={Colors.moss}
+                    color={Colors.iconMuted}
                   />
                 </TouchableOpacity>
               )}
-            </>
-          )}
+            </View>
           </View>
 
 
@@ -720,16 +717,31 @@ export default function BudjettiScreen() {
 
             return (
               <View key={sub.id} style={styles.subCategoryRow}>
-                <View style={styles.subCategoryLeft}>
-                   <Text
-                    style={[
-                      styles.subCategoryTitle,
-                      isTotalRow && styles.subCategoryTotalTitle,
-                    ]}
+                <Text
+                  style={[
+                    styles.subCategoryTitle,
+                    isTotalRow && styles.subCategoryTotalTitle,
+                  ]}
+                >
+                  {subTitle}
+                </Text>
+                <View style={styles.subCategoryRight}>
+                  <TouchableOpacity
+                    disabled={readOnly || selectedTab !== 'plan' || isTotalRow}
+                    onPress={() =>
+                      handleEditCategory(sub.id, sub.title, sub.allocated)
+                    }
                   >
-                    {subTitle}
-                  </Text>
-                   {!readOnly && (
+                    <Text
+                      style={[
+                        styles.subCategoryValue,
+                        isTotalRow && styles.subCategoryTotalValue,
+                      ]}
+                    >
+                      {displayValue} €
+                    </Text>
+                  </TouchableOpacity>
+                  {!readOnly && !isTotalRow && (
                     <>
                       {selectedTab === 'plan' && (
                          <TouchableOpacity
@@ -739,7 +751,7 @@ export default function BudjettiScreen() {
                           <Ionicons
                             name="trash-outline"
                             size={14}
-                            color={Colors.evergreen}
+                            color={Colors.iconMuted}
                           />
                         </TouchableOpacity>
                       )}
@@ -751,35 +763,24 @@ export default function BudjettiScreen() {
                           <Ionicons
                             name="add-circle-outline"
                             size={16}
-                            color={Colors.moss}
+                            color={Colors.iconMuted}
                           />
                         </TouchableOpacity>
                       )}
                     </>
                   )}
-                 </View>
-              <TouchableOpacity
-                disabled={readOnly || selectedTab !== 'plan' || isTotalRow}
-                onPress={() =>
-                  handleEditCategory(sub.id, sub.title, sub.allocated)
-                }
-              >
-                <Text
-                  style={[
-                    styles.subCategoryValue,
-                    isTotalRow && styles.subCategoryTotalValue,
-                  ]}
-                >
-                  {displayValue} €
-                </Text>
-              </TouchableOpacity>
-            </View>
+                </View>
+              </View>
             );
           })}
 
         {!readOnly && (
-            <TouchableOpacity onPress={() => handleOpenAddSubcategory(item.id)}>
-              <Text style={styles.addSubcatText}>+ Lisää alakategoria</Text>
+           <TouchableOpacity
+              style={styles.addSubcatButton}
+              onPress={() => handleOpenAddSubcategory(item.id)}
+            >
+              <Ionicons name="add-circle-outline" size={16} color={Colors.moss} />
+              <Text style={styles.addSubcatText}>Lisää alakategoria</Text>
             </TouchableOpacity>
           )}
         </View>
@@ -1033,10 +1034,6 @@ export default function BudjettiScreen() {
               <Text style={styles.headerTitle}>Budjetti Koutsi</Text>
             <View style={styles.headerIcons}>
                <TouchableOpacity onPress={handleEditPeriod} style={styles.iconButton}></TouchableOpacity>
-              <TouchableOpacity onPress={() => setShowPeriodModal(true)} style={styles.iconButton}>
-                <Ionicons name="calendar-outline" size={22} color={Colors.textSecondary} />
-              </TouchableOpacity>
-          
               <TouchableOpacity onPress={handleLogout} style={styles.iconButton}>
                  <Ionicons name="lock-closed-outline" size={22} color="orange" />
               </TouchableOpacity>
@@ -1106,12 +1103,14 @@ export default function BudjettiScreen() {
             )}
             {selectedTab === 'spent' && (
               <Text style={styles.unallocatedText}>
-                Käytetty yhteensä: {totalSpentAll} €
+                 Käytetty yhteensä:{' '}
+                <Text style={styles.unallocatedValue}>{totalSpentAll} €</Text>
               </Text>
             )}
             {selectedTab === 'left' && (
               <Text style={styles.unallocatedText}>
-                Jäljellä yhteensä: {budgetLeftOverall} €
+                         Jäljellä yhteensä:{' '}
+                <Text style={styles.unallocatedValue}>{budgetLeftOverall} €</Text>
               </Text>
             )}
           </View>
@@ -1170,7 +1169,10 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
-    marginTop: 4,
+    marginTop: 12,
+    paddingTop: 8,
+    borderTopWidth: 1,
+    borderColor: Colors.border,
   },
   budgetPeriodText: {
     fontSize: 18,
@@ -1188,8 +1190,9 @@ const styles = StyleSheet.create({
     marginLeft: 12,
   },
 
- unallocatedContainer: {
+unallocatedContainer: {
   marginTop: 4,
+  alignItems: 'center',
 },
 
 
@@ -1199,13 +1202,15 @@ const styles = StyleSheet.create({
   marginBottom: 8,
 },
  unallocatedText: {
-    fontSize: 16,
+    fontSize: 20,
     color: Colors.textPrimary,
     fontWeight: '500',
     marginBottom: 4,
+     textAlign: 'center',
   },
   unallocatedValue: {
     fontWeight: '700',
+     fontSize: 18,
   },
   unallocatedNegative: {
     color: Colors.danger,
@@ -1250,6 +1255,7 @@ tabsContainer: {
   tabTextSelected: {
     color: Colors.background,
     fontWeight: '600',
+     textDecorationLine: 'underline',
   },
  
 
@@ -1264,7 +1270,7 @@ mainCategoryHeader: {
   marginBottom: 12, // aiemmin 8
 },
 mainCategoryTitle: {
-  fontSize: 22, // aiemmin 20
+  fontSize: 24, // aiemmin 20
   fontWeight: '700', // vahvempi korostus
 
   },
@@ -1311,6 +1317,11 @@ categoryCard: {
   categoryTitleRow: {
     flexDirection: 'row',
     alignItems: 'center',
+    justifyContent: 'space-between',
+  },
+  categoryIcons: {
+    flexDirection: 'row',
+    alignItems: 'center',
   },
   categoryTitle: {
     fontSize: 18,
@@ -1318,10 +1329,15 @@ categoryCard: {
     color: Colors.textPrimary,
   },
   iconButtonSmall: {
-    marginLeft: 8,
+    marginLeft: 12,
   },
-  addSubcatText: {
+  addSubcatButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
     marginTop: 6,
+    },
+  addSubcatText: {
+    marginLeft: 4,
     color: Colors.moss,
     fontSize: 14,
     fontWeight: '500',
@@ -1336,22 +1352,27 @@ categoryCard: {
   subCategoryLeft: {
     flexDirection: 'row',
     alignItems: 'center',
+     },
+    subCategoryRight: {
+    flexDirection: 'row',
+    alignItems: 'center',
+
   },
   subCategoryTitle: {
     fontSize: 16,
     color: Colors.textPrimary,
   },
   subCategoryTotalTitle: {
-    fontSize: 16,
-    fontWeight: '600',
+  fontSize: 18,
+    fontWeight: '700',
     color: Colors.textPrimary,
   },
   subCategoryValue: {
-    fontSize: 21,
+    fontSize: 22,
     color: Colors.textPrimary,
   },
-    subCategoryTotalValue: {
-    fontSize: 21,
+     subCategoryTotalValue: {
+    fontSize: 22,
     fontWeight: '600',
     color: Colors.textPrimary,
   },
