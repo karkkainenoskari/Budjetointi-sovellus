@@ -1039,26 +1039,26 @@ export default function BudjettiScreen() {
               </TouchableOpacity>
 
              </View>
-            <View style={styles.budgetPeriodRow}>
-              <Text style={styles.budgetPeriodText}>
-                {`Budjettijakso: ${
-                  viewPeriodId
-                    ? formatMonthRange(viewPeriodId)
-                    : `${budgetPeriod.startDate.getDate()}.${
-                        budgetPeriod.startDate.getMonth() + 1
-                      } – ${budgetPeriod.endDate.getDate()}.${
-                        budgetPeriod.endDate.getMonth() + 1
-                      }`
-                }`}
-                {readOnly && ' (arkisto)'}
-              </Text>
-              <TouchableOpacity onPress={() => setShowPeriodModal(true)} style={styles.iconButton}>
-                <Ionicons name="calendar-outline" size={22} color={Colors.textSecondary} />
-              </TouchableOpacity>
-              <TouchableOpacity onPress={handleOpenNewPeriod} style={styles.iconButton}>
-                <Ionicons name="add-circle-outline" size={22} color={Colors.moss} />
-              </TouchableOpacity>
-            </View>
+              </View>
+          <View style={styles.budgetPeriodRow}>
+            <Text style={styles.budgetPeriodText}>
+              {`Budjettijakso: ${
+                viewPeriodId
+                  ? formatMonthRange(viewPeriodId)
+                  : `${budgetPeriod.startDate.getDate()}.${
+                      budgetPeriod.startDate.getMonth() + 1
+                    } – ${budgetPeriod.endDate.getDate()}.${
+                      budgetPeriod.endDate.getMonth() + 1
+                    }`
+              }`}
+              {readOnly && ' (arkisto)'}
+            </Text>
+            <TouchableOpacity onPress={() => setShowPeriodModal(true)} style={styles.iconButton}>
+              <Ionicons name="calendar-outline" size={22} color={Colors.textSecondary} />
+            </TouchableOpacity>
+            <TouchableOpacity onPress={handleOpenNewPeriod} style={styles.iconButton}>
+              <Ionicons name="add-circle-outline" size={22} color={Colors.moss} />
+            </TouchableOpacity>
           </View>
      {/* ─── Tilannevälilehdet ────────────────────────────────────────── */}
           <View style={styles.tabsContainer}>
@@ -1255,7 +1255,7 @@ tabsContainer: {
   tabTextSelected: {
     color: Colors.background,
     fontWeight: '600',
-     textDecorationLine: 'underline',
+     textDecorationLine: 'none',
   },
  
 
