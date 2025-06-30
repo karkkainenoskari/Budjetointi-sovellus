@@ -1,6 +1,6 @@
 // app/(tabs)/index.tsx
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import {
   SafeAreaView,
   View,
@@ -15,6 +15,8 @@ import {
   TextInput,
   Platform,
   Image,
+   Animated,
+  LayoutAnimation,
 } from 'react-native';
 import DateTimePicker, { DateTimePickerAndroid } from '@react-native-community/datetimepicker';
 import { Ionicons } from '@expo/vector-icons';
@@ -80,6 +82,9 @@ export default function BudjettiScreen() {
   const [newPeriodTotal, setNewPeriodTotal] = useState<string>('');
   const [showStartPicker, setShowStartPicker] = useState<boolean>(false);
   const [showEndPicker, setShowEndPicker] = useState<boolean>(false);
+
+    // Progress animation for budget allocation
+  const progressAnim = useRef(new Animated.Value(0)).current;
 
    const formatBudgetText = (text: string) => {
     const cleaned = text.replace(/\s/g, '');
@@ -188,7 +193,18 @@ export default function BudjettiScreen() {
     ? budgetPeriod.totalAmount - totalAllocated
     : 0;
  
- 
+  const budgetedPercent =
+    budgetPeriod && budgetPeriod.totalAmount > 0
+      ? totalAllocated / budgetPeriod.totalAmount
+      : 0;
+
+  useEffect(() => {
+    Animated.timing(progressAnim, {
+      toValue: budgetedPercent,
+      duration: 500,
+      useNativeDriver: false,
+    }).start();
+  }, [budgetedPercent]);
 
       // Kokonaisbudjetista jäljellä / käytetty
   const totalSpentAll = Object.values(expensesByCategory).reduce(
@@ -314,6 +330,7 @@ export default function BudjettiScreen() {
                 type: 'main',
               });
               const updatedCats = await getCategories(userId);
+                 LayoutAnimation.configureNext(LayoutAnimation.Presets.easeInEaseOut);
               setCategories(updatedCats);
             } catch (e) {
               console.error('addCategory virhe:', e);
@@ -366,6 +383,7 @@ export default function BudjettiScreen() {
         }));
       }
       const updatedCats = await getCategories(userId);
+      LayoutAnimation.configureNext(LayoutAnimation.Presets.easeInEaseOut);
       setCategories(updatedCats);
       setShowAddSubModal(false);
       setParentForSub(null);
@@ -421,6 +439,7 @@ export default function BudjettiScreen() {
                 allocated: newAlloc,
               });
               const updatedCats = await getCategories(userId);
+                 LayoutAnimation.configureNext(LayoutAnimation.Presets.easeInEaseOut);
               setCategories(updatedCats);
             } catch (e) {
               console.error('updateCategory virhe:', e);
@@ -448,6 +467,7 @@ export default function BudjettiScreen() {
             try {
               await deleteCategory(userId, categoryId);
               const updatedCats = await getCategories(userId);
+              LayoutAnimation.configureNext(LayoutAnimation.Presets.easeInEaseOut);
               setCategories(updatedCats);
             } catch (e) {
               console.error('deleteCategory virhe:', e);
@@ -577,6 +597,7 @@ export default function BudjettiScreen() {
         await seedDefaultCategories(userId);
         updatedCats = await getCategories(userId);
       }
+      LayoutAnimation.configureNext(LayoutAnimation.Presets.easeInEaseOut);
       setCategories(updatedCats);
        const id = `${newPeriodStart.getFullYear()}-${String(
         newPeriodStart.getMonth() + 1
@@ -1086,19 +1107,35 @@ export default function BudjettiScreen() {
           <View style={styles.unallocatedContainer}>
             {selectedTab === 'plan' && (
               <>
-               <View style={styles.budgetSummaryContainer}>
-                <Text style={styles.unallocatedText}>
-                  Budjetoitavaa jäljellä:{' '}
-                  <Text
-                    style={[
-                      styles.unallocatedValue,
-                      budgetPeriod && budgetUnallocated < 0 && styles.unallocatedNegative,
-                    ]}
-                  >
-                    {budgetPeriod ? `${formatCurrency(budgetUnallocated)} €` : '-'}
-                  </Text>
-                </Text>
-              </View>
+                 <View style={styles.budgetSummaryContainer}>
+                  <View style={styles.remainingBox}>
+                    <Text style={styles.unallocatedText}>
+                      Budjetoitavaa jäljellä{' '}
+                      <Text
+                        style={[
+                          styles.unallocatedValue,
+                          budgetPeriod && budgetUnallocated < 0 && styles.unallocatedNegative,
+                        ]}
+                      >
+                        {budgetPeriod ? `${formatCurrency(budgetUnallocated)} €` : '-'}
+                      </Text>{' '}
+                      ({Math.round(budgetedPercent * 100)} % budjetoitu)
+                    </Text>
+                  </View>
+                  <View style={styles.progressBarBackground}>
+                    <Animated.View
+                      style={[
+                        styles.progressBarFill,
+                        {
+                          width: progressAnim.interpolate({
+                            inputRange: [0, 1],
+                            outputRange: ['0%', '100%'],
+                          }),
+                        },
+                      ]}
+                    />
+                  </View>
+                </View>
               </>
             )}
             {selectedTab === 'spent' && (
@@ -1192,15 +1229,14 @@ const styles = StyleSheet.create({
 
 unallocatedContainer: {
   marginTop: 4,
-  alignItems: 'center',
-},
+  paddingHorizontal: 16,
+  },
 
 
   budgetSummaryContainer: {
-  paddingHorizontal: 16, // tämä siirtää molemmat tekstit hieman oikealle
   marginTop: 8,
   marginBottom: 8,
-},
+  },
  unallocatedText: {
     fontSize: 20,
     color: Colors.textPrimary,
@@ -1220,7 +1256,23 @@ unallocatedContainer: {
     borderRadius: 4,
     paddingHorizontal: 1,
     paddingVertical: 2,
-    },
+     },
+  remainingBox: {
+    backgroundColor: '#E8F3E5',
+    borderRadius: 6,
+    padding: 8,
+    marginBottom: 8,
+  },
+  progressBarBackground: {
+    height: 10,
+    backgroundColor: Colors.tabInactiveBg,
+    borderRadius: 5,
+    overflow: 'hidden',
+  },
+  progressBarFill: {
+    height: 10,
+    backgroundColor: Colors.moss,
+  },
 
 
   /* ── Tilannevälilehdet ── */
