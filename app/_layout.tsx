@@ -11,6 +11,8 @@ import { getPayday } from '../src/services/userSettings';
 
 // Tuodaan CalendarTriggerInput‐tyyppi (run‐time‐kokonaisuuteen ei tarvita erillistä enum‐kenttää)
 import type { CalendarTriggerInput } from 'expo-notifications';
+import HeaderBar from '../components/HeaderBar';
+import Colors from '../constants/Colors';
 
 export default function RootLayout() {
   const router = useRouter();
@@ -171,10 +173,22 @@ export default function RootLayout() {
   // ───────────────────────────────────────────────────────────────────────────────
   // Käyttäjä on autentikoitu, renderöidään sovelluksen sisältö (Slot)
   // ───────────────────────────────────────────────────────────────────────────────
-  return <Slot />;
+  const hideHeaderRoutes = ['/login', '/register', '/forgot-password'];
+  const showHeader = !hideHeaderRoutes.includes(pathname);
+
+  return (
+    <View style={styles.container}>
+      {showHeader && <HeaderBar />}
+      <Slot />
+    </View>
+  );
 }
 
 const styles = StyleSheet.create({
+   container: {
+    flex: 1,
+    backgroundColor: Colors.background,
+  },
   loaderContainer: {
     flex: 1,
     justifyContent: 'center',

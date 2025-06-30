@@ -15,14 +15,13 @@ import {
   TextInput,
   Platform,
   Image,
-   Animated,
+  Animated,
   LayoutAnimation,
 } from 'react-native';
 import DateTimePicker, { DateTimePickerAndroid } from '@react-native-community/datetimepicker';
 import { Ionicons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
 import { useFocusEffect } from '@react-navigation/native';
-import { signOut } from 'firebase/auth';
 import { auth } from '../../src/api/firebaseConfig';
 import Colors from '../../constants/Colors';
 
@@ -31,7 +30,7 @@ import {
   addCategory,
   updateCategory,
   deleteCategory,
-   seedDefaultCategories,
+  seedDefaultCategories,
   Category,
 } from '../../src/services/categories';
 import {
@@ -41,9 +40,8 @@ import {
 } from '../../src/services/expenses';
 import {
   getCurrentBudgetPeriod,
-  setCurrentBudgetPeriod,
   startNewBudgetPeriod,
-getBudgetPeriodFromHistory,
+  getBudgetPeriodFromHistory,
 } from '../../src/services/budget';
 import { formatMonthRange } from '@/src/utils';
 import { getHistoryMonths, getHistoryCategories } from '../../src/services/history';
@@ -69,7 +67,7 @@ export default function BudjettiScreen() {
   // Valittu välilehti: 'plan' | 'spent' | 'left'
   const [selectedTab, setSelectedTab] = useState<'plan' | 'spent' | 'left'>('plan');
 
- // Alakategorian lisäys -modalin tilat
+  // Alakategorian lisäys -modalin tilat
   const [showAddSubModal, setShowAddSubModal] = useState<boolean>(false);
   const [newSubTitle, setNewSubTitle] = useState<string>('');
   const [newSubAmount, setNewSubAmount] = useState<string>('');
@@ -83,7 +81,7 @@ export default function BudjettiScreen() {
   const [showStartPicker, setShowStartPicker] = useState<boolean>(false);
   const [showEndPicker, setShowEndPicker] = useState<boolean>(false);
 
-    // Progress animation for budget allocation
+  // Progress animation for budget allocation
   const progressAnim = useRef(new Animated.Value(0)).current;
 
   const getProgressColor = (percent: number) => {
@@ -92,7 +90,7 @@ export default function BudjettiScreen() {
     return Colors.success;
   };
 
-   const formatBudgetText = (text: string) => {
+  const formatBudgetText = (text: string) => {
     const cleaned = text.replace(/\s/g, '');
     const decimals = (cleaned.split(/[,.]/)[1] || '').length;
     const num = parseFloat(cleaned.replace(',', '.'));
@@ -105,9 +103,9 @@ export default function BudjettiScreen() {
       .replace(/\u00A0/g, ' ');
   };
 
-   const formatCurrency = (value: number) =>
+  const formatCurrency = (value: number) =>
     value.toLocaleString('fi-FI', {
-       minimumFractionDigits: 2,
+      minimumFractionDigits: 2,
       maximumFractionDigits: 2,
     });
 
@@ -115,7 +113,7 @@ export default function BudjettiScreen() {
     setNewPeriodTotal(formatBudgetText(value));
   };
 
-     const openStartPicker = () => {
+  const openStartPicker = () => {
     if (Platform.OS === 'android') {
       DateTimePickerAndroid.open({
         value: newPeriodStart,
@@ -150,7 +148,7 @@ export default function BudjettiScreen() {
   const [showPeriodModal, setShowPeriodModal] = useState<boolean>(false);
   const [currentPeriodId, setCurrentPeriodId] = useState<string>('');
 
-   const loadCurrentPeriod = async (active: { current: boolean }) => {
+  const loadCurrentPeriod = async (active: { current: boolean }) => {
     if (!userId) return;
     try {
       const bp = await getCurrentBudgetPeriod(userId);
@@ -190,15 +188,15 @@ export default function BudjettiScreen() {
     }
   };
 
- // Kokonaissummat
+  // Kokonaissummat
   const totalAllocated = categories
-     .filter((cat) => !cat.title.toLowerCase().includes('yhteensä'))
+    .filter((cat) => !cat.title.toLowerCase().includes('yhteensä'))
     .reduce((sum, cat) => sum + cat.allocated, 0);
-    
+
   const budgetUnallocated = budgetPeriod
     ? budgetPeriod.totalAmount - totalAllocated
     : 0;
- 
+
   const budgetedPercent =
     budgetPeriod && budgetPeriod.totalAmount > 0
       ? totalAllocated / budgetPeriod.totalAmount
@@ -212,7 +210,7 @@ export default function BudjettiScreen() {
     }).start();
   }, [budgetedPercent]);
 
-      // Kokonaisbudjetista jäljellä / käytetty
+  // Kokonaisbudjetista jäljellä / käytetty
   const totalSpentAll = Object.values(expensesByCategory).reduce(
     (sum, val) => sum + val,
     0
@@ -221,7 +219,7 @@ export default function BudjettiScreen() {
     ? budgetPeriod.totalAmount - totalSpentAll
     : 0;
 
-    const readOnly = viewPeriodId !== currentPeriodId;
+  const readOnly = viewPeriodId !== currentPeriodId;
   // ─── Fetch current budget period ────────────────────────────────────
   useEffect(() => {
     if (!userId) return;
@@ -229,7 +227,7 @@ export default function BudjettiScreen() {
     const active = { current: true };
 
     setLoadingPeriod(true);
-    
+
     loadCurrentPeriod(active).finally(() => {
       if (active.current) setLoadingPeriod(false);
     });
@@ -238,7 +236,7 @@ export default function BudjettiScreen() {
     };
   }, [userId]);
 
-   useFocusEffect(
+  useFocusEffect(
     React.useCallback(() => {
       if (!userId) return;
       const active = { current: true };
@@ -246,16 +244,16 @@ export default function BudjettiScreen() {
       loadCurrentPeriod(active).finally(() => {
         if (active.current) setLoadingPeriod(false);
       });
-      
+
       return () => {
         active.current = false;
       };
-   }, [userId])
+    }, [userId])
   );
 
   // ─── Fetch categories whenever userId or budgetPeriod changes ────────
   useEffect(() => {
-     if (!userId || !budgetPeriod || !viewPeriodId) return;
+    if (!userId || !budgetPeriod || !viewPeriodId) return;
 
     let isActive = true;
     setLoadingCategories(true);
@@ -305,16 +303,6 @@ export default function BudjettiScreen() {
       });
   }, [userId, budgetPeriod]);
 
-  // ─── Logout handler ────────────────────────────────────────────────
-  const handleLogout = async () => {
-    if (!userId) return;
-    try {
-      await signOut(auth);
-      // RootLayout ohjaa takaisin /login
-    } catch (err) {
-      console.log('Kirjaudu ulos -virhe:', err);
-    }
-  };
 
   // ─── Add main category ──────────────────────────────────────────────
   const handleAddMainCategory = () => {
@@ -336,7 +324,7 @@ export default function BudjettiScreen() {
                 type: 'main',
               });
               const updatedCats = await getCategories(userId);
-                 LayoutAnimation.configureNext(LayoutAnimation.Presets.easeInEaseOut);
+              LayoutAnimation.configureNext(LayoutAnimation.Presets.easeInEaseOut);
               setCategories(updatedCats);
             } catch (e) {
               console.error('addCategory virhe:', e);
@@ -348,7 +336,7 @@ export default function BudjettiScreen() {
     );
   };
 
-   // ─── Open add subcategory modal ────────────────────────────────────
+  // ─── Open add subcategory modal ────────────────────────────────────
   const handleOpenAddSubcategory = (parentId: string) => {
     setParentForSub(parentId);
     setNewSubTitle('');
@@ -423,7 +411,7 @@ export default function BudjettiScreen() {
               Alert.alert('Virhe', 'Anna kelvollinen summa');
               return;
             }
-              // Laske kaikkien muiden kategorioiden varaukset (paitsi "yhteensä"-rivien)
+            // Laske kaikkien muiden kategorioiden varaukset (paitsi "yhteensä"-rivien)
             const sumOthers = categories
               .filter(
                 (c) =>
@@ -435,7 +423,7 @@ export default function BudjettiScreen() {
               Alert.alert(
                 'Virhe',
                 `Et voi varata enempää kuin budjetti. Jo varattuna: ${sumOthers} €. `
-                  + `Yritit varata: ${newAlloc} €. Ylittää budjetin (${totalBudget} €).`
+                + `Yritit varata: ${newAlloc} €. Ylittää budjetin (${totalBudget} €).`
               );
               return;
             }
@@ -445,7 +433,7 @@ export default function BudjettiScreen() {
                 allocated: newAlloc,
               });
               const updatedCats = await getCategories(userId);
-                 LayoutAnimation.configureNext(LayoutAnimation.Presets.easeInEaseOut);
+              LayoutAnimation.configureNext(LayoutAnimation.Presets.easeInEaseOut);
               setCategories(updatedCats);
             } catch (e) {
               console.error('updateCategory virhe:', e);
@@ -485,7 +473,7 @@ export default function BudjettiScreen() {
     );
   };
 
-   // ─── Add expense to category ────────────────────────────────────────
+  // ─── Add expense to category ────────────────────────────────────────
   const handleAddExpenseToCategory = (categoryId: string) => {
     if (!userId) return;
     Alert.prompt(
@@ -524,46 +512,9 @@ export default function BudjettiScreen() {
   };
 
   // ─── Edit budget period ─────────────────────────────────────────────
-  const handleEditPeriod = () => {
-    if (!budgetPeriod || !userId) return;
-    // Tämän esimerkin tarkoitus on demo, joten kysytään vain totalAmount
-    Alert.prompt(
-      'Muokkaa budjettijaksoa',
-      `Anna uusi budjetin loppusumma. Nykyinen budjettisi on: ${budgetPeriod.totalAmount} €`,
-      [
-        { text: 'Peruuta', style: 'cancel' },
-        {
-          text: 'OK',
-          onPress: async (input) => {
-            const newTotal = parseFloat(input || '');
-            if (isNaN(newTotal) || newTotal < 0) {
-              Alert.alert('Virhe', 'Anna kelvollinen luku.');
-              return;
-            }
-            // Esimerkkinä jätetään päivämäärä samaksi, päivitetään totalAmount
-            try {
-              await setCurrentBudgetPeriod(userId, {
-                startDate: budgetPeriod.startDate,
-                endDate: budgetPeriod.endDate,
-                totalAmount: newTotal,
-              });
-              setBudgetPeriod({
-                startDate: budgetPeriod.startDate,
-                endDate: budgetPeriod.endDate,
-                totalAmount: newTotal,
-              });
-            } catch (e) {
-              console.error('setCurrentBudgetPeriod virhe:', e);
-            }
-          },
-        },
-      ],
-      'plain-text',
-      `${budgetPeriod.totalAmount}`
-    );
-  };
+  
 
- // ─── Start new budget period ───────────────────────────────────────
+  // ─── Start new budget period ───────────────────────────────────────
   const handleOpenNewPeriod = () => {
     if (budgetPeriod) {
       setNewPeriodStart(budgetPeriod.startDate);
@@ -598,14 +549,14 @@ export default function BudjettiScreen() {
         endDate: newPeriodEnd,
         totalAmount: total,
       });
-       let updatedCats = await getCategories(userId);
+      let updatedCats = await getCategories(userId);
       if (updatedCats.length === 0) {
         await seedDefaultCategories(userId);
         updatedCats = await getCategories(userId);
       }
       LayoutAnimation.configureNext(LayoutAnimation.Presets.easeInEaseOut);
       setCategories(updatedCats);
-       const id = `${newPeriodStart.getFullYear()}-${String(
+      const id = `${newPeriodStart.getFullYear()}-${String(
         newPeriodStart.getMonth() + 1
       ).padStart(2, '0')}`;
       setCurrentPeriodId(id);
@@ -654,7 +605,7 @@ export default function BudjettiScreen() {
   const renderCategoryItem = ({ item }: { item: Category }) => {
     if (item.parentId !== null) return null;
 
-     // Laske pääkategorian varatut ja käytetyt summat alakategoriat huomioiden
+    // Laske pääkategorian varatut ja käytetyt summat alakategoriat huomioiden
     let totalAllocatedForMain = item.allocated;
     let totalSpentForMain = 0;
     categories.forEach((cat) => {
@@ -669,7 +620,7 @@ export default function BudjettiScreen() {
     totalSpentForMain += expensesByCategory[item.id] || 0;
 
     const spent = totalSpentForMain;
-     const left = totalAllocatedForMain - spent;
+    const left = totalAllocatedForMain - spent;
     let mainValue: number;
     let mainLabel: string;
 
@@ -690,17 +641,17 @@ export default function BudjettiScreen() {
         <View style={styles.categoryLeft}>
           <View style={styles.categoryTitleRow}>
             <Text style={styles.categoryTitle}>{item.title}</Text>
-           
-          <View style={styles.categoryIcons}>
+
+            <View style={styles.categoryIcons}>
               {!readOnly && selectedTab === 'plan' && (
                 <TouchableOpacity
                   onPress={() => handleDeleteCategory(item.id)}
                   style={styles.iconButtonSmall}
                 >
-                   <Ionicons name="trash-outline" size={14} color={Colors.iconMuted} />
+                  <Ionicons name="trash-outline" size={14} color={Colors.iconMuted} />
                 </TouchableOpacity>
               )}
-                {!readOnly && selectedTab === 'spent' && (
+              {!readOnly && selectedTab === 'spent' && (
                 <TouchableOpacity
                   onPress={() => handleAddExpenseToCategory(item.id)}
                   style={styles.iconButtonSmall}
@@ -716,7 +667,7 @@ export default function BudjettiScreen() {
           </View>
 
 
- {subCategories.map((sub) => {
+          {subCategories.map((sub) => {
             const subSpent = expensesByCategory[sub.id] || 0;
             const subLeft = sub.allocated - subSpent;
             let subValue: number;
@@ -743,7 +694,7 @@ export default function BudjettiScreen() {
             }
 
             return (
-               <View
+              <View
                 key={sub.id}
                 style={[styles.subCategoryRow, isTotalRow && styles.subCategoryTotalRow]}
               >
@@ -774,7 +725,7 @@ export default function BudjettiScreen() {
                   {!readOnly && !isTotalRow && (
                     <>
                       {selectedTab === 'plan' && (
-                         <TouchableOpacity
+                        <TouchableOpacity
                           onPress={() => handleDeleteCategory(sub.id)}
                           style={styles.iconButtonSmall}
                         >
@@ -804,8 +755,8 @@ export default function BudjettiScreen() {
             );
           })}
 
-        {!readOnly && (
-           <TouchableOpacity
+          {!readOnly && (
+            <TouchableOpacity
               style={styles.addSubcatButton}
               onPress={() => handleOpenAddSubcategory(item.id)}
             >
@@ -815,7 +766,7 @@ export default function BudjettiScreen() {
           )}
         </View>
 
-         {/* Kokonaissumma näytetään vain alakategorioiden "Yhteensä"-rivillä */}
+        {/* Kokonaissumma näytetään vain alakategorioiden "Yhteensä"-rivillä */}
       </View>
     );
   };
@@ -840,7 +791,7 @@ export default function BudjettiScreen() {
   return (
     <SafeAreaView style={styles.safeContainer}>
 
-       {/* Jakson valinta */}
+      {/* Jakson valinta */}
       <Modal
         transparent
         visible={showPeriodModal}
@@ -873,7 +824,7 @@ export default function BudjettiScreen() {
       </Modal>
 
 
-       {/* Uuden budjettijakson modal */}
+      {/* Uuden budjettijakson modal */}
       <Modal
         transparent
         visible={showNewPeriodModal}
@@ -893,7 +844,7 @@ export default function BudjettiScreen() {
                 {newPeriodStart.toLocaleDateString('fi-FI')}
               </Text>
             </TouchableOpacity>
-             {Platform.OS !== 'android' && showStartPicker && (
+            {Platform.OS !== 'android' && showStartPicker && (
               <Modal
                 transparent
                 animationType="fade"
@@ -934,7 +885,7 @@ export default function BudjettiScreen() {
               </Text>
             </TouchableOpacity>
             {Platform.OS !== 'android' && showEndPicker && (
-               <Modal
+              <Modal
                 transparent
                 animationType="fade"
                 visible={showEndPicker}
@@ -963,14 +914,14 @@ export default function BudjettiScreen() {
                 </TouchableOpacity>
               </Modal>
             )}
-             <Text style={styles.label}>Kokonais budjetti (€)</Text>
+            <Text style={styles.label}>Kokonais budjetti (€)</Text>
             <TextInput
               style={styles.modalInput}
-               placeholder="Kokonais budjetti (€)"
+              placeholder="Kokonais budjetti (€)"
               placeholderTextColor="#888"
               keyboardType="numeric"
               value={newPeriodTotal}
-               onChangeText={handleNewPeriodTotalChange}
+              onChangeText={handleNewPeriodTotalChange}
             />
             <View style={styles.modalButtons}>
               <TouchableOpacity
@@ -991,7 +942,7 @@ export default function BudjettiScreen() {
       </Modal>
 
 
-         {/* Alakategorian lisäysmodal */}
+      {/* Alakategorian lisäysmodal */}
       <Modal
         transparent
         visible={showAddSubModal}
@@ -1040,9 +991,9 @@ export default function BudjettiScreen() {
         </View>
       </Modal>
 
-    {!budgetPeriod ? (
+      {!budgetPeriod ? (
         <View style={styles.noPeriodContainer}>
-           <Image
+          <Image
             source={require('@/assets/images/budjettikoutsi_logo.png')}
             style={styles.noPeriodLogo}
           />
@@ -1055,32 +1006,18 @@ export default function BudjettiScreen() {
             </Text>
           </TouchableOpacity>
 
-          
-               </View>
+
+        </View>
       ) : (
         <>
-          {/* ─── Budjetti‐header ──────────────────────────────────────────── */}
-          <View style={styles.headerContainer}>
-              <Text style={styles.headerTitle}>Budjetti Koutsi</Text>
-            <View style={styles.headerIcons}>
-               <TouchableOpacity onPress={handleEditPeriod} style={styles.iconButton}></TouchableOpacity>
-              <TouchableOpacity onPress={handleLogout} style={styles.iconButton}>
-                 <Ionicons name="lock-closed-outline" size={22} color="orange" />
-              </TouchableOpacity>
-
-             </View>
-              </View>
           <View style={styles.budgetPeriodRow}>
             <Text style={styles.budgetPeriodText}>
-              {`Budjettijakso: ${
-                viewPeriodId
+              {`Budjettijakso: ${viewPeriodId
                   ? formatMonthRange(viewPeriodId)
-                  : `${budgetPeriod.startDate.getDate()}.${
-                      budgetPeriod.startDate.getMonth() + 1
-                    } – ${budgetPeriod.endDate.getDate()}.${
-                      budgetPeriod.endDate.getMonth() + 1
-                    }`
-              }`}
+                  : `${budgetPeriod.startDate.getDate()}.${budgetPeriod.startDate.getMonth() + 1
+                  } – ${budgetPeriod.endDate.getDate()}.${budgetPeriod.endDate.getMonth() + 1
+                  }`
+                }`}
               {readOnly && ' (arkisto)'}
             </Text>
             <TouchableOpacity onPress={() => setShowPeriodModal(true)} style={styles.iconButton}>
@@ -1090,7 +1027,7 @@ export default function BudjettiScreen() {
               <Ionicons name="add-circle-outline" size={22} color={Colors.moss} />
             </TouchableOpacity>
           </View>
-     {/* ─── Tilannevälilehdet ────────────────────────────────────────── */}
+          {/* ─── Tilannevälilehdet ────────────────────────────────────────── */}
           <View style={styles.tabsContainer}>
             <TouchableOpacity
               style={[styles.tabButton, selectedTab === 'plan' && styles.tabButtonSelected]}
@@ -1116,7 +1053,7 @@ export default function BudjettiScreen() {
           <View style={styles.unallocatedContainer}>
             {selectedTab === 'plan' && (
               <>
-                 <View style={styles.budgetSummaryContainer}>
+                <View style={styles.budgetSummaryContainer}>
                   <View style={styles.remainingBox}>
                     <Text style={styles.unallocatedText}>
                       Budjetoitavaa jäljellä{' '}
@@ -1128,7 +1065,6 @@ export default function BudjettiScreen() {
                       >
                         {budgetPeriod ? `${formatCurrency(budgetUnallocated)} €` : '-'}
                       </Text>{' '}
-                      ({Math.round(budgetedPercent * 100)} % budjetoitu)
                     </Text>
                   </View>
                   <View style={styles.progressBarContainer}>
@@ -1155,13 +1091,13 @@ export default function BudjettiScreen() {
             )}
             {selectedTab === 'spent' && (
               <Text style={styles.unallocatedText}>
-                 Käytetty yhteensä:{' '}
+                Käytetty yhteensä:{' '}
                 <Text style={styles.unallocatedValue}>{totalSpentAll} €</Text>
               </Text>
             )}
             {selectedTab === 'left' && (
               <Text style={styles.unallocatedText}>
-                         Jäljellä yhteensä:{' '}
+                Jäljellä yhteensä:{' '}
                 <Text style={styles.unallocatedValue}>{budgetLeftOverall} €</Text>
               </Text>
             )}
@@ -1204,26 +1140,13 @@ const styles = StyleSheet.create({
     backgroundColor: Colors.background,
   },
 
-  /* ── Header ── */
-  headerContainer: {
-     backgroundColor: Colors.cardBackground,
-    paddingHorizontal: 16,
-    paddingTop: 16,
-    paddingBottom: 8,
-  },
-  headerTitle: {
-    fontSize: 22,
-    fontWeight: '600',
-    color: Colors.textPrimary,
-    textAlign: 'center',
-  },
-   budgetPeriodRow: {
+  budgetPeriodRow: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
     marginHorizontal: 16,
     marginTop: 12,
-     paddingVertical: 8,
+    paddingVertical: 8,
     paddingHorizontal: 12,
     borderRadius: 12,
     backgroundColor: Colors.tabInactiveBg,
@@ -1232,45 +1155,39 @@ const styles = StyleSheet.create({
     shadowOffset: { width: 0, height: 2 },
     shadowRadius: 4,
     elevation: 1,
-    
+
   },
   budgetPeriodText: {
-     flex: 1,
+    flex: 1,
     fontSize: 18,
     fontWeight: '600',
     color: Colors.textPrimary,
-     textAlign: 'center',
-  },
-  headerIcons: {
-    flexDirection: 'row',
-     position: 'absolute',
-    right: 16,
-    top: 16,
+    textAlign: 'center',
   },
   iconButton: {
     marginLeft: 12,
   },
 
-unallocatedContainer: {
-  marginTop: 4,
-  paddingHorizontal: 16,
+  unallocatedContainer: {
+    marginTop: 4,
+    paddingHorizontal: 16,
   },
 
 
   budgetSummaryContainer: {
-  marginTop: 8,
-  marginBottom: 8,
+    marginTop: 8,
+    marginBottom: 8,
   },
- unallocatedText: {
+  unallocatedText: {
     fontSize: 20,
     color: Colors.textPrimary,
     fontWeight: '500',
     marginBottom: 4,
-     textAlign: 'center',
+    textAlign: 'center',
   },
   unallocatedValue: {
     fontWeight: '700',
-     fontSize: 18,
+    fontSize: 18,
   },
   unallocatedNegative: {
     color: Colors.danger,
@@ -1280,7 +1197,7 @@ unallocatedContainer: {
     borderRadius: 4,
     paddingHorizontal: 1,
     paddingVertical: 2,
-     },
+  },
   remainingBox: {
     backgroundColor: '#E8F3E5',
     borderRadius: 6,
@@ -1301,7 +1218,7 @@ unallocatedContainer: {
   },
   progressBarFill: {
     height: 10,
-    },
+  },
   progressPercentText: {
     marginLeft: 8,
     fontWeight: '600',
@@ -1310,20 +1227,20 @@ unallocatedContainer: {
 
 
   /* ── Tilannevälilehdet ── */
-tabsContainer: {
-  flexDirection: 'row',
-  justifyContent: 'space-around',
-  marginHorizontal: 16,
-  marginTop: 16,
-  marginBottom: 12,
-  borderRadius: 12,
-  backgroundColor: Colors.tabInactiveBg,
-  shadowColor: '#000',
-  shadowOpacity: 0.05,
-  shadowOffset: { width: 0, height: 2 },
-  shadowRadius: 4,
-  elevation: 1,
-},
+  tabsContainer: {
+    flexDirection: 'row',
+    justifyContent: 'space-around',
+    marginHorizontal: 16,
+    marginTop: 16,
+    marginBottom: 12,
+    borderRadius: 12,
+    backgroundColor: Colors.tabInactiveBg,
+    shadowColor: '#000',
+    shadowOpacity: 0.05,
+    shadowOffset: { width: 0, height: 2 },
+    shadowRadius: 4,
+    elevation: 1,
+  },
 
   tabButton: {
     flex: 1,
@@ -1341,23 +1258,23 @@ tabsContainer: {
   tabTextSelected: {
     color: Colors.background,
     fontWeight: '600',
-     textDecorationLine: 'none',
+    textDecorationLine: 'none',
   },
- 
+
 
 
   /* ── Pääkategoriat otsikko ja Lisää painike ── */
-mainCategoryHeader: {
-  flexDirection: 'row',
-  alignItems: 'center',
-  justifyContent: 'space-between',
-  paddingHorizontal: 16,
-  marginTop: 20, // aiemmin 12
-  marginBottom: 12, // aiemmin 8
-},
-mainCategoryTitle: {
-  fontSize: 24, // aiemmin 20
-  fontWeight: '700', // vahvempi korostus
+  mainCategoryHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    paddingHorizontal: 16,
+    marginTop: 20, // aiemmin 12
+    marginBottom: 12, // aiemmin 8
+  },
+  mainCategoryTitle: {
+    fontSize: 24, // aiemmin 20
+    fontWeight: '700', // vahvempi korostus
 
   },
   addMainCategoryButton: {
@@ -1371,31 +1288,31 @@ mainCategoryTitle: {
     fontWeight: '600',
   },
 
-categoryHeaderButtons: {
+  categoryHeaderButtons: {
     flexDirection: 'row',
     alignItems: 'center',
   },
- 
+
   /* ── Kategoriakortin tyylit ── */
   listContent: {
     paddingHorizontal: 16,
     paddingBottom: 24,
   },
-categoryCard: {
-  flexDirection: 'row',
-  justifyContent: 'space-between',
-  backgroundColor: Colors.cardBackground,
-  borderRadius: 12, // aiemmin 8
-  padding: 16,      // aiemmin 12
-  marginBottom: 16, // enemmän tilaa
-  borderWidth: 1,
-  borderColor: Colors.border,
-  shadowColor: '#000',
-  shadowOpacity: 0.05,
-  shadowOffset: { width: 0, height: 2 },
-  shadowRadius: 6,
-  elevation: 2, // Android
-},
+  categoryCard: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    backgroundColor: Colors.cardBackground,
+    borderRadius: 12, // aiemmin 8
+    padding: 16,      // aiemmin 12
+    marginBottom: 16, // enemmän tilaa
+    borderWidth: 1,
+    borderColor: Colors.border,
+    shadowColor: '#000',
+    shadowOpacity: 0.05,
+    shadowOffset: { width: 0, height: 2 },
+    shadowRadius: 6,
+    elevation: 2, // Android
+  },
 
   categoryLeft: {
     flex: 1,
@@ -1421,7 +1338,7 @@ categoryCard: {
     flexDirection: 'row',
     alignItems: 'center',
     marginTop: 6,
-    },
+  },
   addSubcatText: {
     marginLeft: 4,
     color: Colors.moss,
@@ -1434,8 +1351,8 @@ categoryCard: {
     alignItems: 'center',
     paddingLeft: 12,
     marginTop: 4,
-     },
-     subCategoryTotalRow: {
+  },
+  subCategoryTotalRow: {
     marginTop: 8,
     paddingVertical: 4,
     borderTopWidth: 1,
@@ -1444,8 +1361,8 @@ categoryCard: {
   subCategoryLeft: {
     flexDirection: 'row',
     alignItems: 'center',
-     },
-    subCategoryRight: {
+  },
+  subCategoryRight: {
     flexDirection: 'row',
     alignItems: 'center',
 
@@ -1455,7 +1372,7 @@ categoryCard: {
     color: Colors.textPrimary,
   },
   subCategoryTotalTitle: {
-  fontSize: 18,
+    fontSize: 18,
     fontWeight: '700',
     color: Colors.textPrimary,
   },
@@ -1463,7 +1380,7 @@ categoryCard: {
     fontSize: 22,
     color: Colors.textPrimary,
   },
-     subCategoryTotalValue: {
+  subCategoryTotalValue: {
     fontSize: 22,
     fontWeight: '600',
     color: Colors.textPrimary,
@@ -1472,7 +1389,7 @@ categoryCard: {
     alignItems: 'flex-end',
     justifyContent: 'center',
   },
- 
+
   categoryValue: {
     fontSize: 20,
     fontWeight: '600',
@@ -1499,7 +1416,7 @@ categoryCard: {
     marginBottom: 12,
   },
   modalInput: {
-     width: '100%',
+    width: '100%',
     height: 44,
     borderColor: Colors.border,
     borderWidth: 1,
@@ -1518,7 +1435,7 @@ categoryCard: {
     alignSelf: 'flex-start',
   },
   dateButton: {
-     width: '100%',
+    width: '100%',
     flexDirection: 'row',
     alignItems: 'center',
     paddingVertical: 10,
@@ -1546,10 +1463,10 @@ categoryCard: {
     color: Colors.moss,
     fontWeight: '600',
   },
-    inlinePicker: {
+  inlinePicker: {
     alignSelf: 'center',
   },
-   pickerContainer: {
+  pickerContainer: {
     backgroundColor: Colors.background,
     padding: 10,
     borderRadius: 8,
@@ -1560,14 +1477,14 @@ categoryCard: {
     alignItems: 'center',
     paddingHorizontal: 16,
   },
-noPeriodText: {
-  fontSize: 20,
-  fontWeight: '500',
-  color: Colors.textPrimary,
-  marginBottom: 16,
-  textAlign: 'center',
-  maxWidth: 300,
-},
+  noPeriodText: {
+    fontSize: 20,
+    fontWeight: '500',
+    color: Colors.textPrimary,
+    marginBottom: 16,
+    textAlign: 'center',
+    maxWidth: 300,
+  },
 
   noPeriodLogo: {
     width: 250,
