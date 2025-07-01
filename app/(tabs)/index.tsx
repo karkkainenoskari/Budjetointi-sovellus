@@ -84,11 +84,7 @@ export default function BudjettiScreen() {
   // Progress animation for budget allocation
   const progressAnim = useRef(new Animated.Value(0)).current;
 
-  const getProgressColor = (percent: number) => {
-    if (percent < 0.25) return Colors.danger;
-    if (percent < 0.75) return Colors.warning;
-    return Colors.success;
-  };
+   const getProgressColor = () => Colors.moss;
 
   const formatBudgetText = (text: string) => {
     const cleaned = text.replace(/\s/g, '');
@@ -1080,30 +1076,28 @@ export default function BudjettiScreen() {
           <View style={styles.unallocatedContainer}>
             <View style={styles.budgetSummaryContainer}>
               {selectedTab === 'plan' && (
-                <View style={styles.remainingBox}>
-                  <Text style={styles.unallocatedText}>
-                    Budjetoitavaa jäljellä{' '}
-                    <Text
-                      style={[
-                        styles.unallocatedValue,
-                        budgetPeriod && budgetUnallocated < 0 && styles.unallocatedNegative,
-                      ]}
-                    >
-                      {budgetPeriod ? `${formatCurrency(budgetUnallocated)} €` : '-'}
-                    </Text>{' '}
-                  </Text>
-                </View>
+                 <Text style={styles.unallocatedText}>
+                  Budjetoitavaa jäljellä{' '}
+                  <Text
+                    style={[
+                      styles.unallocatedValue,
+                      budgetPeriod && budgetUnallocated < 0 && styles.unallocatedNegative,
+                    ]}
+                  >
+                    {budgetPeriod ? `${formatCurrency(budgetUnallocated)} €` : '-'}
+                  </Text>{' '}
+                </Text>
               )}
               {selectedTab === 'spent' && (
                 <Text style={styles.unallocatedText}>
                   Käytetty yhteensä:{' '}
-                  <Text style={styles.unallocatedValue}>{totalSpentAll} €</Text>
+                   <Text style={styles.unallocatedValue}>{formatCurrency(totalSpentAll)} €</Text>
                 </Text>
               )}
               {selectedTab === 'left' && (
                 <Text style={styles.unallocatedText}>
                   Jäljellä yhteensä:{' '}
-                  <Text style={styles.unallocatedValue}>{budgetLeftOverall} €</Text>
+                    <Text style={styles.unallocatedValue}>{formatCurrency(budgetLeftOverall)} €</Text>
                 </Text>
               )}
               <View style={styles.progressBarContainer}>
@@ -1116,7 +1110,7 @@ export default function BudjettiScreen() {
                           inputRange: [0, 1],
                           outputRange: ['0%', '100%'],
                         }),
-                        backgroundColor: getProgressColor(progressPercent),
+                        backgroundColor: getProgressColor(),
                       },
                     ]}
                   />
@@ -1222,12 +1216,6 @@ const styles = StyleSheet.create({
     borderRadius: 4,
     paddingHorizontal: 1,
     paddingVertical: 2,
-  },
-  remainingBox: {
-    backgroundColor: '#E8F3E5',
-    borderRadius: 6,
-    padding: 8,
-    marginBottom: 8,
   },
   progressBarContainer: {
     flexDirection: 'row',
