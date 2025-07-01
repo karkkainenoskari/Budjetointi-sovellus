@@ -7,6 +7,8 @@ import {
   query,
   where,
   orderBy,
+   doc,
+  updateDoc,
   serverTimestamp,
 } from 'firebase/firestore';
 import { firestore } from '../api/firebaseConfig';
@@ -97,4 +99,12 @@ export async function getExpensesByCategoryAndPeriod(
     });
   });
   return expenses;
+}
+export async function updateExpense(
+  userId: string,
+  expenseId: string,
+  data: Partial<Omit<Expense, "id">>
+): Promise<void> {
+  const docRef = doc(firestore, "budjetit", userId, "expenses", expenseId);
+  await updateDoc(docRef, data);
 }

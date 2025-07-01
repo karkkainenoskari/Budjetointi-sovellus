@@ -54,10 +54,18 @@ export default function TilitapahtumatScreen() {
   );
 
   const renderItem = ({ item }: { item: Expense }) => (
-    <View style={styles.row}>
+    <TouchableOpacity
+      style={styles.row}
+      onPress={() =>
+        router.push({
+          pathname: '/editExpense',
+          params: { id: item.id, categoryId: item.categoryId },
+        })
+      }
+    >
       <Text style={styles.desc}>{item.description || '-'}</Text>
       <Text style={styles.amount}>{item.amount.toFixed(2)} €</Text>
-    </View>
+   </TouchableOpacity>
   );
 
   if (!userId) {

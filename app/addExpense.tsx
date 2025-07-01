@@ -1,5 +1,3 @@
-// app/addExpense.tsx
-
 import React, { useState, useEffect } from 'react';
 import {
   View,
@@ -12,6 +10,7 @@ import {
   Platform,
   SafeAreaView,
   ScrollView,
+  KeyboardAvoidingView,
 } from 'react-native';
 import { Picker } from '@react-native-picker/picker';
 import DateTimePicker from '@react-native-community/datetimepicker';
@@ -30,19 +29,17 @@ export default function AddExpenseScreen() {
   const user = auth.currentUser;
   const userId = user ? user.uid : null;
 
-  // ─── States ─────────────────────────────────────────────────────────
-  const [amount, setAmount] = useState<string>('');
-  const [description, setDescription] = useState<string>('');
-  const [selectedCategory, setSelectedCategory] = useState<string>('');
+  const [amount, setAmount] = useState('');
+  const [description, setDescription] = useState('');
+  const [selectedCategory, setSelectedCategory] = useState('');
   const [categories, setCategories] = useState<Category[]>([]);
-  const [loadingCategories, setLoadingCategories] = useState<boolean>(true);
+  const [loadingCategories, setLoadingCategories] = useState(true);
 
-  const [date, setDate] = useState<Date>(new Date());
-  const [showDatePicker, setShowDatePicker] = useState<boolean>(false);
+  const [date, setDate] = useState(new Date());
+  const [showDatePicker, setShowDatePicker] = useState(false);
 
-  const [saving, setSaving] = useState<boolean>(false);
+  const [saving, setSaving] = useState(false);
 
-  // ─── Fetch categories on mount ────────────────────────────────────────
   useEffect(() => {
     if (!userId) return;
 
@@ -58,7 +55,6 @@ export default function AddExpenseScreen() {
       .finally(() => setLoadingCategories(false));
   }, [userId]);
 
-  // ─── Handler: Päivämäärän valinta ─────────────────────────────────────
   const onChangeDate = (event: any, selected: Date | undefined) => {
     setShowDatePicker(false);
     if (selected) {
@@ -66,21 +62,18 @@ export default function AddExpenseScreen() {
     }
   };
 
-  // ─── Handler: Tallenna uusi kulu ─────────────────────────────────────
   const handleSave = async () => {
     if (!userId) {
       Alert.alert('Virhe', 'Et ole kirjautunut sisään.');
       return;
     }
 
-    // Tarkista summa
     const amt = parseFloat(amount.replace(',', '.'));
     if (isNaN(amt) || amt <= 0) {
       Alert.alert('Virhe', 'Syötä kelvollinen summa (esim. 12.50).');
       return;
     }
 
-    // Tarkista kategoria
     if (!selectedCategory) {
       Alert.alert('Virhe', 'Valitse kategoria.');
       return;
@@ -88,14 +81,12 @@ export default function AddExpenseScreen() {
 
     setSaving(true);
 
-    // Expense-tyyppi edellyttää id-kenttää, mutta koska Firestore etsii uuden dokumentin ID:n itse,
-    // kastamme olion tässä vaiheessa `as any` niin, että TypeScript ei valita puuttuvasta id:stä.
     const newExpense = {
       amount: amt,
       categoryId: selectedCategory,
       description: description.trim(),
       date: date,
-    } as any; // -> back-end (addExpenseToFirestore) luo id:n itse.
+    } as any;
 
     try {
       await addExpenseToFirestore(userId, newExpense as Expense);
@@ -108,7 +99,6 @@ export default function AddExpenseScreen() {
     }
   };
 
-  // ─── Jos lataamme kategorioita, näytetään loader ──────────────────────
   if (loadingCategories) {
     return (
       <SafeAreaView style={styles.loaderContainer}>
@@ -119,123 +109,97 @@ export default function AddExpenseScreen() {
 
   return (
     <SafeAreaView style={styles.safeContainer}>
-       <View style={styles.header}>
-        <TouchableOpacity onPress={() => router.back()}>
-          <Ionicons
-            name="arrow-back"
-            size={24}
-            color={Colors.textPrimary}
-          />
-        </TouchableOpacity>
-        <Text style={styles.headerTitle}>Lisää kulu</Text>
-        {/* Tyhjä näkymä tasaamaan tilaa */}
-        <View style={{ width: 24 }} />
-      </View>
-       <ScrollView
-        contentContainerStyle={styles.content}
-        style={{ flex: 1, overflow: 'visible' }}
-        keyboardShouldPersistTaps="handled"
+      <KeyboardAvoidingView
+        style={{ flex: 1 }}
+        behavior={Platform.OS === 'ios' ? 'padding' : undefined}
       >
-        {/* Summa‐kenttä */}
-        <Text style={styles.label}>Summa (€)</Text>
-        <TextInput
-          style={styles.input}
-          keyboardType="decimal-pad"
-          placeholder="Esim. 29.90"
-          value={amount}
-          onChangeText={setAmount}
-        />
-
-      {/* Kuvaus‐kenttä */}
-      <Text style={styles.label}>Kuvaus (valinnainen)</Text>
-      <TextInput
-        style={styles.input}
-        placeholder="Esim. Lounaskulu"
-        value={description}
-        onChangeText={setDescription}
-      />
-
-      {/* Kategorian valinta */}
-      <Text style={styles.label}>Kategoria</Text>
-      <View style={styles.pickerContainer}>
-        <Picker
-          selectedValue={selectedCategory}
-          onValueChange={(itemValue) => setSelectedCategory(itemValue)}
-          style={styles.picker}
-           mode="dropdown"
+        <ScrollView
+          contentContainerStyle={styles.content}
+          keyboardShouldPersistTaps="handled"
         >
-          {categories.map((cat) => (
-            <Picker.Item key={cat.id} label={cat.title} value={cat.id} />
-          ))}
-        </Picker>
-      </View>
+          <View style={styles.header}>
+            <TouchableOpacity onPress={() => router.back()}>
+              <Ionicons name="arrow-back" size={24} color={Colors.textPrimary} />
+            </TouchableOpacity>
+            <Text style={styles.headerTitle}>Lisää kulu</Text>
+            <View style={{ width: 24 }} />
+          </View>
 
-      {/* Päivämäärän valinta */}
-      <Text style={styles.label}>Päivämäärä</Text>
-      <TouchableOpacity
-        onPress={() => setShowDatePicker(true)}
-        style={styles.dateButton}
-      >
-        <Ionicons name="calendar-outline" size={20} color={Colors.textPrimary} />
-        <Text style={styles.dateButtonText}>
-          {date.toLocaleDateString('fi-FI')}
-        </Text>
-      </TouchableOpacity>
-     {showDatePicker && (
-  <View style={styles.datePickerContainer}>
-    <DateTimePicker
-      value={date}
-      mode="date"
-      display={Platform.OS === 'ios' ? 'spinner' : 'default'}
-      onChange={onChangeDate}
-    />
-  </View>
-)}
+          <Text style={styles.label}>Summa (€)</Text>
+          <TextInput
+            style={styles.input}
+            keyboardType="decimal-pad"
+            placeholder="Esim. 29.90"
+            value={amount}
+            onChangeText={setAmount}
+          />
 
-      {/* Tallenna‐painike */}
-      <TouchableOpacity
-        style={[styles.saveButton, saving && { opacity: 0.6 }]}
-        onPress={handleSave}
-        disabled={saving}
-      >
-        {saving ? (
-          <ActivityIndicator color="#fff" />
-        ) : (
-          <Text style={styles.saveButtonText}>Tallenna kulu</Text>
-        )}
-      </TouchableOpacity>
-       </ScrollView>
+          <Text style={styles.label}>Kuvaus (valinnainen)</Text>
+          <TextInput
+            style={styles.input}
+            placeholder="Esim. Lounaskulu"
+            value={description}
+            onChangeText={setDescription}
+          />
+
+          <Text style={styles.label}>Kategoria</Text>
+          <View style={styles.pickerContainer}>
+            <Picker
+              selectedValue={selectedCategory}
+              onValueChange={(itemValue) => setSelectedCategory(itemValue)}
+              style={styles.picker}
+              mode="dropdown"
+            >
+              {categories.map((cat) => (
+                <Picker.Item key={cat.id} label={cat.title} value={cat.id} />
+              ))}
+            </Picker>
+          </View>
+
+          <Text style={styles.label}>Päivämäärä</Text>
+          <TouchableOpacity
+            onPress={() => setShowDatePicker(true)}
+            style={styles.dateButton}
+          >
+            <Ionicons name="calendar-outline" size={20} color={Colors.textPrimary} />
+            <Text style={styles.dateButtonText}>{date.toLocaleDateString('fi-FI')}</Text>
+          </TouchableOpacity>
+
+          {showDatePicker && (
+            <View style={{ marginTop: 4 }}>
+              <DateTimePicker
+                value={date}
+                mode="date"
+                display={Platform.OS === 'ios' ? 'default' : 'default'}
+                onChange={onChangeDate}
+              />
+            </View>
+          )}
+
+          <TouchableOpacity
+            style={[styles.saveButton, saving && { opacity: 0.6 }]}
+            onPress={handleSave}
+            disabled={saving}
+          >
+            {saving ? (
+              <ActivityIndicator color="#fff" />
+            ) : (
+              <Text style={styles.saveButtonText}>Tallenna kulu</Text>
+            )}
+          </TouchableOpacity>
+        </ScrollView>
+      </KeyboardAvoidingView>
     </SafeAreaView>
   );
 }
 
 const styles = StyleSheet.create({
-   pickerContainer: {
-    borderWidth: 1,
-    borderColor: Colors.border,
-    borderRadius: 6,
-    marginTop: 20,
-    marginBottom: 170,
-    backgroundColor: Colors.cardBackground,
-    position: 'relative',  // ilman tätä zIndex ei toimi
-    zIndex: 1000,          // nostaa pickerin kaikkien sibliksien yli
-    elevation: 10,         // Androidissa
-    overflow: 'visible',   // TÄMÄ PUUTUI – lisää tämä
-  },
-  datePickerContainer: {
-    position: 'relative',
-    zIndex: 500,
-    elevation: 5,
-    marginTop: 4,
-    overflow: 'visible',
-  },
   safeContainer: {
     flex: 1,
     backgroundColor: Colors.background,
     padding: 16,
-    overflow: 'visible',  // varmista myös täällä
   },
-   header: {
+  header: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
@@ -272,7 +236,9 @@ const styles = StyleSheet.create({
     color: Colors.textPrimary,
     backgroundColor: Colors.cardBackground,
   },
-
+  pickerContainer: {
+   marginTop: Platform.OS === 'ios' ? 0 : 4,
+  },
   picker: {
     height: 50,
     width: '100%',
@@ -288,7 +254,6 @@ const styles = StyleSheet.create({
     borderRadius: 6,
     marginTop: 16,
     backgroundColor: Colors.cardBackground,
-    zIndex: 0,
   },
   dateButtonText: {
     marginLeft: 8,
@@ -301,7 +266,6 @@ const styles = StyleSheet.create({
     paddingVertical: 14,
     borderRadius: 8,
     alignItems: 'center',
-    zIndex: 0,
   },
   saveButtonText: {
     color: Colors.background,
