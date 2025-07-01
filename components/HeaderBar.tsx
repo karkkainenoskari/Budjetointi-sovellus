@@ -32,7 +32,7 @@ return (
           source={require('../assets/images/budjettikoutsi_logo.png')}
           style={styles.logo}
         />
-        <Text style={styles.title}>Budjetti Koutsi</Text>
+        <Text style={styles.title}>BudjettiKoutsi</Text>
       </View>
       <TouchableOpacity
         onPress={handleLogout}
@@ -66,6 +66,8 @@ const styles = StyleSheet.create({
   titleContainer: {
     flexDirection: 'row',
     alignItems: 'center',
+    flex: 1,
+    justifyContent: 'center',
   },
   logo: {
     width: 40,
