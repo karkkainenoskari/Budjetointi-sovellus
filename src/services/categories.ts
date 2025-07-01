@@ -126,7 +126,6 @@ export const DEFAULT_CATEGORIES: DefaultCategory[] = [
     title: 'Lainat',
     subs: [
       'Asuntolaina',
-      'Taloyhtiölaina',
       'Opintolaina',
       'Autolaina',
       'Kulutusluotto',
@@ -136,11 +135,11 @@ export const DEFAULT_CATEGORIES: DefaultCategory[] = [
   },
   {
     title: 'Asuminen',
-    subs: ['Yhtiövastike/vuokra', 'Vesi', 'Sähkö', 'Asuminen yhteensä'],
+    subs: ['Yhtiövastike', 'Vesi', 'Sähkö', 'Asuminen yhteensä'],
   },
   {
     title: 'Vakuutukset',
-    subs: ['Kotivakuutus', 'Autovakuutus', 'Sairauskuluvakuutus', 'Vakuutukset yhteensä'],
+    subs: ['Kotivakuutus', 'Autovakuutus', 'Vakuutukset yhteensä'],
   },
   {
     title: 'Ruoka',
@@ -150,28 +149,25 @@ export const DEFAULT_CATEGORIES: DefaultCategory[] = [
     title: 'Liikenne',
     subs: [
       'Bensa',
-      'Bussi',
-      'Autohuolto- ja renkaanvaihdot',
-      'Pysäköintimaksut',
-      'Ajoneuvovero',
+      'Julkinen liikenne',
       'Liikenne yhteensä',
     ],
   },
   {
     title: 'Harrastukset',
-    subs: ['Kuntosali', 'Padel', 'Harrastukset yhteensä'],
+    subs: ['Kuntosali', 'Harrastukset yhteensä'],
   },
   {
     title: 'Terveys',
-    subs: ['Lääkäri', 'Lääkkeet', 'Hieroja', 'Terveydenhuolto yhteensä'],
+    subs: ['Lääkäri', 'Lääkkeet', 'Terveys yhteensä'],
   },
   {
     title: 'Kauneus',
-    subs: ['Kampaaja/parturi', 'Meikit', 'Ihonhoito', 'Kauneudenhoito yhteensä'],
+    subs: ['Parturi', 'Ihonhoito', 'Kauneus yhteensä'],
   },
   {
     title: 'Viihde ja elektroniikka',
-    subs: ['Puhelinlasku', 'Netflix', 'Spotify', 'Netti', 'Viihde ja elektroniikka yhteensä'],
+    subs: ['Puhelinlasku', 'Suoratoistopalvelut', 'Netti', 'Viihde ja elektroniikka yhteensä'],
   },
   {
     title: 'Lemmikit',
@@ -179,14 +175,7 @@ export const DEFAULT_CATEGORIES: DefaultCategory[] = [
   },
   {
     title: 'Muut menot',
-    subs: [
-      'Vaatteet',
-      'Juhliminen',
-      'Sisustaminen',
-      'Oma hupitili',
-      'Varaus budjetin ylitykselle',
-      'Muut menot yhteensä',
-    ],
+    subs: ['Vaatteet', 'Hupitili', 'Muut menot yhteensä'],
   },
 ];
 

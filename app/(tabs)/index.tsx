@@ -202,15 +202,7 @@ export default function BudjettiScreen() {
       ? totalAllocated / budgetPeriod.totalAmount
       : 0;
 
-  useEffect(() => {
-    Animated.timing(progressAnim, {
-      toValue: budgetedPercent,
-      duration: 500,
-      useNativeDriver: false,
-    }).start();
-  }, [budgetedPercent]);
 
-  // Kokonaisbudjetista jäljellä / käytetty
   const totalSpentAll = Object.values(expensesByCategory).reduce(
     (sum, val) => sum + val,
     0
@@ -218,6 +210,32 @@ export default function BudjettiScreen() {
   const budgetLeftOverall = budgetPeriod
     ? budgetPeriod.totalAmount - totalSpentAll
     : 0;
+
+    const spentPercent =
+    budgetPeriod && budgetPeriod.totalAmount > 0
+      ? totalSpentAll / budgetPeriod.totalAmount
+      : 0;
+
+  const leftPercent =
+    budgetPeriod && budgetPeriod.totalAmount > 0
+      ? budgetLeftOverall / budgetPeriod.totalAmount
+      : 0;
+
+  const progressPercent =
+    selectedTab === 'plan'
+      ? budgetedPercent
+      : selectedTab === 'spent'
+      ? spentPercent
+      : leftPercent;
+
+  useEffect(() => {
+    Animated.timing(progressAnim, {
+      toValue: progressPercent,
+      duration: 500,
+      useNativeDriver: false,
+    }).start();
+  }, [progressPercent]);
+
 
   const readOnly = viewPeriodId !== currentPeriodId;
   // ─── Fetch current budget period ────────────────────────────────────
@@ -634,7 +652,16 @@ export default function BudjettiScreen() {
 
     }
 
-    const subCategories = categories.filter((c) => c.parentId === item.id);
+    const subCategories = categories
+      .filter((c) => c.parentId === item.id)
+      .sort((a, b) => {
+        const aTotal = a.title.toLowerCase().includes('yhteensä');
+        const bTotal = b.title.toLowerCase().includes('yhteensä');
+        if (aTotal && !bTotal) return 1;
+        if (!aTotal && bTotal) return -1;
+        return 0;
+      });
+
 
     return (
       <View style={styles.categoryCard}>
@@ -1051,56 +1078,54 @@ export default function BudjettiScreen() {
 
           {/* Kokonaissummat */}
           <View style={styles.unallocatedContainer}>
-            {selectedTab === 'plan' && (
-              <>
-                <View style={styles.budgetSummaryContainer}>
-                  <View style={styles.remainingBox}>
-                    <Text style={styles.unallocatedText}>
-                      Budjetoitavaa jäljellä{' '}
-                      <Text
-                        style={[
-                          styles.unallocatedValue,
-                          budgetPeriod && budgetUnallocated < 0 && styles.unallocatedNegative,
-                        ]}
-                      >
-                        {budgetPeriod ? `${formatCurrency(budgetUnallocated)} €` : '-'}
-                      </Text>{' '}
-                    </Text>
-                  </View>
-                  <View style={styles.progressBarContainer}>
-                    <View style={styles.progressBarBackground}>
-                      <Animated.View
-                        style={[
-                          styles.progressBarFill,
-                          {
-                            width: progressAnim.interpolate({
-                              inputRange: [0, 1],
-                              outputRange: ['0%', '100%'],
-                            }),
-                            backgroundColor: getProgressColor(budgetedPercent),
-                          },
-                        ]}
-                      />
-                    </View>
-                    <Text style={styles.progressPercentText}>
-                      {Math.round(budgetedPercent * 100)} %
-                    </Text>
-                  </View>
+            <View style={styles.budgetSummaryContainer}>
+              {selectedTab === 'plan' && (
+                <View style={styles.remainingBox}>
+                  <Text style={styles.unallocatedText}>
+                    Budjetoitavaa jäljellä{' '}
+                    <Text
+                      style={[
+                        styles.unallocatedValue,
+                        budgetPeriod && budgetUnallocated < 0 && styles.unallocatedNegative,
+                      ]}
+                    >
+                      {budgetPeriod ? `${formatCurrency(budgetUnallocated)} €` : '-'}
+                    </Text>{' '}
+                  </Text>
                 </View>
-              </>
-            )}
-            {selectedTab === 'spent' && (
-              <Text style={styles.unallocatedText}>
-                Käytetty yhteensä:{' '}
-                <Text style={styles.unallocatedValue}>{totalSpentAll} €</Text>
-              </Text>
-            )}
-            {selectedTab === 'left' && (
-              <Text style={styles.unallocatedText}>
-                Jäljellä yhteensä:{' '}
-                <Text style={styles.unallocatedValue}>{budgetLeftOverall} €</Text>
-              </Text>
-            )}
+              )}
+              {selectedTab === 'spent' && (
+                <Text style={styles.unallocatedText}>
+                  Käytetty yhteensä:{' '}
+                  <Text style={styles.unallocatedValue}>{totalSpentAll} €</Text>
+                </Text>
+              )}
+              {selectedTab === 'left' && (
+                <Text style={styles.unallocatedText}>
+                  Jäljellä yhteensä:{' '}
+                  <Text style={styles.unallocatedValue}>{budgetLeftOverall} €</Text>
+                </Text>
+              )}
+              <View style={styles.progressBarContainer}>
+                <View style={styles.progressBarBackground}>
+                  <Animated.View
+                    style={[
+                      styles.progressBarFill,
+                      {
+                        width: progressAnim.interpolate({
+                          inputRange: [0, 1],
+                          outputRange: ['0%', '100%'],
+                        }),
+                        backgroundColor: getProgressColor(progressPercent),
+                      },
+                    ]}
+                  />
+                </View>
+                <Text style={styles.progressPercentText}>
+                  {Math.round(progressPercent * 100)} %
+                </Text>
+              </View>
+            </View>
           </View>
 
           {/* ─── Pääkategoriat‐otsikko + Lisää ──────────────────────────────── */}
