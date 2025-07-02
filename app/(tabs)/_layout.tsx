@@ -2,15 +2,16 @@ import React from 'react';
 import { Tabs } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import Colors from '../../constants/Colors';
+import AnimatedTabButton from '../../components/AnimatedTabButton';
 
 export default function TabsLayout() {
   return (
     <Tabs
       screenOptions={{
         headerShown: false,
-        tabBarActiveTintColor: Colors.moss,
+         tabBarActiveTintColor: Colors.background,
         tabBarInactiveTintColor: Colors.textSecondary,
-        tabBarActiveBackgroundColor: Colors.tabInactiveBg,
+        tabBarActiveBackgroundColor: Colors.evergreen,
         tabBarStyle: {
           backgroundColor: Colors.background,
           borderTopColor: Colors.border,
@@ -19,6 +20,7 @@ export default function TabsLayout() {
           flex: 1,
           alignItems: 'center',
         },
+        tabBarButton: (props) => <AnimatedTabButton {...props} />,
       }}
     >
       {/* Budjetti‐välilehti */}
