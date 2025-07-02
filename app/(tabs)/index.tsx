@@ -1076,15 +1076,23 @@ export default function BudjettiScreen() {
           <View style={styles.unallocatedContainer}>
             <View style={styles.budgetSummaryContainer}>
               {selectedTab === 'plan' && (
-                 <Text style={styles.unallocatedText}>
+                  <Text
+                  style={[
+                    styles.unallocatedText,
+                    budgetPeriod && budgetUnallocated === 0 && styles.unallocatedZero,
+                  ]}
+                >
                   Budjetoitavaa jäljellä{' '}
                   <Text
                     style={[
                       styles.unallocatedValue,
                       budgetPeriod && budgetUnallocated < 0 && styles.unallocatedNegative,
+                       budgetPeriod && budgetUnallocated === 0 && styles.unallocatedZero,
                     ]}
                   >
-                    {budgetPeriod ? `${formatCurrency(budgetUnallocated)} €` : '-'}
+                    {budgetPeriod && budgetPeriod.totalAmount > 0
+                      ? `${formatCurrency(budgetUnallocated)} €`
+                      : '-'}
                   </Text>{' '}
                 </Text>
               )}
@@ -1210,6 +1218,9 @@ const styles = StyleSheet.create({
   },
   unallocatedNegative: {
     color: Colors.danger,
+  },
+  unallocatedZero: {
+    color: Colors.success,
   },
   remainingHighlight: {
     backgroundColor: '#FFF3B0',
