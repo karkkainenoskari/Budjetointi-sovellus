@@ -43,7 +43,7 @@ import {
   addIncome,
   deleteIncome,
   Income,
-} from '../../src/services/incomes';
+} from '@/src/services/incomes';
 import {
   getCurrentBudgetPeriod,
   startNewBudgetPeriod,
