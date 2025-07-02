@@ -10,6 +10,7 @@ export default function TabsLayout() {
         headerShown: false,
         tabBarActiveTintColor: Colors.moss,
         tabBarInactiveTintColor: Colors.textSecondary,
+        tabBarActiveBackgroundColor: Colors.tabInactiveBg,
         tabBarStyle: {
           backgroundColor: Colors.background,
           borderTopColor: Colors.border,

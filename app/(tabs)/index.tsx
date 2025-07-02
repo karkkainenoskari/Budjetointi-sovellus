@@ -39,6 +39,12 @@ import {
   Expense,
 } from '../../src/services/expenses';
 import {
+  getIncomes,
+  addIncome,
+  deleteIncome,
+  Income,
+} from '../../src/services/incomes';
+import {
   getCurrentBudgetPeriod,
   startNewBudgetPeriod,
   getBudgetPeriodFromHistory,
@@ -56,6 +62,13 @@ export default function BudjettiScreen() {
   const [categories, setCategories] = useState<Category[]>([]);
   const [loadingCategories, setLoadingCategories] = useState<boolean>(true);
 
+  const [incomes, setIncomes] = useState<Income[]>([]);
+  const [loadingIncomes, setLoadingIncomes] = useState<boolean>(true);
+  const [showAddIncome, setShowAddIncome] = useState<boolean>(false);
+  const [newIncomeTitle, setNewIncomeTitle] = useState<string>('');
+  const [newIncomeAmount, setNewIncomeAmount] = useState<string>('');
+
+
   // Kulut summattuna kategoriakohtaisesti
   const [expensesByCategory, setExpensesByCategory] = useState<Record<string, number>>({});
   const [loadingExpenses, setLoadingExpenses] = useState<boolean>(false);
@@ -67,11 +80,11 @@ export default function BudjettiScreen() {
   // Valittu välilehti: 'plan' | 'spent' | 'left'
   const [selectedTab, setSelectedTab] = useState<'plan' | 'spent' | 'left'>('plan');
 
-  // Alakategorian lisäys -modalin tilat
-  const [showAddSubModal, setShowAddSubModal] = useState<boolean>(false);
+  // Alakategorian lisäys
+  const [addingSubFor, setAddingSubFor] = useState<string | null>(null);
   const [newSubTitle, setNewSubTitle] = useState<string>('');
   const [newSubAmount, setNewSubAmount] = useState<string>('');
-  const [parentForSub, setParentForSub] = useState<string | null>(null);
+
 
   // Uuden budjettijakson modalin tilat
   const [showNewPeriodModal, setShowNewPeriodModal] = useState<boolean>(false);
@@ -184,6 +197,23 @@ export default function BudjettiScreen() {
     }
   };
 
+    const loadIncomes = async () => {
+    if (!userId) return;
+    let active = true;
+    setLoadingIncomes(true);
+    getIncomes(userId)
+      .then((incs) => {
+        if (active) setIncomes(incs);
+      })
+      .catch((e) => console.error('getIncomes virhe:', e))
+      .finally(() => {
+        if (active) setLoadingIncomes(false);
+      });
+    return () => {
+      active = false;
+    };
+  };
+
   // Kokonaissummat
   const totalAllocated = categories
     .filter((cat) => !cat.title.toLowerCase().includes('yhteensä'))
@@ -203,6 +233,8 @@ export default function BudjettiScreen() {
     (sum, val) => sum + val,
     0
   );
+
+   const totalIncome = incomes.reduce((sum, inc) => sum + inc.amount, 0);
   const budgetLeftOverall = budgetPeriod
     ? budgetPeriod.totalAmount - totalSpentAll
     : 0;
@@ -317,6 +349,12 @@ export default function BudjettiScreen() {
       });
   }, [userId, budgetPeriod]);
 
+   // ─── Fetch incomes ─────────────────────────────────────────────────
+  useEffect(() => {
+    if (!userId) return;
+    loadIncomes();
+  }, [userId]);
+
 
   // ─── Add main category ──────────────────────────────────────────────
   const handleAddMainCategory = () => {
@@ -350,17 +388,35 @@ export default function BudjettiScreen() {
     );
   };
 
-  // ─── Open add subcategory modal ────────────────────────────────────
+ const handleAddIncome = () => {
+    if (!userId) return;
+    if (!newIncomeTitle.trim()) {
+      Alert.alert('Virhe', 'Anna nimi');
+      return;
+    }
+    const amt = parseFloat(newIncomeAmount.replace(',', '.'));
+    if (isNaN(amt) || amt < 0) {
+      Alert.alert('Virhe', 'Anna kelvollinen summa');
+      return;
+    }
+    addIncome(userId, { title: newIncomeTitle.trim(), amount: amt })
+      .then(loadIncomes)
+      .catch((e) => console.error('addIncome virhe:', e));
+    setNewIncomeTitle('');
+    setNewIncomeAmount('');
+    setShowAddIncome(false);
+  };
+
+  // ─── Open add subcategory inline ───────────────────────────────────
   const handleOpenAddSubcategory = (parentId: string) => {
-    setParentForSub(parentId);
+     setAddingSubFor(parentId);
     setNewSubTitle('');
     setNewSubAmount('');
-    setShowAddSubModal(true);
   };
 
   // ─── Create subcategory from modal ──────────────────────────────────
   const handleCreateSubcategory = async () => {
-    if (!userId || !parentForSub) return;
+    if (!userId || !addingSubFor) return;
     const title = newSubTitle.trim();
     const amountNum = parseFloat(newSubAmount.replace(',', '.')) || 0;
     if (!title) {
@@ -375,7 +431,7 @@ export default function BudjettiScreen() {
       const newId = await addCategory(userId, {
         title,
         allocated: 0,
-        parentId: parentForSub,
+        parentId: addingSubFor,
         type: 'sub',
       });
       if (amountNum > 0) {
@@ -393,8 +449,7 @@ export default function BudjettiScreen() {
       const updatedCats = await getCategories(userId);
       LayoutAnimation.configureNext(LayoutAnimation.Presets.easeInEaseOut);
       setCategories(updatedCats);
-      setShowAddSubModal(false);
-      setParentForSub(null);
+      setAddingSubFor(null);
     } catch (e) {
       console.error('addCategory (sub) virhe:', e);
     }
@@ -778,7 +833,7 @@ export default function BudjettiScreen() {
             );
           })}
 
-          {!readOnly && (
+            {!readOnly && addingSubFor !== item.id && (
             <TouchableOpacity
               style={styles.addSubcatButton}
               onPress={() => handleOpenAddSubcategory(item.id)}
@@ -786,6 +841,32 @@ export default function BudjettiScreen() {
               <Ionicons name="add-circle-outline" size={16} color={Colors.moss} />
               <Text style={styles.addSubcatText}>Lisää alakategoria</Text>
             </TouchableOpacity>
+          )}
+
+           {addingSubFor === item.id && (
+            <View style={styles.addSubInlineRow}>
+              <TextInput
+                style={styles.inlineInput}
+                placeholder="Nimi"
+                placeholderTextColor="#888"
+                value={newSubTitle}
+                onChangeText={setNewSubTitle}
+              />
+              <TextInput
+                style={styles.inlineInput}
+                placeholder="Jo käytetty summa"
+                placeholderTextColor="#888"
+                keyboardType="numeric"
+                value={newSubAmount}
+                onChangeText={setNewSubAmount}
+              />
+              <TouchableOpacity onPress={handleCreateSubcategory} style={styles.iconButtonSmall}>
+                <Ionicons name="checkmark-circle-outline" size={20} color={Colors.moss} />
+              </TouchableOpacity>
+              <TouchableOpacity onPress={() => setAddingSubFor(null)} style={styles.iconButtonSmall}>
+                <Ionicons name="close-circle-outline" size={20} color={Colors.iconMuted} />
+              </TouchableOpacity>
+            </View>
           )}
         </View>
 
@@ -964,56 +1045,6 @@ export default function BudjettiScreen() {
         </View>
       </Modal>
 
-
-      {/* Alakategorian lisäysmodal */}
-      <Modal
-        transparent
-        visible={showAddSubModal}
-        animationType="slide"
-        onRequestClose={() => {
-          setShowAddSubModal(false);
-          setParentForSub(null);
-        }}
-      >
-        <View style={styles.modalOverlay}>
-          <View style={styles.modalContainer}>
-            <Text style={styles.modalTitle}>Uusi alakategoria</Text>
-            <TextInput
-              style={styles.modalInput}
-              placeholder="Nimi"
-              placeholderTextColor="#888"
-              value={newSubTitle}
-              onChangeText={setNewSubTitle}
-            />
-            <TextInput
-              style={styles.modalInput}
-              placeholder="Jo käytetty summa"
-              placeholderTextColor="#888"
-              keyboardType="numeric"
-              value={newSubAmount}
-              onChangeText={setNewSubAmount}
-            />
-            <View style={styles.modalButtons}>
-              <TouchableOpacity
-                onPress={() => {
-                  setShowAddSubModal(false);
-                  setParentForSub(null);
-                }}
-                style={styles.modalButton}
-              >
-                <Text style={styles.modalButtonText}>Peruuta</Text>
-              </TouchableOpacity>
-              <TouchableOpacity
-                onPress={handleCreateSubcategory}
-                style={styles.modalButton}
-              >
-                <Text style={styles.modalButtonText}>Luo</Text>
-              </TouchableOpacity>
-            </View>
-          </View>
-        </View>
-      </Modal>
-
       {!budgetPeriod ? (
         <View style={styles.noPeriodContainer}>
           <Image
@@ -1130,9 +1161,65 @@ export default function BudjettiScreen() {
             </View>
           </View>
 
-          {/* ─── Pääkategoriat‐otsikko + Lisää ──────────────────────────────── */}
+          {/* ─── Tulot ─────────────────────────────────────────────────── */}
+          <View style={styles.incomeHeader}>
+            <Text style={styles.incomeTitle}>Tulot</Text>
+            <View style={styles.categoryHeaderButtons}>
+              <TouchableOpacity
+                style={styles.addMainCategoryButton}
+                onPress={() => setShowAddIncome(!showAddIncome)}
+              >
+                <Ionicons name="add-circle-outline" size={20} color={Colors.moss} />
+                <Text style={styles.addMainCategoryText}>Lisää tulo</Text>
+              </TouchableOpacity>
+            </View>
+          </View>
+
+          {showAddIncome && (
+            <View style={styles.addSubInlineRow}>
+              <TextInput
+                style={styles.inlineInput}
+                placeholder="Nimi"
+                placeholderTextColor="#888"
+                value={newIncomeTitle}
+                onChangeText={setNewIncomeTitle}
+              />
+              <TextInput
+                style={styles.inlineInput}
+                placeholder="Summa"
+                placeholderTextColor="#888"
+                keyboardType="numeric"
+                value={newIncomeAmount}
+                onChangeText={setNewIncomeAmount}
+              />
+              <TouchableOpacity onPress={handleAddIncome} style={styles.iconButtonSmall}>
+                <Ionicons name="checkmark-circle-outline" size={20} color={Colors.moss} />
+              </TouchableOpacity>
+              <TouchableOpacity onPress={() => setShowAddIncome(false)} style={styles.iconButtonSmall}>
+                <Ionicons name="close-circle-outline" size={20} color={Colors.iconMuted} />
+              </TouchableOpacity>
+            </View>
+          )}
+
+          <FlatList
+            data={incomes}
+            keyExtractor={(item) => item.id}
+            renderItem={({ item }) => (
+              <View style={styles.categoryCard}>
+                <Text style={styles.categoryTitle}>{item.title}</Text>
+                <Text style={styles.categoryValue}>{item.amount} €</Text>
+              </View>
+            )}
+            contentContainerStyle={styles.listContent}
+          />
+          <View style={styles.incomeTotalRow}>
+            <Text style={styles.subCategoryTotalTitle}>Tulot yhteensä:</Text>
+            <Text style={styles.subCategoryTotalValue}>{formatCurrency(totalIncome)} €</Text>
+          </View>
+
+          {/* ─── Menot ───────────────────────────────────────────────────── */}
           <View style={styles.mainCategoryHeader}>
-            <Text style={styles.mainCategoryTitle}>Pääkategoriat</Text>
+             <Text style={styles.mainCategoryTitle}>Menot</Text>
             <View style={styles.categoryHeaderButtons}>
               <TouchableOpacity style={styles.addMainCategoryButton} onPress={handleAddMainCategory}>
                 <Ionicons name="add-circle-outline" size={20} color={Colors.moss} />
@@ -1311,6 +1398,26 @@ const styles = StyleSheet.create({
     color: Colors.moss,
     fontWeight: '600',
   },
+   incomeHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    paddingHorizontal: 16,
+    marginTop: 20,
+    marginBottom: 8,
+  },
+  incomeTitle: {
+    fontSize: 24,
+    fontWeight: '700',
+    color: Colors.textPrimary,
+  },
+  incomeTotalRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    paddingHorizontal: 16,
+    marginBottom: 16,
+  },
+
 
   categoryHeaderButtons: {
     flexDirection: 'row',
@@ -1362,6 +1469,22 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     marginTop: 6,
+  },
+  addSubInlineRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginTop: 6,
+  },
+  inlineInput: {
+    flex: 1,
+    height: 36,
+    borderWidth: 1,
+    borderColor: Colors.border,
+    borderRadius: 6,
+    paddingHorizontal: 8,
+    marginRight: 8,
+    backgroundColor: Colors.cardBackground,
+    color: Colors.textPrimary,
   },
   addSubcatText: {
     marginLeft: 4,
