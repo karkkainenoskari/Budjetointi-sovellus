@@ -1,6 +1,6 @@
 // app/(tabs)/index.tsx
 
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   SafeAreaView,
   View,
@@ -15,7 +15,6 @@ import {
   TextInput,
   Platform,
   Image,
-  Animated,
   LayoutAnimation,
 } from 'react-native';
 import DateTimePicker, { DateTimePickerAndroid } from '@react-native-community/datetimepicker';
@@ -93,11 +92,6 @@ export default function BudjettiScreen() {
   const [newPeriodTotal, setNewPeriodTotal] = useState<string>('');
   const [showStartPicker, setShowStartPicker] = useState<boolean>(false);
   const [showEndPicker, setShowEndPicker] = useState<boolean>(false);
-
-  // Progress animation for budget allocation
-  const progressAnim = useRef(new Animated.Value(0)).current;
-
-   const getProgressColor = () => Colors.moss;
 
   const formatBudgetText = (text: string) => {
     const cleaned = text.replace(/\s/g, '');
@@ -249,21 +243,7 @@ export default function BudjettiScreen() {
       ? budgetLeftOverall / budgetPeriod.totalAmount
       : 0;
 
-  const progressPercent =
-    selectedTab === 'plan'
-      ? budgetedPercent
-      : selectedTab === 'spent'
-      ? spentPercent
-      : leftPercent;
-
-  useEffect(() => {
-    Animated.timing(progressAnim, {
-      toValue: progressPercent,
-      duration: 500,
-      useNativeDriver: false,
-    }).start();
-  }, [progressPercent]);
-
+ // progress bar removed for simplicity
 
   const readOnly = viewPeriodId !== currentPeriodId;
   // ─── Fetch current budget period ────────────────────────────────────
@@ -1135,29 +1115,11 @@ export default function BudjettiScreen() {
               )}
               {selectedTab === 'left' && (
                 <Text style={styles.unallocatedText}>
-                  Jäljellä yhteensä:{' '}
+                    Jäljellä yhteensä{' '}
                     <Text style={styles.unallocatedValue}>{formatCurrency(budgetLeftOverall)} €</Text>
                 </Text>
               )}
-              <View style={styles.progressBarContainer}>
-                <View style={styles.progressBarBackground}>
-                  <Animated.View
-                    style={[
-                      styles.progressBarFill,
-                      {
-                        width: progressAnim.interpolate({
-                          inputRange: [0, 1],
-                          outputRange: ['0%', '100%'],
-                        }),
-                        backgroundColor: getProgressColor(),
-                      },
-                    ]}
-                  />
-                </View>
-                <Text style={styles.progressPercentText}>
-                  {Math.round(progressPercent * 100)} %
-                </Text>
-              </View>
+             <View style={styles.separator} />
             </View>
           </View>
 
@@ -1315,25 +1277,10 @@ const styles = StyleSheet.create({
     paddingHorizontal: 1,
     paddingVertical: 2,
   },
-  progressBarContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    marginTop: 4,
-  },
-  progressBarBackground: {
-    flex: 1,
-    height: 10,
-    backgroundColor: Colors.tabInactiveBg,
-    borderRadius: 5,
-    overflow: 'hidden',
-  },
-  progressBarFill: {
-    height: 10,
-  },
-  progressPercentText: {
-    marginLeft: 8,
-    fontWeight: '600',
-    color: Colors.textPrimary,
+   separator: {
+    height: 1,
+    backgroundColor: Colors.border,
+    marginTop: 8,
   },
 
 

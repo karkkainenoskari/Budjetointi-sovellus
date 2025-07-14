@@ -41,7 +41,7 @@ return (
         style={[styles.logoutButton, logoutPressed && styles.logoutButtonPressed]}
         activeOpacity={0.8}
       >
-        <Ionicons name="lock-closed-outline" size={24} color="#F7931E" />
+         <Ionicons name="lock-closed-outline" size={24} color={Colors.evergreen} />
       </TouchableOpacity>
     </View>
   );
