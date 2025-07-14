@@ -847,14 +847,14 @@ export default function BudjettiScreen() {
             <View style={styles.addSubInlineRow}>
               <TextInput
                 style={styles.inlineInput}
-                placeholder="Nimi"
+                placeholder="Meno"
                 placeholderTextColor="#888"
                 value={newSubTitle}
                 onChangeText={setNewSubTitle}
               />
               <TextInput
                 style={styles.inlineInput}
-                placeholder="Jo käytetty summa"
+                placeholder="Summa"
                 placeholderTextColor="#888"
                 keyboardType="numeric"
                 value={newSubAmount}
