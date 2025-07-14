@@ -66,6 +66,18 @@ export default function ValikkoScreen() {
           <Text style={styles.menuText}>Budjettijakso</Text>
         </TouchableOpacity>
          <TouchableOpacity
+          onPress={() => router.push('/vacations')}
+          style={styles.menuItem}
+        >
+          <Ionicons
+            name="airplane-outline"
+            size={24}
+            color={Colors.evergreen}
+            style={styles.menuIcon}
+          />
+          <Text style={styles.menuText}>Lomajaksot</Text>
+        </TouchableOpacity>
+        <TouchableOpacity
           onPress={() => router.push('/recurringExpenses')}
           style={styles.menuItem}
         >
