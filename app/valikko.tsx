@@ -65,6 +65,18 @@ export default function ValikkoScreen() {
           />
           <Text style={styles.menuText}>Budjettijakso</Text>
         </TouchableOpacity>
+         <TouchableOpacity
+          onPress={() => router.push('/recurringExpenses')}
+          style={styles.menuItem}
+        >
+          <Ionicons
+            name="repeat-outline"
+            size={24}
+            color={Colors.evergreen}
+            style={styles.menuIcon}
+          />
+          <Text style={styles.menuText}>Toistuvat menot</Text>
+        </TouchableOpacity>
         <TouchableOpacity onPress={handleLogout} style={styles.menuItem}>
           <Ionicons
             name="log-out-outline"
