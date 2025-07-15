@@ -77,7 +77,7 @@ export default function ValikkoScreen() {
           />
           <Text style={styles.menuText}>Lomajaksot</Text>
         </TouchableOpacity>
-        <TouchableOpacity
+        <TouchableOpacity 
           onPress={() => router.push('/recurringExpenses')}
           style={styles.menuItem}
         >
