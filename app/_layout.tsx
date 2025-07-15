@@ -7,10 +7,7 @@ import { auth } from '../src/api/firebaseConfig';
 import * as Notifications from 'expo-notifications';
 import { firestore } from '../src/api/firebaseConfig';
 import { doc, setDoc } from 'firebase/firestore';
-import { getPayday } from '../src/services/userSettings';
-
-// Tuodaan CalendarTriggerInput‐tyyppi (run‐time‐kokonaisuuteen ei tarvita erillistä enum‐kenttää)
-import type { CalendarTriggerInput } from 'expo-notifications';
+import { registerPaydayReminder } from '../src/services/notifications';
 import HeaderBar from '../components/HeaderBar';
 import Colors from '../constants/Colors';
 
@@ -83,8 +80,8 @@ export default function RootLayout() {
       }
     );
 
-    // 3) Asetetaan kuukausittainen palkkapäivämuistutus
-    registerMonthlyReminder(user.uid);
+ // 3) Asetetaan käyttäjän palkkapäivämuistutus
+    registerPaydayReminder(user.uid);
 
     return () => {
       subscription.remove();
@@ -126,38 +123,6 @@ export default function RootLayout() {
     }
   }
 
-  // ───────────────────────────────────────────────────────────────────────────
-  // registerMonthlyReminder: ajastaa palkkapäivää edeltävän muistutuksen
-  // ───────────────────────────────────────────────────────────────────────────
-  async function registerMonthlyReminder(userId: string) {
-    try {
-  
-      await Notifications.cancelAllScheduledNotificationsAsync();
-
-       const payday = await getPayday(userId);
-      if (!payday) return;
-
-
-      const trigger: CalendarTriggerInput = {
-        day: payday > 3 ? payday - 2 : payday,
-        hour: 9,
-        minute: 0,
-        repeats: true,
-
-        type: Notifications.SchedulableTriggerInputTypes.CALENDAR,
-      };
-
-      await Notifications.scheduleNotificationAsync({
-        content: {
-            title: 'Palkkapäivä lähestyy',
-          body: 'Muista tehdä uusi budjetti!',
-        },
-        trigger,
-      });
-    } catch (e) {
-      console.error('Muistutuksen ajoittaminen epäonnistui:', e);
-    }
-  }
 
   // ───────────────────────────────────────────────────────────────────────────────
   // Kun auth‐tilaa odotetaan, näytetään loader
