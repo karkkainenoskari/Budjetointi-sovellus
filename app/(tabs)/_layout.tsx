@@ -66,6 +66,18 @@ export default function TabsLayout() {
           ),
         }}
       />
+
+         {/* Tilastot-välilehti */}
+      <Tabs.Screen
+        name="tilastot"
+        options={{
+          title: 'Tilastot',
+          tabBarIcon: ({ color, size }) => (
+            <Ionicons name="pie-chart-outline" size={size} color={color} />
+          ),
+        }}
+      />
+      
        {/* Valikko-välilehti */}
       <Tabs.Screen
         name="valikko"
