@@ -95,13 +95,16 @@ export default function TilastotScreen() {
       <Text style={styles.header}>Menot kategorioittain</Text>
       {pieData.length > 0 ? (
         <PieChart
-                  data={pieData as any}
-                  width={screenWidth}
-                  height={220}
-                  accessor="amount"
-                  chartConfig={chartConfig}
-                  paddingLeft="0"
-                  absolute backgroundColor={''}        />
+                   data={pieData as any}
+          width={screenWidth}
+          height={220}
+          accessor="amount"
+          chartConfig={chartConfig}
+          paddingLeft="0"
+          absolute
+          backgroundColor="transparent"
+          style={{ alignSelf: 'center' }}
+        />
       ) : (
         <Text style={styles.noData}>Ei kuluja tältä jaksolta</Text>
       )}
