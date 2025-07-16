@@ -40,6 +40,7 @@ import {
 import {
   getIncomes,
   addIncome,
+  updateIncome,
   deleteIncome,
   Income,
 } from '@/src/services/incomes';
@@ -384,7 +385,69 @@ export default function BudjettiScreen() {
       .catch((e) => console.error('addIncome virhe:', e));
     setNewIncomeTitle('');
     setNewIncomeAmount('');
-    setShowAddIncome(false);
+     setShowAddIncome(false);
+};
+
+  const handleEditIncome = (
+    incomeId: string,
+    oldTitle: string,
+    oldAmount: number
+  ) => {
+    if (!userId) return;
+    Alert.prompt(
+      'Muokkaa tuloa',
+      'Syötä uusi nimi ja summa muodossa “Nimi, summa”',
+      [
+        { text: 'Peruuta', style: 'cancel' },
+        {
+          text: 'Tallenna',
+          onPress: async (input) => {
+            if (!input) return;
+            const parts = input.split(',');
+            if (parts.length !== 2) {
+              Alert.alert('Virhe', 'Muoto: “Nimi, 300”');
+              return;
+            }
+            const newTitle = parts[0].trim();
+            const newAmount = parseFloat(parts[1].replace(',', '.'));
+            if (isNaN(newAmount) || newAmount < 0) {
+              Alert.alert('Virhe', 'Anna kelvollinen summa');
+              return;
+            }
+            try {
+              await updateIncome(userId, incomeId, {
+                title: newTitle,
+                amount: newAmount,
+              });
+              loadIncomes();
+            } catch (e) {
+              console.error('updateIncome virhe:', e);
+            }
+          },
+        },
+      ],
+      'plain-text',
+      `${oldTitle}, ${oldAmount}`
+    );
+  };
+
+  const handleDeleteIncome = (incomeId: string) => {
+    if (!userId) return;
+    Alert.alert('Poista tulo', 'Haluatko varmasti poistaa tämän tulon?', [
+      { text: 'Peruuta', style: 'cancel' },
+      {
+        text: 'Poista',
+        style: 'destructive',
+        onPress: async () => {
+          try {
+            await deleteIncome(userId, incomeId);
+            loadIncomes();
+          } catch (e) {
+            console.error('deleteIncome virhe:', e);
+          }
+        },
+      },
+    ]);
   };
 
   // ─── Open add subcategory inline ───────────────────────────────────
@@ -1169,7 +1232,28 @@ export default function BudjettiScreen() {
             renderItem={({ item }) => (
               <View style={styles.categoryCard}>
                 <Text style={styles.categoryTitle}>{item.title}</Text>
-                <Text style={styles.categoryValue}>{item.amount} €</Text>
+                 <View style={styles.categoryRight}>
+                  <TouchableOpacity
+                    disabled={readOnly}
+                    onPress={() =>
+                      handleEditIncome(item.id, item.title, item.amount)
+                    }
+                  >
+                    <Text style={styles.categoryValue}>{item.amount} €</Text>
+                  </TouchableOpacity>
+                  {!readOnly && (
+                    <TouchableOpacity
+                      onPress={() => handleDeleteIncome(item.id)}
+                      style={styles.iconButtonSmall}
+                    >
+                      <Ionicons
+                        name="trash-outline"
+                        size={14}
+                        color={Colors.iconMuted}
+                      />
+                    </TouchableOpacity>
+                  )}
+                </View>
               </View>
             )}
             contentContainerStyle={styles.listContent}
