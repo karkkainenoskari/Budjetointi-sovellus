@@ -14,6 +14,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { auth } from '../../src/api/firebaseConfig';
 import { getCurrentBudgetPeriod } from '../../src/services/budget';
 import { getExpensesByPeriod, Expense } from '../../src/services/expenses';
+import { getCategories, Category } from '../../src/services/categories';
 import Colors from '../../constants/Colors';
 
 export default function TilitapahtumatScreen() {
@@ -23,12 +24,22 @@ export default function TilitapahtumatScreen() {
 
   const [expenses, setExpenses] = useState<Expense[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
+  const [categoryMap, setCategoryMap] = useState<Record<string, string>>({});
+
 
   const loadExpenses = async () => {
     if (!userId) return;
     setLoading(true);
     try {
-      const period = await getCurrentBudgetPeriod(userId);
+    const [period, cats] = await Promise.all([
+        getCurrentBudgetPeriod(userId),
+        getCategories(userId),
+      ]);
+      const map: Record<string, string> = {};
+      cats.forEach((c: Category) => {
+        map[c.id] = c.title;
+      });
+      setCategoryMap(map);
       if (period) {
         const data = await getExpensesByPeriod(
           userId,
@@ -53,20 +64,30 @@ export default function TilitapahtumatScreen() {
     }, [userId])
   );
 
-  const renderItem = ({ item }: { item: Expense }) => (
-    <TouchableOpacity
-      style={styles.row}
-      onPress={() =>
-        router.push({
-          pathname: '/editExpense',
-          params: { id: item.id, categoryId: item.categoryId },
-        })
-      }
-    >
-      <Text style={styles.desc}>{item.description || '-'}</Text>
-      <Text style={styles.amount}>{item.amount.toFixed(2)} €</Text>
-   </TouchableOpacity>
-  );
+  const renderItem = ({ item }: { item: Expense }) => {
+    const category = categoryMap[item.categoryId];
+    const date = item.date?.toDate ? item.date.toDate() : new Date(item.date);
+    const formatted = date.toLocaleDateString('fi-FI');
+    return (
+      <TouchableOpacity
+        style={styles.card}
+        onPress={() =>
+          router.push({
+            pathname: '/editExpense',
+            params: { id: item.id, categoryId: item.categoryId },
+          })
+        }
+      >
+        <View style={styles.cardLeft}>
+          <Text style={styles.desc}>{item.description || '-'}</Text>
+          <Text style={styles.metaText}>
+            {category ? `${category} • ${formatted}` : formatted}
+          </Text>
+        </View>
+        <Text style={styles.amount}>{item.amount.toFixed(2)} €</Text>
+      </TouchableOpacity>
+    );
+  };
 
   if (!userId) {
     return (
@@ -138,21 +159,40 @@ headerTitle: {
     paddingHorizontal: 16,
     paddingBottom: 16,
   },
-  row: {
+ card: {
     flexDirection: 'row',
     justifyContent: 'space-between',
-    paddingVertical: 12,
-    borderBottomWidth: 1,
+     alignItems: 'center',
+    padding: 12,
+    marginBottom: 12,
+    borderRadius: 12,
+    backgroundColor: Colors.cardBackground,
+    borderWidth: 1,
     borderColor: Colors.border,
+    shadowColor: '#000',
+    shadowOpacity: 0.05,
+    shadowOffset: { width: 0, height: 2 },
+    shadowRadius: 4,
+    elevation: 2,
+  },
+  cardLeft: {
+    flex: 1,
+    marginRight: 8,
   },
   desc: {
     fontSize: 16,
     color: Colors.textPrimary,
+     fontWeight: '500',
+  },
+  metaText: {
+    fontSize: 14,
+    color: Colors.textSecondary,
+    marginTop: 2,
   },
   amount: {
     fontSize: 16,
     color: Colors.textPrimary,
-    fontWeight: '500',
+    fontWeight: '600',
   },
   loaderContainer: {
     flex: 1,
