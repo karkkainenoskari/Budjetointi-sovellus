@@ -7,7 +7,7 @@ import AnimatedTabButton from '@/components/AnimatedTabButton';
 export default function TabsLayout() {
   return (
     <Tabs
-      screenOptions={{
+      screenOptions={({ route }) => ({
         headerShown: false,
         tabBarActiveTintColor: Colors.evergreen,
         tabBarInactiveTintColor: Colors.textSecondary,
@@ -19,10 +19,13 @@ export default function TabsLayout() {
           flex: 1,
           alignItems: 'center',
         },
-        tabBarButton: (props) => <AnimatedTabButton {...props} />,
-      }}
+        // Hide the "tilastot" tab by returning null for its button
+        tabBarButton: route.name === 'tilastot'
+          ? () => null
+          : (props) => <AnimatedTabButton {...props} />,
+      })}
     >
-      {/* Budjetti‐välilehti */}
+      {/* Budjetti-välilehti */}
       <Tabs.Screen
         name="index"
         options={{
@@ -33,17 +36,16 @@ export default function TabsLayout() {
         }}
       />
 
-       {/* Tilitapahtumat-välilehti */}
+      {/* Tilitapahtumat-välilehti */}
       <Tabs.Screen
         name="tilitapahtumat"
         options={{
           title: 'Tilitapahtumat',
           tabBarIcon: ({ color, size }) => (
-           <Ionicons name="receipt-outline" size={size} color={color} />
+            <Ionicons name="receipt-outline" size={size} color={color} />
           ),
         }}
       />
-
 
       {/* Historia-välilehti */}
       <Tabs.Screen
@@ -56,7 +58,7 @@ export default function TabsLayout() {
         }}
       />
 
-      {/* Tavoitteet‐välilehti */}
+      {/* Tavoitteet-välilehti */}
       <Tabs.Screen
         name="tavoitteet"
         options={{
@@ -66,8 +68,8 @@ export default function TabsLayout() {
           ),
         }}
       />
-  
-       {/* Valikko-välilehti */}
+
+      {/* Valikko-välilehti */}
       <Tabs.Screen
         name="valikko"
         options={{
@@ -77,8 +79,6 @@ export default function TabsLayout() {
           ),
         }}
       />
-
-
     </Tabs>
   );
 }
