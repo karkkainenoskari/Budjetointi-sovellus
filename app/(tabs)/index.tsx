@@ -9,6 +9,7 @@ import {
   TouchableOpacity,
   Alert,
   FlatList,
+  ScrollView,
   ActivityIndicator,
   Modal,
   TouchableWithoutFeedback,
@@ -1098,6 +1099,8 @@ export default function BudjettiScreen() {
             </View>
           </View>
 
+           <ScrollView contentContainerStyle={{ paddingBottom: 24 }}>
+
           {/* ─── Tulot ─────────────────────────────────────────────────── */}
           <View style={styles.incomeHeader}>
             <Text style={styles.incomeTitle}>Saadut tulot</Text>
@@ -1141,6 +1144,7 @@ export default function BudjettiScreen() {
           <FlatList
             data={incomes}
             keyExtractor={(item) => item.id}
+            scrollEnabled={false}
             renderItem={({ item }) => (
               <View style={styles.categoryCard}>
                 <Text style={styles.categoryTitle}>{item.title}</Text>
@@ -1186,9 +1190,11 @@ export default function BudjettiScreen() {
           <FlatList
             data={categories}
             keyExtractor={(item) => item.id}
+            scrollEnabled={false}
             renderItem={renderCategoryItem}
             contentContainerStyle={styles.listContent}
           />
+           </ScrollView>
         </>
       )}
     </SafeAreaView>

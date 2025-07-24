@@ -1,12 +1,12 @@
 import React, { useEffect, useState } from 'react';
 import { View, Text, StyleSheet, Dimensions, ActivityIndicator, ScrollView } from 'react-native';
 import { PieChart, BarChart } from 'react-native-chart-kit';
-import { auth } from '../../src/api/firebaseConfig';
-import { getCurrentBudgetPeriod } from '../../src/services/budget';
-import { getExpensesByPeriod } from '../../src/services/expenses';
-import { getIncomes } from '../../src/services/incomes';
-import { getCategories, Category } from '../../src/services/categories';
-import Colors from '../../constants/Colors';
+import { auth } from '../src/api/firebaseConfig';
+import { getCurrentBudgetPeriod } from '../src/services/budget';
+import { getExpensesByPeriod } from '../src/services/expenses';
+import { getIncomes } from '../src/services/incomes';
+import { getCategories, Category } from '../src/services/categories';
+import Colors from '../constants/Colors';
 
 export default function TilastotScreen() {
   const user = auth.currentUser;
