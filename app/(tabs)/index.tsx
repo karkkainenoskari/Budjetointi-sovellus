@@ -80,12 +80,6 @@ export default function BudjettiScreen() {
   // Valittu välilehti: 'plan' | 'spent' | 'left'
   const [selectedTab, setSelectedTab] = useState<'plan' | 'spent' | 'left'>('plan');
 
-  // Alakategorian lisäys
-  const [addingSubFor, setAddingSubFor] = useState<string | null>(null);
-  const [newSubTitle, setNewSubTitle] = useState<string>('');
-  const [newSubAmount, setNewSubAmount] = useState<string>('');
-
-
   // Uuden budjettijakson modalin tilat
   const [showNewPeriodModal, setShowNewPeriodModal] = useState<boolean>(false);
   const [newPeriodStart, setNewPeriodStart] = useState<Date>(new Date());
@@ -450,53 +444,6 @@ export default function BudjettiScreen() {
     ]);
   };
 
-  // ─── Open add subcategory inline ───────────────────────────────────
-  const handleOpenAddSubcategory = (parentId: string) => {
-     setAddingSubFor(parentId);
-    setNewSubTitle('');
-    setNewSubAmount('');
-  };
-
-  // ─── Create subcategory from modal ──────────────────────────────────
-  const handleCreateSubcategory = async () => {
-    if (!userId || !addingSubFor) return;
-    const title = newSubTitle.trim();
-    const amountNum = parseFloat(newSubAmount.replace(',', '.')) || 0;
-    if (!title) {
-      Alert.alert('Virhe', 'Anna nimi');
-      return;
-    }
-    if (isNaN(amountNum) || amountNum < 0) {
-      Alert.alert('Virhe', 'Anna kelvollinen summa');
-      return;
-    }
-    try {
-      const newId = await addCategory(userId, {
-        title,
-        allocated: 0,
-        parentId: addingSubFor,
-        type: 'sub',
-      });
-      if (amountNum > 0) {
-        await addExpense(userId, {
-          categoryId: newId,
-          amount: amountNum,
-          date: new Date(),
-          description: 'Alkukulutus',
-        });
-        setExpensesByCategory((prev) => ({
-          ...prev,
-          [newId]: (prev[newId] || 0) + amountNum,
-        }));
-      }
-      const updatedCats = await getCategories(userId);
-      LayoutAnimation.configureNext(LayoutAnimation.Presets.easeInEaseOut);
-      setCategories(updatedCats);
-      setAddingSubFor(null);
-    } catch (e) {
-      console.error('addCategory (sub) virhe:', e);
-    }
-  };
 
   // ─── Edit category (title & allocated) ─────────────────────────────
   const handleEditCategory = (categoryId: string, oldTitle: string, oldAllocated: number) => {
@@ -876,41 +823,6 @@ export default function BudjettiScreen() {
             );
           })}
 
-            {!readOnly && addingSubFor !== item.id && (
-            <TouchableOpacity
-              style={styles.addSubcatButton}
-              onPress={() => handleOpenAddSubcategory(item.id)}
-            >
-              <Ionicons name="add-circle-outline" size={16} color={Colors.moss} />
-              <Text style={styles.addSubcatText}>Lisää alakategoria</Text>
-            </TouchableOpacity>
-          )}
-
-           {addingSubFor === item.id && (
-            <View style={styles.addSubInlineRow}>
-              <TextInput
-                style={styles.inlineInput}
-                placeholder="Meno"
-                placeholderTextColor="#888"
-                value={newSubTitle}
-                onChangeText={setNewSubTitle}
-              />
-              <TextInput
-                style={styles.inlineInput}
-                placeholder="Summa"
-                placeholderTextColor="#888"
-                keyboardType="numeric"
-                value={newSubAmount}
-                onChangeText={setNewSubAmount}
-              />
-              <TouchableOpacity onPress={handleCreateSubcategory} style={styles.iconButtonSmall}>
-                <Ionicons name="checkmark-circle-outline" size={20} color={Colors.moss} />
-              </TouchableOpacity>
-              <TouchableOpacity onPress={() => setAddingSubFor(null)} style={styles.iconButtonSmall}>
-                <Ionicons name="close-circle-outline" size={20} color={Colors.iconMuted} />
-              </TouchableOpacity>
-            </View>
-          )}
         </View>
 
         {/* Kokonaissumma näytetään vain alakategorioiden "Yhteensä"-rivillä */}
@@ -1188,7 +1100,7 @@ export default function BudjettiScreen() {
 
           {/* ─── Tulot ─────────────────────────────────────────────────── */}
           <View style={styles.incomeHeader}>
-            <Text style={styles.incomeTitle}>Tulot</Text>
+            <Text style={styles.incomeTitle}>Saadut tulot</Text>
             <View style={styles.categoryHeaderButtons}>
               <TouchableOpacity
                 style={styles.addMainCategoryButton}
@@ -1259,7 +1171,7 @@ export default function BudjettiScreen() {
             contentContainerStyle={styles.listContent}
           />
           <View style={styles.incomeTotalRow}>
-            <Text style={styles.subCategoryTotalTitle}>Tulot yhteensä:</Text>
+            <Text style={styles.subCategoryTotalTitle}>Saadut tulot yhteensä:</Text>
             <Text style={styles.subCategoryTotalValue}>{formatCurrency(totalIncome)} €</Text>
           </View>
 
@@ -1267,10 +1179,6 @@ export default function BudjettiScreen() {
           <View style={styles.mainCategoryHeader}>
              <Text style={styles.mainCategoryTitle}>Menot</Text>
             <View style={styles.categoryHeaderButtons}>
-              <TouchableOpacity style={styles.addMainCategoryButton} onPress={handleAddMainCategory}>
-                <Ionicons name="add-circle-outline" size={20} color={Colors.moss} />
-                <Text style={styles.addMainCategoryText}>Lisää kategoria</Text>
-              </TouchableOpacity>
             </View>
           </View>
 
@@ -1496,11 +1404,6 @@ const styles = StyleSheet.create({
   iconButtonSmall: {
     marginLeft: 12,
   },
-  addSubcatButton: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    marginTop: 6,
-  },
   addSubInlineRow: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -1516,12 +1419,6 @@ const styles = StyleSheet.create({
     marginRight: 8,
     backgroundColor: Colors.cardBackground,
     color: Colors.textPrimary,
-  },
-  addSubcatText: {
-    marginLeft: 4,
-    color: Colors.moss,
-    fontSize: 14,
-    fontWeight: '500',
   },
   subCategoryRow: {
     flexDirection: 'row',

@@ -10,6 +10,7 @@ import {
   SafeAreaView,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
+import { useRouter } from 'expo-router';
 import { auth } from '../../src/api/firebaseConfig';
 import {
   getHistoryMonths,
@@ -27,6 +28,7 @@ import Colors from '../../constants/Colors';
 import { Category } from '../../src/services/categories';
 
 export default function HistoriaScreen() {
+  const router = useRouter();
   const user = auth.currentUser;
   const userId = user ? user.uid : null;
 
@@ -146,6 +148,10 @@ return (
       <Text style={styles.copyButtonText}>Kopioi edellisen kuukauden kategoriat</Text>
     </TouchableOpacity>
 
+     <TouchableOpacity style={styles.statsButton} onPress={() => router.push('/tilastot')}>
+      <Text style={styles.copyButtonText}>Tilastot</Text>
+    </TouchableOpacity>
+
     <FlatList
       data={months}
       keyExtractor={(item) => item}
@@ -213,6 +219,15 @@ const styles = StyleSheet.create({
   marginTop: 8,       // Siirtää nappia alaspäin (voit säätää esim. 24 tai enemmän)
   marginBottom: 12,
   width: 375,          // Asettaa napille kiinteän leveyden (voit kokeilla eri arvoja esim. 150)
+  alignSelf: 'center',
+  },
+   statsButton: {
+  backgroundColor: Colors.moss,
+  padding: 16,
+  borderRadius: 8,
+  alignItems: 'center',
+  marginBottom: 12,
+  width: 375,
   alignSelf: 'center',
   },
   copyButtonText: {
