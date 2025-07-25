@@ -720,18 +720,6 @@ export default function BudjettiScreen() {
                   <Ionicons name="trash-outline" size={14} color={Colors.iconMuted} />
                 </TouchableOpacity>
               )}
-              {!readOnly && selectedTab === 'spent' && (
-                <TouchableOpacity
-                  onPress={() => handleAddExpenseToCategory(item.id)}
-                  style={styles.iconButtonSmall}
-                >
-                  <Ionicons
-                    name="add-circle-outline"
-                    size={16}
-                    color={Colors.iconMuted}
-                  />
-                </TouchableOpacity>
-              )}
             </View>
           </View>
 
@@ -756,9 +744,9 @@ export default function BudjettiScreen() {
               if (selectedTab === 'plan') {
                 subTitle = 'Yhteensä:';
               } else if (selectedTab === 'spent') {
-                subTitle = 'Käytetty yhteensä';
+                subTitle = 'Yhteensä:';
               } else {
-                subTitle = 'Jäljellä yhteensä';
+                subTitle = 'Yhteensä';
               }
             }
 
@@ -788,7 +776,7 @@ export default function BudjettiScreen() {
                         isTotalRow && styles.subCategoryTotalValue,
                       ]}
                     >
-                      {displayValue} €
+                       {formatCurrency(displayValue)} €
                     </Text>
                   </TouchableOpacity>
                   {!readOnly && !isTotalRow && (
@@ -805,18 +793,7 @@ export default function BudjettiScreen() {
                           />
                         </TouchableOpacity>
                       )}
-                      {selectedTab === 'spent' && (
-                        <TouchableOpacity
-                          onPress={() => handleAddExpenseToCategory(sub.id)}
-                          style={styles.iconButtonSmall}
-                        >
-                          <Ionicons
-                            name="add-circle-outline"
-                            size={16}
-                            color={Colors.iconMuted}
-                          />
-                        </TouchableOpacity>
-                      )}
+                    
                     </>
                   )}
                 </View>
@@ -1091,7 +1068,7 @@ export default function BudjettiScreen() {
               )}
               {selectedTab === 'left' && (
                 <Text style={styles.unallocatedText}>
-                    Jäljellä yhteensä{' '}
+                    Jäljellä Yhteensä{' '}
                     <Text style={styles.unallocatedValue}>{formatCurrency(budgetLeftOverall)} €</Text>
                 </Text>
               )}
@@ -1155,9 +1132,11 @@ export default function BudjettiScreen() {
                       handleEditIncome(item.id, item.title, item.amount)
                     }
                   >
-                    <Text style={styles.categoryValue}>{item.amount} €</Text>
+                    <Text style={styles.categoryValue}>
+                      {formatCurrency(item.amount)} €
+                    </Text>
                   </TouchableOpacity>
-                  {!readOnly && (
+                   {!readOnly && selectedTab === 'plan' && (
                     <TouchableOpacity
                       onPress={() => handleDeleteIncome(item.id)}
                       style={styles.iconButtonSmall}
