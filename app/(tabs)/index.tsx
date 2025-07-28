@@ -1081,18 +1081,24 @@ export default function BudjettiScreen() {
           {/* ─── Tulot ─────────────────────────────────────────────────── */}
           <View style={styles.incomeHeader}>
             <Text style={styles.incomeTitle}>Tulot</Text>
-            <View style={styles.categoryHeaderButtons}>
-              <TouchableOpacity
-                style={styles.addMainCategoryButton}
-                onPress={() => setShowAddIncome(!showAddIncome)}
-              >
-                <Ionicons name="add-circle-outline" size={20} color={Colors.moss} />
+             {selectedTab === 'plan' ? (
+              <View style={styles.categoryHeaderButtons}>
+                <TouchableOpacity
+                  style={styles.addMainCategoryButton}
+                  onPress={() => setShowAddIncome(!showAddIncome)}
+                >
+                  <Ionicons name="add-circle-outline" size={20} color={Colors.moss} />
+                  <Text style={styles.addMainCategoryText}>Lisää tulo</Text>
+                </TouchableOpacity>
+              </View>
+            ) : (
+              <View style={styles.categoryHeaderButtons}>
                 <Text style={styles.addMainCategoryText}>Saadut tulot</Text>
-              </TouchableOpacity>
-            </View>
+              </View>
+            )}
           </View>
 
-          {showAddIncome && (
+          {selectedTab === 'plan' && showAddIncome && (
             <View style={styles.addSubInlineRow}>
               <TextInput
                 style={styles.inlineInput}

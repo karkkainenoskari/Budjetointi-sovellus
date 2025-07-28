@@ -80,7 +80,7 @@ export default function RegisterScreen() {
         await seedDefaultCategories(cred.user.uid);
       }
       // Rekisteröityminen onnistui: ilmoita ja ohjaa back login‐sivulle
-      Alert.alert('Onnistui', 'Rekisteröityminen onnistui! Voit nyt kirjautua.', [
+      Alert.alert('Rekisteröityminen onnistui', 'Tervetuloa käyttämään sovellusta!', [
         {
           text: 'OK',
           onPress: () => {
@@ -118,7 +118,7 @@ export default function RegisterScreen() {
     >
       <View style={styles.innerContainer}>
         <Image
-          source={require('@/assets/images/budjettikoutsi_logo.png')}
+          source={require('@/assets/images/icon.png')}
           style={styles.logo}
         />
         <Text style={styles.welcome}></Text>
