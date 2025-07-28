@@ -364,6 +364,37 @@ export default function BudjettiScreen() {
     );
   };
 
+   const handleAddSubCategory = (parentId: string) => {
+    if (!userId) return;
+    Alert.prompt(
+      'Uusi alakategoria',
+      'Anna alakategorian nimi:',
+      [
+        { text: 'Peruuta', style: 'cancel' },
+        {
+          text: 'Luo',
+          onPress: async (title) => {
+            if (!title) return;
+            try {
+              await addCategory(userId, {
+                title: title.trim(),
+                allocated: 0,
+                parentId,
+                type: 'sub',
+              });
+              const updatedCats = await getCategories(userId);
+              LayoutAnimation.configureNext(LayoutAnimation.Presets.easeInEaseOut);
+              setCategories(updatedCats);
+            } catch (e) {
+              console.error('addCategory virhe:', e);
+            }
+          },
+        },
+      ],
+      'plain-text'
+    );
+  };
+
  const handleAddIncome = () => {
     if (!userId) return;
     if (!newIncomeTitle.trim()) {
@@ -713,12 +744,20 @@ export default function BudjettiScreen() {
 
             <View style={styles.categoryIcons}>
               {!readOnly && selectedTab === 'plan' && (
-                <TouchableOpacity
-                  onPress={() => handleDeleteCategory(item.id)}
-                  style={styles.iconButtonSmall}
-                >
-                  <Ionicons name="trash-outline" size={14} color={Colors.iconMuted} />
-                </TouchableOpacity>
+                 <>
+                  <TouchableOpacity
+                    onPress={() => handleAddSubCategory(item.id)}
+                    style={styles.iconButtonSmall}
+                  >
+                    <Ionicons name="add-circle-outline" size={14} color={Colors.moss} />
+                  </TouchableOpacity>
+                  <TouchableOpacity
+                    onPress={() => handleDeleteCategory(item.id)}
+                    style={styles.iconButtonSmall}
+                  >
+                    <Ionicons name="trash-outline" size={14} color={Colors.iconMuted} />
+                  </TouchableOpacity>
+                </>
               )}
             </View>
           </View>
@@ -1166,9 +1205,20 @@ export default function BudjettiScreen() {
 
           {/* ─── Menot ───────────────────────────────────────────────────── */}
           <View style={styles.mainCategoryHeader}>
-             <Text style={styles.mainCategoryTitle}>Menot</Text>
-            <View style={styles.categoryHeaderButtons}>
-            </View>
+            <Text style={styles.mainCategoryTitle}>Menot</Text>
+            {selectedTab === 'plan' ? (
+              <View style={styles.categoryHeaderButtons}>
+                <TouchableOpacity
+                  style={styles.addMainCategoryButton}
+                  onPress={handleAddMainCategory}
+                >
+                  <Ionicons name="add-circle-outline" size={20} color={Colors.moss} />
+                  <Text style={styles.addMainCategoryText}>Lisää meno</Text>
+                </TouchableOpacity>
+              </View>
+            ) : (
+              <View style={styles.categoryHeaderButtons} />
+            )}
           </View>
 
           {/* ─── Kategoriat FlatListillä ─────────────────────────────────── */}
