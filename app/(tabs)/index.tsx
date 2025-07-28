@@ -1080,14 +1080,14 @@ export default function BudjettiScreen() {
 
           {/* ─── Tulot ─────────────────────────────────────────────────── */}
           <View style={styles.incomeHeader}>
-            <Text style={styles.incomeTitle}>Saadut tulot</Text>
+            <Text style={styles.incomeTitle}>Tulot</Text>
             <View style={styles.categoryHeaderButtons}>
               <TouchableOpacity
                 style={styles.addMainCategoryButton}
                 onPress={() => setShowAddIncome(!showAddIncome)}
               >
                 <Ionicons name="add-circle-outline" size={20} color={Colors.moss} />
-                <Text style={styles.addMainCategoryText}>Lisää tulo</Text>
+                <Text style={styles.addMainCategoryText}>Saadut tulot</Text>
               </TouchableOpacity>
             </View>
           </View>
@@ -1446,8 +1446,8 @@ const styles = StyleSheet.create({
     color: Colors.textPrimary,
   },
   categoryRight: {
-    alignItems: 'flex-end',
-    justifyContent: 'center',
+      flexDirection: 'row',
+    alignItems: 'center',
   },
 
   categoryValue: {
