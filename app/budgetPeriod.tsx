@@ -1,11 +1,10 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import {
   SafeAreaView,
   View,
   Text,
   StyleSheet,
   TouchableOpacity,
-  TextInput,
   Platform,
    Modal,
   TouchableWithoutFeedback,
@@ -16,7 +15,6 @@ import { Ionicons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
 import { auth } from '../src/api/firebaseConfig';
 import { createBudgetPeriod } from '../src/services/budget';
-import { getCategories } from '../src/services/categories';
 import Colors from '../constants/Colors';
 
 export default function BudgetPeriodScreen() {
@@ -25,12 +23,8 @@ export default function BudgetPeriodScreen() {
   const userId = user ? user.uid : null;
 
   const [startDate, setStartDate] = useState<Date>(new Date());
-  const [endDate, setEndDate] = useState<Date>(new Date());
-  const [income, setIncome] = useState<string>('');
-  const [showStartPicker, setShowStartPicker] = useState(false);
-  const [showEndPicker, setShowEndPicker] = useState(false);
-  const [allocated, setAllocated] = useState(0);
-  const [error, setError] = useState('');
+  const [endDate, setEndDate] = useState<Date>(new Date());  const [showStartPicker, setShowStartPicker] = useState(false);
+  const [showEndPicker, setShowEndPicker] = useState(false);  const [error, setError] = useState('');
 
   const openStartPicker = () => {
     if (Platform.OS === 'android') {
@@ -62,27 +56,9 @@ export default function BudgetPeriodScreen() {
     }
   };
 
-  useEffect(() => {
-    if (!userId) return;
-    getCategories(userId)
-      .then((cats) => {
-        const sum = cats
-          .filter((c) => c.parentId === null)
-          .reduce((tot, c) => tot + c.allocated, 0);
-        setAllocated(sum);
-      })
-      .catch((e) => console.error('getCategories error:', e));
-  }, [userId]);
-
-  const remaining = (parseFloat(income.replace(',', '.')) || 0) - allocated;
-
   const handleSave = async () => {
     if (!userId) return;
-    const total = parseFloat(income.replace(',', '.'));
-    if (isNaN(total)) {
-      setError('Anna kelvollinen tulosumma');
-      return;
-    }
+
     if (startDate > endDate) {
       setError('Alkupäivä ei voi olla loppupäivän jälkeen');
       return;
@@ -91,7 +67,7 @@ export default function BudgetPeriodScreen() {
       await createBudgetPeriod(userId, {
         startDate,
         endDate,
-        totalAmount: total,
+        totalAmount: 0,
       });
       router.back();
     } catch (e) {
@@ -188,19 +164,8 @@ export default function BudgetPeriodScreen() {
           </TouchableOpacity>
         </Modal>
       )}
-       <Text style={styles.label}>Kokonais budjetti (€)</Text>
-      <TextInput
-        style={styles.input}
-         placeholder="Kokonais budjetti (€)"
-        placeholderTextColor="#888"
-        keyboardType="numeric"
-        value={income}
-        onChangeText={setIncome}
-      />
+      
       {error ? <Text style={styles.errorText}>{error}</Text> : null}
-      <Text style={styles.remainingText}>
-        Jäljellä budjetoitavaa: {remaining} €
-      </Text>
       <TouchableOpacity style={styles.saveButton} onPress={handleSave}>
         <Text style={styles.saveButtonText}>Tallenna jakso</Text>
       </TouchableOpacity>
@@ -242,16 +207,6 @@ const styles = StyleSheet.create({
     marginLeft: 8,
     fontSize: 16,
     color: Colors.textPrimary,
-  },
-  input: {
-    height: 48,
-    borderColor: Colors.border,
-    borderWidth: 1,
-    borderRadius: 8,
-    paddingHorizontal: 12,
-    marginBottom: 12,
-    fontSize: 16,
-    color: Colors.textPrimary,
     backgroundColor: Colors.cardBackground,
   },
   label: {
@@ -278,15 +233,6 @@ const styles = StyleSheet.create({
     color: '#B00020',
     marginBottom: 8,
     fontSize: 14,
-  },
-  remainingText: {
-    backgroundColor: '#FFF3B0',
-    padding: 6,
-    borderRadius: 4,
-    fontSize: 16,
-    fontWeight: '600',
-    color: Colors.textPrimary,
-    marginBottom: 12,
   },
   inlinePicker: {
     alignSelf: 'center',

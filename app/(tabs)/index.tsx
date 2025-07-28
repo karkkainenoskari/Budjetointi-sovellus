@@ -89,32 +89,14 @@ export default function BudjettiScreen() {
   const [showNewPeriodModal, setShowNewPeriodModal] = useState<boolean>(false);
   const [newPeriodStart, setNewPeriodStart] = useState<Date>(new Date());
   const [newPeriodEnd, setNewPeriodEnd] = useState<Date>(new Date());
-  const [newPeriodTotal, setNewPeriodTotal] = useState<string>('');
   const [showStartPicker, setShowStartPicker] = useState<boolean>(false);
   const [showEndPicker, setShowEndPicker] = useState<boolean>(false);
-
-  const formatBudgetText = (text: string) => {
-    const cleaned = text.replace(/\s/g, '');
-    const decimals = (cleaned.split(/[,.]/)[1] || '').length;
-    const num = parseFloat(cleaned.replace(',', '.'));
-    if (isNaN(num)) return '';
-    return num
-      .toLocaleString('fi-FI', {
-        minimumFractionDigits: decimals,
-        maximumFractionDigits: decimals,
-      })
-      .replace(/\u00A0/g, ' ');
-  };
 
   const formatCurrency = (value: number) =>
     value.toLocaleString('fi-FI', {
       minimumFractionDigits: 2,
       maximumFractionDigits: 2,
     });
-
-  const handleNewPeriodTotalChange = (value: string) => {
-    setNewPeriodTotal(formatBudgetText(value));
-  };
 
   const openStartPicker = () => {
     if (Platform.OS === 'android') {
@@ -636,35 +618,28 @@ export default function BudjettiScreen() {
     if (budgetPeriod) {
       setNewPeriodStart(budgetPeriod.startDate);
       setNewPeriodEnd(budgetPeriod.endDate);
-      setNewPeriodTotal(formatBudgetText(String(budgetPeriod.totalAmount)));
     } else {
       const now = new Date();
       const start = new Date(now.getFullYear(), now.getMonth(), 1);
       const end = new Date(now.getFullYear(), now.getMonth() + 1, 0);
       setNewPeriodStart(start);
       setNewPeriodEnd(end);
-      setNewPeriodTotal('0');
     }
     setShowNewPeriodModal(true);
   };
 
   const handleCreateNewPeriod = async () => {
     if (!userId) return;
-    const total = parseFloat(newPeriodTotal.replace(/\s/g, '').replace(',', '.'));
-    if (isNaN(total) || total < 0) {
-      Alert.alert('Virhe', 'Anna kelvollinen summa');
-      return;
-    }
     try {
       await startNewBudgetPeriod(userId, {
         startDate: newPeriodStart,
         endDate: newPeriodEnd,
-        totalAmount: total,
+        totalAmount: 0,
       });
       setBudgetPeriod({
         startDate: newPeriodStart,
         endDate: newPeriodEnd,
-        totalAmount: total,
+        totalAmount: 0,
       });
       let updatedCats = await getCategories(userId);
       if (updatedCats.length === 0) {
@@ -1048,15 +1023,6 @@ export default function BudjettiScreen() {
                 </TouchableOpacity>
               </Modal>
             )}
-            <Text style={styles.label}>Kokonais budjetti (€)</Text>
-            <TextInput
-              style={styles.modalInput}
-              placeholder="Kokonais budjetti (€)"
-              placeholderTextColor="#888"
-              keyboardType="numeric"
-              value={newPeriodTotal}
-              onChangeText={handleNewPeriodTotalChange}
-            />
             <View style={styles.modalButtons}>
               <TouchableOpacity
                 onPress={() => setShowNewPeriodModal(false)}
@@ -1589,18 +1555,7 @@ const styles = StyleSheet.create({
     color: Colors.textPrimary,
     marginBottom: 12,
   },
-  modalInput: {
-    width: '100%',
-    height: 44,
-    borderColor: Colors.border,
-    borderWidth: 1,
-    borderRadius: 8,
-    paddingHorizontal: 10,
-    marginBottom: 12,
-    fontSize: 16,
-    color: Colors.textPrimary,
-    backgroundColor: Colors.cardBackground,
-  },
+
   label: {
     fontSize: 16,
     fontWeight: '500',
