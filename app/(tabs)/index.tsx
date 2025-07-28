@@ -69,6 +69,10 @@ export default function BudjettiScreen() {
   const [newIncomeTitle, setNewIncomeTitle] = useState<string>('');
   const [newIncomeAmount, setNewIncomeAmount] = useState<string>('');
 
+   const [addingSubFor, setAddingSubFor] = useState<string | null>(null);
+  const [newSubTitle, setNewSubTitle] = useState<string>('');
+  const [newSubAmount, setNewSubAmount] = useState<string>('');
+
 
   // Kulut summattuna kategoriakohtaisesti
   const [expensesByCategory, setExpensesByCategory] = useState<Record<string, number>>({});
@@ -364,35 +368,57 @@ export default function BudjettiScreen() {
     );
   };
 
-   const handleAddSubCategory = (parentId: string) => {
-    if (!userId) return;
-    Alert.prompt(
-      'Uusi alakategoria',
-      'Anna alakategorian nimi:',
-      [
-        { text: 'Peruuta', style: 'cancel' },
-        {
-          text: 'Luo',
-          onPress: async (title) => {
-            if (!title) return;
-            try {
-              await addCategory(userId, {
-                title: title.trim(),
-                allocated: 0,
-                parentId,
-                type: 'sub',
-              });
-              const updatedCats = await getCategories(userId);
-              LayoutAnimation.configureNext(LayoutAnimation.Presets.easeInEaseOut);
-              setCategories(updatedCats);
-            } catch (e) {
-              console.error('addCategory virhe:', e);
-            }
-          },
-        },
-      ],
-      'plain-text'
-    );
+    const toggleAddSubCategory = (parentId: string) => {
+    if (addingSubFor === parentId) {
+      setAddingSubFor(null);
+      setNewSubTitle('');
+      setNewSubAmount('');
+    } else {
+      setAddingSubFor(parentId);
+      setNewSubTitle('');
+      setNewSubAmount('');
+    }
+  };
+
+ const handleAddSubCategory = async (parentId: string) => {
+    if (!userId || !budgetPeriod) return;
+    if (!newSubTitle.trim()) {
+      Alert.alert('Virhe', 'Anna nimi');
+      return;
+    }
+    const amt = parseFloat(newSubAmount.replace(',', '.'));
+    if (isNaN(amt) || amt < 0) {
+      Alert.alert('Virhe', 'Anna kelvollinen summa');
+      return;
+    }
+
+    const totalBudget = budgetPeriod.totalAmount;
+    const sumOthers = categories
+      .filter((c) => !c.title.toLowerCase().includes('yhteensä'))
+      .reduce((sum, c) => sum + c.allocated, 0);
+
+    if (sumOthers + amt > totalBudget) {
+      Alert.alert('Virhe', 'Budjetti ylittyy');
+      return;
+    }
+
+    try {
+      await addCategory(userId, {
+        title: newSubTitle.trim(),
+        allocated: amt,
+        parentId,
+        type: 'sub',
+      });
+      const updatedCats = await getCategories(userId);
+      LayoutAnimation.configureNext(LayoutAnimation.Presets.easeInEaseOut);
+      setCategories(updatedCats);
+    } catch (e) {
+      console.error('addCategory virhe:', e);
+    } finally {
+      setAddingSubFor(null);
+      setNewSubTitle('');
+      setNewSubAmount('');
+    }
   };
 
  const handleAddIncome = () => {
@@ -484,7 +510,7 @@ export default function BudjettiScreen() {
 
     Alert.prompt(
       'Muokkaa kategoriaa',
-      `Syötä uusi nimi ja määrä muodossa “Nimi, summa” (vanha: ${oldAllocated} €). Kokonaisbudjetti: ${totalBudget} €`,
+      `Syötä uusi nimi ja määrä muodossa “Nimi, summa” (vanha: ${oldAllocated} €).`,
       [
         { text: 'Peruuta', style: 'cancel' },
         {
@@ -746,7 +772,7 @@ export default function BudjettiScreen() {
               {!readOnly && selectedTab === 'plan' && (
                  <>
                   <TouchableOpacity
-                    onPress={() => handleAddSubCategory(item.id)}
+                     onPress={() => toggleAddSubCategory(item.id)}
                     style={styles.iconButtonSmall}
                   >
                     <Ionicons name="add-circle-outline" size={14} color={Colors.moss} />
@@ -761,6 +787,38 @@ export default function BudjettiScreen() {
               )}
             </View>
           </View>
+
+           {selectedTab === 'plan' && addingSubFor === item.id && (
+            <View style={styles.addSubInlineRow}>
+              <TextInput
+                style={styles.inlineInput}
+                placeholder="Nimi"
+                placeholderTextColor="#888"
+                value={newSubTitle}
+                onChangeText={setNewSubTitle}
+              />
+              <TextInput
+                style={styles.inlineInput}
+                placeholder="Summa"
+                placeholderTextColor="#888"
+                keyboardType="numeric"
+                value={newSubAmount}
+                onChangeText={setNewSubAmount}
+              />
+              <TouchableOpacity
+                onPress={() => handleAddSubCategory(item.id)}
+                style={styles.iconButtonSmall}
+              >
+                <Ionicons name="checkmark-circle-outline" size={20} color={Colors.moss} />
+              </TouchableOpacity>
+              <TouchableOpacity
+                onPress={() => toggleAddSubCategory(item.id)}
+                style={styles.iconButtonSmall}
+              >
+                <Ionicons name="close-circle-outline" size={20} color={Colors.iconMuted} />
+              </TouchableOpacity>
+            </View>
+          )}
 
 
           {subCategories.map((sub) => {
