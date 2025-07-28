@@ -140,14 +140,6 @@ export default function HistoriaScreen() {
 
 return (
   <SafeAreaView style={styles.safeContainer}>
-  <View style={styles.headerContainer}>
-      <Text style={styles.headerTitle}>Budjettihistoria</Text>
-    </View>
-
-    <TouchableOpacity style={styles.copyButton} onPress={handleCopyPrevious}>
-      <Text style={styles.copyButtonText}>Kopioi edellisen kuukauden kategoriat</Text>
-    </TouchableOpacity>
-
      <TouchableOpacity style={styles.statsButton} onPress={() => router.push('/tilastot')}>
       <Text style={styles.copyButtonText}>Tilastot</Text>
     </TouchableOpacity>
@@ -211,16 +203,6 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     backgroundColor: Colors.background,
   },
-  copyButton: {
-  backgroundColor: Colors.moss,
-  padding: 16,
-  borderRadius: 8,
-  alignItems: 'center',
-  marginTop: 8,       // Siirtää nappia alaspäin (voit säätää esim. 24 tai enemmän)
-  marginBottom: 12,
-  width: 375,          // Asettaa napille kiinteän leveyden (voit kokeilla eri arvoja esim. 150)
-  alignSelf: 'center',
-  },
    statsButton: {
   backgroundColor: Colors.moss,
   padding: 16,
@@ -283,19 +265,5 @@ const styles = StyleSheet.create({
     fontSize: 16,
     color: Colors.textSecondary,
   },
-headerContainer: {
-  backgroundColor: Colors.cardBackground,
-  paddingHorizontal: 16,
-  paddingTop: 16,
-  paddingBottom: 8,
-  marginBottom: 16,
-},
-headerTitle: {
-  fontSize: 24,
-  fontWeight: 'bold',
-  color: Colors.textPrimary,
- textAlign: 'center',
-},
-
-
 });
+
