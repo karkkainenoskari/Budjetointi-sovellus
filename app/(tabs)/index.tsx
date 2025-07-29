@@ -191,39 +191,24 @@ export default function BudjettiScreen() {
   };
 
   // Kokonaissummat
+  const totalIncome = incomes.reduce((sum, inc) => sum + inc.amount, 0);
+
   const totalAllocated = categories
     .filter((cat) => !cat.title.toLowerCase().includes('yhteensä'))
     .reduce((sum, cat) => sum + cat.allocated, 0);
 
-  const budgetUnallocated = budgetPeriod
-    ? budgetPeriod.totalAmount - totalAllocated
-    : 0;
-
-  const budgetedPercent =
-    budgetPeriod && budgetPeriod.totalAmount > 0
-      ? totalAllocated / budgetPeriod.totalAmount
-      : 0;
-
+   const budgetedPercent = totalIncome > 0 ? totalAllocated / totalIncome : 0;
 
   const totalSpentAll = Object.values(expensesByCategory).reduce(
     (sum, val) => sum + val,
     0
   );
 
-   const totalIncome = incomes.reduce((sum, inc) => sum + inc.amount, 0);
-  const budgetLeftOverall = budgetPeriod
-    ? budgetPeriod.totalAmount - totalSpentAll
-    : 0;
+  const budgetLeftOverall = totalIncome - totalSpentAll;
 
-    const spentPercent =
-    budgetPeriod && budgetPeriod.totalAmount > 0
-      ? totalSpentAll / budgetPeriod.totalAmount
-      : 0;
+   const spentPercent = totalIncome > 0 ? totalSpentAll / totalIncome : 0;
 
-  const leftPercent =
-    budgetPeriod && budgetPeriod.totalAmount > 0
-      ? budgetLeftOverall / budgetPeriod.totalAmount
-      : 0;
+     const leftPercent = totalIncome > 0 ? budgetLeftOverall / totalIncome : 0;
 
  // progress bar removed for simplicity
 
@@ -374,7 +359,7 @@ export default function BudjettiScreen() {
       return;
     }
 
-    const totalBudget = budgetPeriod.totalAmount;
+   const totalBudget = totalIncome;
     const sumOthers = categories
       .filter((c) => !c.title.toLowerCase().includes('yhteensä'))
       .reduce((sum, c) => sum + c.allocated, 0);
@@ -488,7 +473,7 @@ export default function BudjettiScreen() {
   // ─── Edit category (title & allocated) ─────────────────────────────
   const handleEditCategory = (categoryId: string, oldTitle: string, oldAllocated: number) => {
     if (!userId || !budgetPeriod) return;
-    const totalBudget = budgetPeriod.totalAmount;
+     const totalBudget = totalIncome;
 
     Alert.prompt(
       'Muokkaa kategoriaa',
@@ -1106,19 +1091,19 @@ export default function BudjettiScreen() {
                   <Text
                   style={[
                     styles.unallocatedText,
-                    budgetPeriod && budgetUnallocated === 0 && styles.unallocatedZero,
+                     budgetLeftOverall === 0 && styles.unallocatedZero,
                   ]}
                 >
                   Budjetoitavaa jäljellä{' '}
                   <Text
                     style={[
                       styles.unallocatedValue,
-                      budgetPeriod && budgetUnallocated < 0 && styles.unallocatedNegative,
-                       budgetPeriod && budgetUnallocated === 0 && styles.unallocatedZero,
+                      budgetLeftOverall < 0 && styles.unallocatedNegative,
+                      budgetLeftOverall === 0 && styles.unallocatedZero,
                     ]}
                   >
-                    {budgetPeriod && budgetPeriod.totalAmount > 0
-                      ? `${formatCurrency(budgetUnallocated)} €`
+                     {incomes.length > 0 || totalSpentAll > 0
+                      ? `${formatCurrency(budgetLeftOverall)} €`
                       : '-'}
                   </Text>{' '}
                 </Text>
