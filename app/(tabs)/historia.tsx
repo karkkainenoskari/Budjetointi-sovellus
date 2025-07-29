@@ -4,18 +4,19 @@ import {
   Text,
   StyleSheet,
   TouchableOpacity,
-  FlatList,
   ActivityIndicator,
   Alert,
   SafeAreaView,
+  ScrollView,
+  Dimensions,
 } from 'react-native';
+import { Picker } from '@react-native-picker/picker';
+import { PieChart, BarChart } from 'react-native-chart-kit';
 import { Ionicons } from '@expo/vector-icons';
-import { useRouter } from 'expo-router';
 import { auth } from '../../src/api/firebaseConfig';
 import {
   getHistoryMonths,
   getHistoryCategories,
-  copyPreviousMonthCategories,
 } from '../../src/services/history';
 import {
   deleteBudgetPeriod,
@@ -24,18 +25,19 @@ import {
 } from '../../src/services/budget';
 import { formatMonthRange } from '@/src/utils';
 import { getExpensesByPeriod, Expense } from '../../src/services/expenses';
+import { getIncomes } from '../../src/services/incomes';
 import Colors from '../../constants/Colors';
 import { Category } from '../../src/services/categories';
 
 export default function HistoriaScreen() {
-  const router = useRouter();
   const user = auth.currentUser;
   const userId = user ? user.uid : null;
 
   const [months, setMonths] = useState<string[]>([]);
   const [loadingMonths, setLoadingMonths] = useState<boolean>(true);
-  const [expanded, setExpanded] = useState<string | null>(null);
+   const [selectedMonth, setSelectedMonth] = useState<string | null>(null);
   const [monthData, setMonthData] = useState<Record<string, {loading: boolean; categories: Category[]; expenses: Record<string, number>;}>>({});
+  const [chartData, setChartData] = useState<{pieData: any[]; totals: {income: number; expense: number}} | null>(null);
   const [currentPeriodId, setCurrentPeriodId] = useState<string | null>(null);
 
   useEffect(() => {
@@ -54,23 +56,21 @@ export default function HistoriaScreen() {
         m.sort();
         m.reverse();
         setMonths(m);
+        if (m.length > 0) setSelectedMonth(m[0]);
       })
       .catch((e) => console.error('getHistoryMonths error:', e))
       .finally(() => setLoadingMonths(false));
   }, [userId]);
 
-  const toggleMonth = async (m: string) => {
+   const loadMonthData = async (m: string) => {
     if (!userId) return;
-    if (expanded === m) {
-      setExpanded(null);
-      return;
-    }
-    setExpanded(m);
-    if (monthData[m]) return;
-
+    
     setMonthData((prev) => ({ ...prev, [m]: { loading: true, categories: [], expenses: {} } }));
     try {
-      const cats = await getHistoryCategories(userId, m);
+      const [cats, incomes] = await Promise.all([
+        getHistoryCategories(userId, m),
+        getIncomes(userId),
+      ]);
       const [year, month] = m.split('-').map((x) => parseInt(x, 10));
       const start = new Date(year, month - 1, 1);
       const end = new Date(year, month, 0);
@@ -79,23 +79,46 @@ export default function HistoriaScreen() {
       expenses.forEach((exp: Expense) => {
         sums[exp.categoryId] = (sums[exp.categoryId] || 0) + exp.amount;
       });
+
+       const colors = [
+        Colors.evergreen,
+        Colors.moss,
+        '#FF9F1C',
+        '#E71D36',
+        '#2EC4B6',
+        '#FFBF69',
+      ];
+      let colorIndex = 0;
+      const pie = cats
+        .filter((c) => sums[c.id])
+        .map((c) => {
+          const color = colors[colorIndex % colors.length];
+          colorIndex += 1;
+          return {
+            name: c.title,
+            amount: sums[c.id],
+            color,
+            legendFontColor: Colors.textPrimary,
+            legendFontSize: 12,
+          };
+        });
+      const totalIncome = incomes.reduce((sum, i) => sum + i.amount, 0);
+      const totalExpense = expenses.reduce((sum, e) => sum + e.amount, 0);
+
       setMonthData((prev) => ({ ...prev, [m]: { loading: false, categories: cats, expenses: sums } }));
+      if (selectedMonth === m) setChartData({ pieData: pie, totals: { income: totalIncome, expense: totalExpense } });
     } catch (e) {
-      console.error('toggleMonth error:', e);
+      console.error('loadMonthData error:', e);
       setMonthData((prev) => ({ ...prev, [m]: { loading: false, categories: [], expenses: {} } }));
+      if (selectedMonth === m) setChartData({ pieData: [], totals: { income: 0, expense: 0 } });
     }
   };
 
-  const handleCopyPrevious = async () => {
-    if (!userId) return;
-    try {
-      await copyPreviousMonthCategories(userId);
-      Alert.alert('Valmis', 'Kategoriat kopioitu uudelle kuukaudelle.');
-    } catch (e) {
-      console.error('copyPreviousMonthCategories error:', e);
-      Alert.alert('Virhe', 'Kopiointi epäonnistui.');
+  useEffect(() => {
+    if (selectedMonth) {
+      loadMonthData(selectedMonth);
     }
-  };
+   }, [selectedMonth, userId]);
 
   const handleDeleteMonth = (m: string) => {
     if (!userId) return;
@@ -107,11 +130,16 @@ export default function HistoriaScreen() {
         onPress: async () => {
           try {
             await deleteBudgetPeriod(userId, m);
-            setMonths((prev) => prev.filter((mon) => mon !== m));
-             if (m === currentPeriodId) {
-              await clearCurrentBudgetPeriod(userId);
-              setCurrentPeriodId(null);
-            }
+           setMonths((prev) => {
+              const updated = prev.filter((mon) => mon !== m);
+              if (updated.length > 0 && selectedMonth === m) setSelectedMonth(updated[0]);
+              else if (updated.length === 0) setSelectedMonth(null);
+              return updated;
+            });
+           if (m === currentPeriodId) {
+             await clearCurrentBudgetPeriod(userId);
+             setCurrentPeriodId(null);
+           }
           } catch (e) {
             console.error('deleteBudgetPeriod error:', e);
             Alert.alert('Virhe', 'Poistaminen epäonnistui.');
@@ -138,53 +166,95 @@ export default function HistoriaScreen() {
     );
   }
 
-return (
-  <SafeAreaView style={styles.safeContainer}>
-     <TouchableOpacity style={styles.statsButton} onPress={() => router.push('/tilastot')}>
-      <Text style={styles.copyButtonText}>Tilastot</Text>
-    </TouchableOpacity>
-
-    <FlatList
-      data={months}
-      keyExtractor={(item) => item}
-      contentContainerStyle={styles.listContent}
-      renderItem={({ item }) => {
-        const data = monthData[item];
-        return (
+const screenWidth = Dimensions.get('window').width - 32;
+  const chartConfig = {
+    backgroundColor: Colors.background,
+    backgroundGradientFrom: Colors.background,
+    backgroundGradientTo: Colors.background,
+    color: () => Colors.moss,
+    labelColor: () => Colors.textPrimary,
+    decimalPlaces: 2,
+  } as const;
+ return (
+    <SafeAreaView style={styles.safeContainer}>
+      <View style={styles.pickerContainer}>
+        <Picker
+          selectedValue={selectedMonth}
+          onValueChange={(v) => setSelectedMonth(v)}
+          style={styles.picker}
+          mode="dropdown"
+        >
+          {months.map((m) => (
+            <Picker.Item key={m} label={formatMonthRange(m)} value={m} />
+          ))}
+        </Picker>
+      </View>
+      {selectedMonth && (
+        <ScrollView contentContainerStyle={styles.listContent}>
+    
           <View style={styles.monthCard}>
             <View style={styles.monthHeader}>
-              <TouchableOpacity onPress={() => toggleMonth(item)} style={{ flex: 1 }}>
-                <Text style={styles.monthTitle}>{formatMonthRange(item)}</Text>
-              </TouchableOpacity>
+              <Text style={styles.monthTitle}>{formatMonthRange(selectedMonth)}</Text>
               <TouchableOpacity
-                onPress={() => handleDeleteMonth(item)}
+                 onPress={() => handleDeleteMonth(selectedMonth)}
                 style={styles.iconButtonSmall}
               >
                 <Ionicons name="trash-outline" size={18} color={Colors.evergreen} />
               </TouchableOpacity>
             </View>
-            {expanded === item && (
-              <View style={styles.monthContent}>
-                {data?.loading ? (
-                  <ActivityIndicator color={Colors.moss} />
+           {monthData[selectedMonth]?.loading || !chartData ? (
+              <ActivityIndicator color={Colors.moss} style={{ marginTop: 12 }} />
+            ) : (
+              <>
+                <Text style={styles.header}>Menot kategorioittain</Text>
+                {chartData.pieData.length > 0 ? (
+                  <PieChart
+                    data={chartData.pieData as any}
+                    width={screenWidth}
+                    height={220}
+                    accessor="amount"
+                    chartConfig={chartConfig}
+                    paddingLeft="0"
+                    absolute
+                    backgroundColor="transparent"
+                    style={{ alignSelf: 'center' }}
+                  />
                 ) : (
-                  data?.categories.map((cat) => (
+                  <Text style={styles.noData}>Ei kuluja tältä jaksolta</Text>
+                )}
+
+                <Text style={[styles.header, { marginTop: 24 }]}>Tulot vs. Menot</Text>
+                <BarChart
+                  data={{
+                    labels: ['Tulot', 'Menot'],
+                    datasets: [{ data: [chartData.totals.income, chartData.totals.expense] }],
+                  }}
+                  width={screenWidth}
+                  height={220}
+                  chartConfig={chartConfig}
+                  fromZero
+                  style={{ alignSelf: 'center' }}
+                  yAxisLabel={''}
+                  yAxisSuffix={''}
+                />
+
+                <View style={styles.monthContent}>
+                  {monthData[selectedMonth]?.categories.map((cat) => (
                     <View key={cat.id} style={styles.catRow}>
                       <Text style={styles.catTitle}>{cat.title}</Text>
                       <Text style={styles.catAmount}>
-                        {data.expenses[cat.id] || 0} / {cat.allocated} €
+                        {monthData[selectedMonth]?.expenses[cat.id] || 0} / {cat.allocated} €
                       </Text>
                     </View>
-                  ))
-                )}
-              </View>
+                   ))}
+                </View>
+              </>
             )}
           </View>
-        );
-      }}
-    />
-  </SafeAreaView>
-);
+      </ScrollView>
+      )}
+    </SafeAreaView>
+  );
 
 }
 
@@ -203,20 +273,14 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     backgroundColor: Colors.background,
   },
-   statsButton: {
-  backgroundColor: Colors.moss,
-  padding: 16,
-  borderRadius: 8,
-  alignItems: 'center',
-  marginBottom: 12,
-  width: 375,
-  alignSelf: 'center',
+   pickerContainer: {
+    marginBottom: 12,
   },
-  copyButtonText: {
-  color: Colors.buttonPrimaryText,
-  fontWeight: '600',
-  fontSize: 14,
-},
+  picker: {
+    height: 50,
+    width: '100%',
+    color: Colors.textPrimary,
+  },
 
   listContent: {
      paddingTop: 8,
@@ -264,6 +328,17 @@ const styles = StyleSheet.create({
   catAmount: {
     fontSize: 16,
     color: Colors.textSecondary,
+  },
+   header: {
+    fontSize: 20,
+    fontWeight: '600',
+    color: Colors.textPrimary,
+    marginVertical: 12,
+    textAlign: 'center',
+  },
+  noData: {
+    color: Colors.textPrimary,
+    textAlign: 'center',
   },
 });
 
