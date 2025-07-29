@@ -205,6 +205,7 @@ export default function BudjettiScreen() {
   );
 
   const budgetLeftOverall = totalIncome - totalSpentAll;
+   const unallocatedBudget = totalIncome - totalAllocated;
 
    const spentPercent = totalIncome > 0 ? totalSpentAll / totalIncome : 0;
 
@@ -1091,19 +1092,19 @@ export default function BudjettiScreen() {
                   <Text
                   style={[
                     styles.unallocatedText,
-                     budgetLeftOverall === 0 && styles.unallocatedZero,
+                     unallocatedBudget === 0 && styles.unallocatedZero,
                   ]}
                 >
                   Budjetoitavaa jäljellä{' '}
                   <Text
                     style={[
                       styles.unallocatedValue,
-                      budgetLeftOverall < 0 && styles.unallocatedNegative,
-                      budgetLeftOverall === 0 && styles.unallocatedZero,
+                      unallocatedBudget < 0 && styles.unallocatedNegative,
+                      unallocatedBudget === 0 && styles.unallocatedZero,
                     ]}
                   >
-                     {incomes.length > 0 || totalSpentAll > 0
-                      ? `${formatCurrency(budgetLeftOverall)} €`
+                       {incomes.length > 0 || totalAllocated > 0
+                      ? `${formatCurrency(unallocatedBudget)} €`
                       : '-'}
                   </Text>{' '}
                 </Text>
