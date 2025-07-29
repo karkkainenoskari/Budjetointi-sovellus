@@ -173,7 +173,7 @@ export default function BudjettiScreen() {
     }
   };
 
-    const loadIncomes = async () => {
+     const loadIncomes = async () => {
     if (!userId) return;
     let active = true;
     setLoadingIncomes(true);
@@ -188,6 +188,28 @@ export default function BudjettiScreen() {
     return () => {
       active = false;
     };
+  };
+
+    const loadExpenses = async () => {
+    if (!userId || !budgetPeriod) return;
+    setLoadingExpenses(true);
+    try {
+      const expenses = await getExpensesByPeriod(
+        userId,
+        budgetPeriod.startDate,
+        budgetPeriod.endDate,
+      );
+      const sums: Record<string, number> = {};
+      expenses.forEach((exp: Expense) => {
+        const catId = exp.categoryId;
+        sums[catId] = (sums[catId] || 0) + exp.amount;
+      });
+      setExpensesByCategory(sums);
+    } catch (e) {
+      console.error('getExpensesByPeriod virhe:', e);
+    } finally {
+      setLoadingExpenses(false);
+    }
   };
 
   // Kokonaissummat
@@ -277,25 +299,14 @@ export default function BudjettiScreen() {
 
   // ─── Fetch expenses and sum by category when budgetPeriod changes ────
   useEffect(() => {
-    if (!userId || !budgetPeriod) return;
-
-    setLoadingExpenses(true);
-    getExpensesByPeriod(userId, budgetPeriod.startDate, budgetPeriod.endDate)
-      .then((expenses) => {
-        const sums: Record<string, number> = {};
-        expenses.forEach((exp: Expense) => {
-          const catId = exp.categoryId;
-          sums[catId] = (sums[catId] || 0) + exp.amount;
-        });
-        setExpensesByCategory(sums);
-      })
-      .catch((e) => {
-        console.error('getExpensesByPeriod virhe:', e);
-      })
-      .finally(() => {
-        setLoadingExpenses(false);
-      });
+    loadExpenses();
   }, [userId, budgetPeriod]);
+
+  useFocusEffect(
+    React.useCallback(() => {
+      loadExpenses();
+    }, [userId, budgetPeriod])
+  );
 
    // ─── Fetch incomes ─────────────────────────────────────────────────
   useEffect(() => {
