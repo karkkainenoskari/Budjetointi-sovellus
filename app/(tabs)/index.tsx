@@ -73,9 +73,17 @@ export default function BudjettiScreen() {
   const [newIncomeTitle, setNewIncomeTitle] = useState<string>('');
   const [newIncomeAmount, setNewIncomeAmount] = useState<string>('');
 
-   const [addingSubFor, setAddingSubFor] = useState<string | null>(null);
+  const [editingIncomeId, setEditingIncomeId] = useState<string | null>(null);
+  const [editIncomeTitle, setEditIncomeTitle] = useState<string>('');
+  const [editIncomeAmount, setEditIncomeAmount] = useState<string>('');
+
+  const [addingSubFor, setAddingSubFor] = useState<string | null>(null);
   const [newSubTitle, setNewSubTitle] = useState<string>('');
   const [newSubAmount, setNewSubAmount] = useState<string>('');
+
+  const [editingCategoryId, setEditingCategoryId] = useState<string | null>(null);
+  const [editCategoryTitle, setEditCategoryTitle] = useState<string>('');
+  const [editCategoryAmount, setEditCategoryAmount] = useState<string>('');
 
 
   // Kulut summattuna kategoriakohtaisesti
@@ -431,41 +439,41 @@ export default function BudjettiScreen() {
     oldAmount: number
   ) => {
     if (!userId) return;
-    Alert.prompt(
-      'Muokkaa tuloa',
-      'Syötä uusi nimi ja summa muodossa “Nimi, summa”',
-      [
-        { text: 'Peruuta', style: 'cancel' },
-        {
-          text: 'Tallenna',
-          onPress: async (input) => {
-            if (!input) return;
-            const parts = input.split(',');
-            if (parts.length !== 2) {
-              Alert.alert('Virhe', 'Muoto: “Nimi, 300”');
-              return;
-            }
-            const newTitle = parts[0].trim();
-            const newAmount = parseFloat(parts[1].replace(',', '.'));
-            if (isNaN(newAmount) || newAmount < 0) {
-              Alert.alert('Virhe', 'Anna kelvollinen summa');
-              return;
-            }
-            try {
-              await updateIncome(userId, incomeId, {
-                title: newTitle,
-                amount: newAmount,
-              });
-              loadIncomes();
-            } catch (e) {
-              console.error('updateIncome virhe:', e);
-            }
-          },
-        },
-      ],
-      'plain-text',
-      `${oldTitle}, ${oldAmount}`
-    );
+    setEditingIncomeId(incomeId);
+    setEditIncomeTitle(oldTitle);
+    setEditIncomeAmount(String(oldAmount));
+  };
+
+  const saveIncomeEdit = async (incomeId: string) => {
+    if (!userId) return;
+    if (!editIncomeTitle.trim()) {
+      Alert.alert('Virhe', 'Anna nimi');
+      return;
+    }
+    const amt = parseFloat(editIncomeAmount.replace(',', '.'));
+    if (isNaN(amt) || amt < 0) {
+      Alert.alert('Virhe', 'Anna kelvollinen summa');
+      return;
+    }
+    try {
+      await updateIncome(userId, incomeId, {
+        title: editIncomeTitle.trim(),
+        amount: amt,
+      });
+      loadIncomes();
+    } catch (e) {
+      console.error('updateIncome virhe:', e);
+    } finally {
+      setEditingIncomeId(null);
+      setEditIncomeTitle('');
+      setEditIncomeAmount('');
+    }
+  };
+
+  const cancelIncomeEdit = () => {
+    setEditingIncomeId(null);
+    setEditIncomeTitle('');
+    setEditIncomeAmount('');
   };
 
   const handleDeleteIncome = (incomeId: string) => {
@@ -488,92 +496,90 @@ export default function BudjettiScreen() {
   };
 
 
-  // ─── Edit category (title & allocated) ─────────────────────────────
-  const handleEditCategory = (categoryId: string, oldTitle: string, oldAllocated: number) => {
-    if (!userId || !budgetPeriod) return;
-     const totalBudget = totalIncome;
 
-    Alert.prompt(
-      'Muokkaa kategoriaa',
-      `Syötä uusi nimi ja määrä muodossa “Nimi, summa” (vanha: ${oldAllocated} €).`,
-      [
-        { text: 'Peruuta', style: 'cancel' },
-        {
-          text: 'Tallenna',
-          onPress: async (input) => {
-            if (!input) return;
-            const parts = input.split(',');
-            if (parts.length !== 2) {
-              Alert.alert('Virhe', 'Muoto: “Nimi, 300”');
-              return;
-            }
-            const newTitle = parts[0].trim();
-            const newAlloc = parseFloat(parts[1].trim());
-            if (isNaN(newAlloc) || newAlloc < 0) {
-              Alert.alert('Virhe', 'Anna kelvollinen summa');
-              return;
-            }
-            // Laske kaikkien muiden kategorioiden varaukset (paitsi "yhteensä"-rivien)
-            const sumOthers = categories
-              .filter(
-                (c) =>
-                  c.id !== categoryId &&
-                  !c.title.toLowerCase().includes('yhteensä')
-              )
-              .reduce((sum, c) => sum + c.allocated, 0);
-            if (sumOthers + newAlloc > totalBudget) {
-              Alert.alert(
-                'Virhe',
-                `Et voi varata enempää kuin budjetti. Jo varattuna: ${sumOthers} €. `
-                + `Yritit varata: ${newAlloc} €. Ylittää budjetin (${totalBudget} €).`
-              );
-              return;
-            }
-            try {
-              await updateCategory(userId, categoryId, {
-                title: newTitle,
-                allocated: newAlloc,
-              });
-              const updatedCats = await getCategories(userId);
-              LayoutAnimation.configureNext(LayoutAnimation.Presets.easeInEaseOut);
-              setCategories(updatedCats);
-            } catch (e) {
-              console.error('updateCategory virhe:', e);
-            }
-          },
-        },
-      ],
-      'plain-text',
-      `${oldTitle}, ${oldAllocated}`
-    );
-  };
 
-  // ─── Delete category (and its subcategories) ───────────────────────
-  const handleDeleteCategory = (categoryId: string) => {
-    if (!userId) return;
+   const handleEditCategory = (
+  categoryId: string,
+  oldTitle: string,
+  oldAllocated: number
+) => {
+  if (!userId || !budgetPeriod) return;
+  setEditingCategoryId(categoryId);
+  setEditCategoryTitle(oldTitle);
+  setEditCategoryAmount(String(oldAllocated));
+};
+
+ const saveCategoryEdit = async (categoryId: string) => {
+  if (!userId || !budgetPeriod) return;
+  const totalBudget = totalIncome;
+  if (!editCategoryTitle.trim()) {
+    Alert.alert('Virhe', 'Anna nimi');
+    return;
+  }
+  const newAlloc = parseFloat(editCategoryAmount.replace(',', '.'));
+  if (isNaN(newAlloc) || newAlloc < 0) {
+    Alert.alert('Virhe', 'Anna kelvollinen summa');
+    return;
+  }
+  const sumOthers = categories
+    .filter((c) => c.id !== categoryId && !c.title.toLowerCase().includes('yhteensä'))
+    .reduce((sum, c) => sum + c.allocated, 0);
+  if (sumOthers + newAlloc > totalBudget) {
     Alert.alert(
-      'Poista kategoria',
-      'Haluatko varmasti poistaa tämän kategorian ja sen alakategoriat?',
-      [
-        { text: 'Peruuta', style: 'cancel' },
-        {
-          text: 'Poista',
-          style: 'destructive',
-          onPress: async () => {
-            try {
-              await deleteCategory(userId, categoryId);
-              const updatedCats = await getCategories(userId);
-              LayoutAnimation.configureNext(LayoutAnimation.Presets.easeInEaseOut);
-              setCategories(updatedCats);
-            } catch (e) {
-              console.error('deleteCategory virhe:', e);
-            }
-          },
-        },
-      ],
-      { cancelable: true }
+    'Virhe',
+      `Et voi varata enempää kuin budjetti. Jo varattuna: ${sumOthers} €. ` +
+        `Yritit varata: ${newAlloc} €. Ylittää budjetin (${totalBudget} €).`
     );
-  };
+ return;
+  }
+  try {
+    await updateCategory(userId, categoryId, {
+      title: editCategoryTitle.trim(),
+      allocated: newAlloc,
+    });
+    const updatedCats = await getCategories(userId);
+    LayoutAnimation.configureNext(LayoutAnimation.Presets.easeInEaseOut);
+    setCategories(updatedCats);
+  } catch (e) {
+    console.error('updateCategory virhe:', e);
+  } finally {
+    setEditingCategoryId(null);
+    setEditCategoryTitle('');
+    setEditCategoryAmount('');
+  }
+};
+
+const cancelCategoryEdit = () => {
+  setEditingCategoryId(null);
+  setEditCategoryTitle('');
+  setEditCategoryAmount('');
+};
+
+const handleDeleteCategory = (categoryId: string) => {
+  if (!userId) return;
+  Alert.alert(
+    'Poista kategoria',
+    'Haluatko varmasti poistaa tämän kategorian ja sen alakategoriat?',
+    [
+      { text: 'Peruuta', style: 'cancel' },
+      {
+        text: 'Poista',
+        style: 'destructive',
+        onPress: async () => {
+          try {
+            await deleteCategory(userId, categoryId);
+            const updatedCats = await getCategories(userId);
+            LayoutAnimation.configureNext(LayoutAnimation.Presets.easeInEaseOut);
+            setCategories(updatedCats);
+          } catch (e) {
+            console.error('deleteCategory virhe:', e);
+          }
+        },
+      },
+    ],
+    { cancelable: true }
+  );
+};
 
   // ─── Add expense to category ────────────────────────────────────────
   const handleAddExpenseToCategory = (categoryId: string) => {
@@ -829,7 +835,34 @@ export default function BudjettiScreen() {
               }
             }
 
-            return (
+           return editingCategoryId === sub.id ? (
+              <View style={styles.addSubInlineRow} key={sub.id}>
+                <TextInput
+                  style={styles.inlineInput}
+                  placeholder="Nimi"
+                  placeholderTextColor="#888"
+                  value={editCategoryTitle}
+                  onChangeText={setEditCategoryTitle}
+                />
+                <TextInput
+                  style={styles.inlineInput}
+                  placeholder="Summa"
+                  placeholderTextColor="#888"
+                  keyboardType="numeric"
+                  value={editCategoryAmount}
+                  onChangeText={setEditCategoryAmount}
+                />
+                <TouchableOpacity
+                  onPress={() => saveCategoryEdit(sub.id)}
+                  style={styles.iconButtonSmall}
+                >
+                  <Ionicons name="checkmark-circle-outline" size={20} color={Colors.moss} />
+                </TouchableOpacity>
+                <TouchableOpacity onPress={cancelCategoryEdit} style={styles.iconButtonSmall}>
+                  <Ionicons name="close-circle-outline" size={20} color={Colors.iconMuted} />
+                </TouchableOpacity>
+              </View>
+            ) : (
               <View
                 key={sub.id}
                 style={[styles.subCategoryRow, isTotalRow && styles.subCategoryTotalRow]}
@@ -855,7 +888,7 @@ export default function BudjettiScreen() {
                         isTotalRow && styles.subCategoryTotalValue,
                       ]}
                     >
-                       {formatCurrency(displayValue)} €
+                        {formatCurrency(displayValue)} €
                     </Text>
                   </TouchableOpacity>
                   {!readOnly && !isTotalRow && (
@@ -1212,33 +1245,63 @@ export default function BudjettiScreen() {
             keyExtractor={(item) => item.id}
             scrollEnabled={false}
             renderItem={({ item }) => (
-              <View style={styles.categoryCard}>
-                <Text style={styles.categoryTitle}>{item.title}</Text>
-                 <View style={styles.categoryRight}>
+             editingIncomeId === item.id ? (
+                <View style={styles.categoryCard}>
+                  <TextInput
+                    style={styles.inlineInput}
+                    value={editIncomeTitle}
+                    onChangeText={setEditIncomeTitle}
+                    placeholder="Nimi"
+                    placeholderTextColor="#888"
+                  />
+                  <TextInput
+                    style={styles.inlineInput}
+                    value={editIncomeAmount}
+                    onChangeText={setEditIncomeAmount}
+                    placeholder="Summa"
+                    placeholderTextColor="#888"
+                    keyboardType="numeric"
+                  />
                   <TouchableOpacity
-                    disabled={readOnly}
-                    onPress={() =>
-                      handleEditIncome(item.id, item.title, item.amount)
-                    }
+                    onPress={() => saveIncomeEdit(item.id)}
+                    style={styles.iconButtonSmall}
                   >
-                    <Text style={styles.categoryValue}>
-                      {formatCurrency(item.amount)} €
-                    </Text>
+                    <Ionicons name="checkmark-circle-outline" size={20} color={Colors.moss} />
                   </TouchableOpacity>
-                   {!readOnly && selectedTab === 'plan' && (
+                  <TouchableOpacity onPress={cancelIncomeEdit} style={styles.iconButtonSmall}>
+                    <Ionicons name="close-circle-outline" size={20} color={Colors.iconMuted} />
+                  </TouchableOpacity>
+                    </View>
+              ) : (
+                <View style={styles.categoryCard}>
+                  <Text style={styles.categoryTitle}>{item.title}</Text>
+                  <View style={styles.categoryRight}>
                     <TouchableOpacity
-                      onPress={() => handleDeleteIncome(item.id)}
-                      style={styles.iconButtonSmall}
+                       disabled={readOnly}
+                      onPress={() =>
+                        handleEditIncome(item.id, item.title, item.amount)
+                      }
                     >
-                      <Ionicons
-                        name="trash-outline"
-                        size={14}
-                        color={Colors.iconMuted}
-                      />
+                      <Text style={styles.categoryValue}>
+                        {formatCurrency(item.amount)} €
+                      </Text>
                     </TouchableOpacity>
-                  )}
+  
+                    {!readOnly && selectedTab === 'plan' && (
+                      <TouchableOpacity
+                        onPress={() => handleDeleteIncome(item.id)}
+                        style={styles.iconButtonSmall}
+                      >
+                        <Ionicons
+                          name="trash-outline"
+                          size={14}
+                          color={Colors.iconMuted}
+                        />
+                      </TouchableOpacity>
+                    )}
+                  </View>
                 </View>
-              </View>
+                )
             )}
             contentContainerStyle={styles.listContent}
           />
