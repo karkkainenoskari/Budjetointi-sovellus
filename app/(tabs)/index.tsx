@@ -51,7 +51,11 @@ import {
   getBudgetPeriodFromHistory,
 } from '../../src/services/budget';
 import { formatMonthRange } from '@/src/utils';
-import { getHistoryMonths, getHistoryCategories } from '../../src/services/history';
+import {
+  getHistoryMonths,
+  getHistoryCategories,
+  copyPreviousMonthPlan,
+} from '../../src/services/history';
 
 export default function BudjettiScreen() {
   const router = useRouter();
@@ -91,6 +95,8 @@ export default function BudjettiScreen() {
   const [newPeriodEnd, setNewPeriodEnd] = useState<Date>(new Date());
   const [showStartPicker, setShowStartPicker] = useState<boolean>(false);
   const [showEndPicker, setShowEndPicker] = useState<boolean>(false);
+   const [copyPreviousPlanChecked, setCopyPreviousPlanChecked] =
+    useState<boolean>(false);
 
   const formatCurrency = (value: number) =>
     value.toLocaleString('fi-FI', {
@@ -622,6 +628,7 @@ export default function BudjettiScreen() {
       setNewPeriodStart(start);
       setNewPeriodEnd(end);
     }
+    setCopyPreviousPlanChecked(false);
     setShowNewPeriodModal(true);
   };
 
@@ -633,6 +640,9 @@ export default function BudjettiScreen() {
         endDate: newPeriodEnd,
         totalAmount: 0,
       });
+       if (copyPreviousPlanChecked) {
+        await copyPreviousMonthPlan(userId);
+      }
       setBudgetPeriod({
         startDate: newPeriodStart,
         endDate: newPeriodEnd,
@@ -1020,6 +1030,19 @@ export default function BudjettiScreen() {
                 </TouchableOpacity>
               </Modal>
             )}
+             <TouchableOpacity
+              style={styles.copyPrevRow}
+              onPress={() =>
+                setCopyPreviousPlanChecked((prev) => !prev)
+              }
+            >
+              <Ionicons
+                name={copyPreviousPlanChecked ? 'checkbox-outline' : 'square-outline'}
+                size={20}
+                color={Colors.textPrimary}
+              />
+              <Text style={styles.copyPrevText}>Kopioi edellisen kuukauden suunnitelma</Text>
+            </TouchableOpacity>
             <View style={styles.modalButtons}>
               <TouchableOpacity
                 onPress={() => setShowNewPeriodModal(false)}
@@ -1588,6 +1611,16 @@ const styles = StyleSheet.create({
     fontSize: 16,
     color: Colors.moss,
     fontWeight: '600',
+  },
+  copyPrevRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: 12,
+  },
+  copyPrevText: {
+    marginLeft: 8,
+    fontSize: 16,
+    color: Colors.textPrimary,
   },
   inlinePicker: {
     alignSelf: 'center',

@@ -3,7 +3,7 @@
 import {
   collection,
   getDocs,
-  addDoc,
+   setDoc,
   serverTimestamp,
   doc,
   getDoc,
@@ -15,32 +15,10 @@ import { Category } from './categories';
  * Kopioi edellisen kuukauden kategoriat history-kokoelmaan,
  * ja aseta ne myös currentBudget/categories‐kokoelmaan.
  */
-export async function copyPreviousMonthCategories(
-  userId: string
-): Promise<void> {
-  // 1) Määritä edellinen kuukausi periodId‐muotoisena (YYYY-MM)
-  const now = new Date();
-  now.setMonth(now.getMonth() - 1);
-  const year = now.getFullYear();
-  const month = (now.getMonth() + 1).toString().padStart(2, '0');
-  const prevPeriodId = `${year}-${month}`; // '2023-05'
+export async function copyPreviousMonthPlan(userId: string): Promise<void> {
+  if (!userId) return;
 
-  // 2) Haetaan edelliseltä kuulta kategoriamallit (jos tallennettu)
-  const sourceCategoriesRef = collection(
-    firestore,
-    'budjetit',
-    userId,
-    'history',
-    prevPeriodId,
-    'categories'
-  );
-  const sourceSnapshot = await getDocs(sourceCategoriesRef);
-  if (sourceSnapshot.empty) {
-    console.log('Ei edellisen kuukauden dataa kopioitavaksi');
-    return;
-  }
 
- // 3) Haetaan nykyisen jakson periodId suoraan Firestoresta
   const currBudgetRef = doc(
     firestore,
     'budjetit',
@@ -50,45 +28,39 @@ export async function copyPreviousMonthCategories(
   );
   const currSnap = await getDoc(currBudgetRef);
   if (!currSnap.exists()) return;
-  const currYear = currSnap.data().startDate.toDate().getFullYear();
-  const currMonthNum = currSnap.data().startDate.toDate().getMonth() + 1;
-  const currMonth = currMonthNum.toString().padStart(2, '0');
-  const currPeriodId = `${currYear}-${currMonth}`;
 
-  // 4) Luo history‐ja currentBudget/categories ‐kokoelmat
-  for (const catDoc of sourceSnapshot.docs) {
+const currStart = currSnap.data().startDate.toDate();
+  const prevDate = new Date(currStart);
+  prevDate.setMonth(prevDate.getMonth() - 1);
+  const prevId = `${prevDate.getFullYear()}-${String(prevDate.getMonth() + 1).padStart(2, '0')}`;
+
+// Hae edellisen kuukauden kategoriat historiasta
+  const prevCatsRef = collection(
+    firestore,
+    'budjetit',
+    userId,
+    'history',
+    prevId,
+    'categories'
+  );
+  const prevSnap = await getDocs(prevCatsRef);
+  if (prevSnap.empty) return;
+
+  // Päivitä tai luo kategoriat nykyiseen jaksoon
+  for (const catDoc of prevSnap.docs) {
     const data = catDoc.data();
-    // 4a) Tallenna historyyn (jos et ole jo tallentanut)
-    const historyCategoriesRef = collection(
-      firestore,
-      'budjetit',
-      userId,
-      'history',
-      prevPeriodId,
-      'categories'
+    const catRef = doc(firestore, 'budjetit', userId, 'categories', catDoc.id);
+    await setDoc(
+      catRef,
+      {
+        title: data.title,
+        allocated: data.allocated,
+        parentId: data.parentId ?? null,
+        type: data.type,
+        createdAt: data.createdAt || serverTimestamp(),
+      },
+      { merge: true  }
     );
-    await addDoc(historyCategoriesRef, {
-      title: data.title,
-      allocated: data.allocated,
-      parentId: data.parentId,
-      type: data.type,
-      createdAt: data.createdAt || serverTimestamp(),
-    });
-
-    // 4b) Kopioi sama nykyiseen periodiin
-    const currentCategoriesRef = collection(
-      firestore,
-      'budjetit',
-      userId,
-      'categories'
-    );
-    await addDoc(currentCategoriesRef, {
-      title: data.title,
-      allocated: data.allocated,
-      parentId: data.parentId,
-      type: data.type,
-      createdAt: serverTimestamp(),
-    });
   }
 }
 
