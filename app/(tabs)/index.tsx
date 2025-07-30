@@ -559,7 +559,7 @@ const handleDeleteCategory = (categoryId: string) => {
   if (!userId) return;
   Alert.alert(
     'Poista kategoria',
-    'Haluatko varmasti poistaa tämän kategorian ja sen alakategoriat?',
+    'Haluatko varmasti poistaa tämän kategorian?',
     [
       { text: 'Peruuta', style: 'cancel' },
       {
