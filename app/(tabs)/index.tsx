@@ -88,6 +88,7 @@ export default function BudjettiScreen() {
 
   // Kulut summattuna kategoriakohtaisesti
   const [expensesByCategory, setExpensesByCategory] = useState<Record<string, number>>({});
+    const [totalExpenses, setTotalExpenses] = useState<number>(0);
   const [loadingExpenses, setLoadingExpenses] = useState<boolean>(false);
 
   // Budjettijakso ja lataustila
@@ -205,7 +206,10 @@ export default function BudjettiScreen() {
   };
 
     const loadExpenses = async () => {
-    if (!userId || !budgetPeriod) return;
+    if (!userId || !budgetPeriod) {
+      setTotalExpenses(0);
+      return;
+    }
     setLoadingExpenses(true);
     try {
       const expenses = await getExpensesByPeriod(
@@ -214,13 +218,17 @@ export default function BudjettiScreen() {
         budgetPeriod.endDate,
       );
       const sums: Record<string, number> = {};
+       let total = 0;
       expenses.forEach((exp: Expense) => {
         const catId = exp.categoryId;
         sums[catId] = (sums[catId] || 0) + exp.amount;
+        total += exp.amount;
       });
       setExpensesByCategory(sums);
+      setTotalExpenses(total);
     } catch (e) {
       console.error('getExpensesByPeriod virhe:', e);
+       setTotalExpenses(0);
     } finally {
       setLoadingExpenses(false);
     }
@@ -235,12 +243,9 @@ export default function BudjettiScreen() {
 
    const budgetedPercent = totalIncome > 0 ? totalAllocated / totalIncome : 0;
 
-  const totalSpentAll = Object.values(expensesByCategory).reduce(
-    (sum, val) => sum + val,
-    0
-  );
+   const totalSpentAll = totalExpenses;
 
-  const budgetLeftOverall = totalIncome - totalSpentAll;
+  const budgetLeftOverall = totalIncome - totalExpenses;
    const unallocatedBudget = totalIncome - totalAllocated;
 
    const spentPercent = totalIncome > 0 ? totalSpentAll / totalIncome : 0;
