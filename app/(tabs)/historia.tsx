@@ -22,8 +22,9 @@ import {
   deleteBudgetPeriod,
   getCurrentBudgetPeriod,
   clearCurrentBudgetPeriod,
+   getBudgetPeriodFromHistory,
 } from '../../src/services/budget';
-import { formatMonthRange } from '@/src/utils';
+import { formatMonthRange, formatMonthDate } from '@/src/utils';
 import { getExpensesByPeriod, Expense } from '../../src/services/expenses';
 import { getIncomes } from '../../src/services/incomes';
 import Colors from '../../constants/Colors';
@@ -39,6 +40,7 @@ export default function HistoriaScreen() {
   const [monthData, setMonthData] = useState<Record<string, { loading: boolean; categories: Category[]; expenses: Record<string, number> }>>({});
   const [chartData, setChartData] = useState<{pieData: any[]; totals: {income: number; expense: number}} | null>(null);
   const [currentPeriodId, setCurrentPeriodId] = useState<string | null>(null);
+  const [monthHasPeriod, setMonthHasPeriod] = useState<Record<string, boolean>>({});
 
   useEffect(() => {
     if (!userId) return;
@@ -67,9 +69,10 @@ export default function HistoriaScreen() {
     
     setMonthData((prev) => ({ ...prev, [m]: { loading: true, categories: [], expenses: {} } }));
     try {
-      const [cats, incomes] = await Promise.all([
+      const [cats, incomes, period] = await Promise.all([
         getHistoryCategories(userId, m),
         getIncomes(userId),
+         getBudgetPeriodFromHistory(userId, m),
       ]);
       const [year, month] = m.split('-').map((x) => parseInt(x, 10));
       const start = new Date(year, month - 1, 1);
@@ -105,11 +108,15 @@ export default function HistoriaScreen() {
       const totalIncome = incomes.reduce((sum, i) => sum + i.amount, 0);
       const totalExpense = expenses.reduce((sum, e) => sum + e.amount, 0);
 
+        const hasPeriod = !!period || m === currentPeriodId;
+      setMonthHasPeriod((prev) => ({ ...prev, [m]: hasPeriod }));
+
       setMonthData((prev) => ({ ...prev, [m]: { loading: false, categories: cats, expenses: sums } }));
       if (selectedMonth === m) setChartData({ pieData: pie, totals: { income: totalIncome, expense: totalExpense } });
     } catch (e) {
       console.error('loadMonthData error:', e);
       setMonthData((prev) => ({ ...prev, [m]: { loading: false, categories: [], expenses: {} } }));
+       setMonthHasPeriod((prev) => ({ ...prev, [m]: m === currentPeriodId }));
       if (selectedMonth === m) setChartData({ pieData: [], totals: { income: 0, expense: 0 } });
     }
   };
@@ -206,7 +213,7 @@ const screenWidth = Dimensions.get('window').width - 32;
             mode="dropdown"
           >
             {months.map((m) => (
-              <Picker.Item key={m} label={formatMonthRange(m)} value={m} />
+              <Picker.Item key={m} label={formatMonthDate(m)} value={m} />
             ))}
           </Picker>
         </View>
@@ -241,6 +248,8 @@ const screenWidth = Dimensions.get('window').width - 32;
             </View>
            {monthData[selectedMonth]?.loading || !chartData ? (
               <ActivityIndicator color={Colors.moss} style={{ marginTop: 12 }} />
+               ) : monthHasPeriod[selectedMonth] === false ? (
+              <Text style={styles.noData}>Ei luotua budjettijaksoa tälle aikavälille</Text>
             ) : (
               <>
                 <Text style={styles.header}>Menot kategorioittain</Text>

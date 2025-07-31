@@ -11,3 +11,14 @@ export function formatMonthRange(id: string): string {
   const endMonth = end.getMonth() + 1;
   return `${startDay}.${startMonth}-${endDay}.${endMonth}.${year}`;
 }
+
+export function formatMonthDate(id: string): string {
+  const [yearStr, monthStr] = id.split('-');
+  const year = parseInt(yearStr, 10);
+  const monthIndex = parseInt(monthStr, 10) - 1;
+  if (isNaN(year) || isNaN(monthIndex)) return id;
+  const date = new Date(year, monthIndex, 1);
+  const day = date.getDate();
+  const month = date.getMonth() + 1;
+  return `${day}.${month}.${year}`;
+}
