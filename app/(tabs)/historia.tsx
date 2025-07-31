@@ -10,7 +10,6 @@ import {
   ScrollView,
   Dimensions,
 } from 'react-native';
-import { Picker } from '@react-native-picker/picker';
 import { PieChart, BarChart } from 'react-native-chart-kit';
 import { Ionicons } from '@expo/vector-icons';
 import { auth } from '../../src/api/firebaseConfig';
@@ -206,16 +205,9 @@ const screenWidth = Dimensions.get('window').width - 32;
           />
         </TouchableOpacity>
         <View style={styles.pickerWrapper}>
-          <Picker
-            selectedValue={selectedMonth}
-            onValueChange={(v) => setSelectedMonth(v)}
-            style={styles.picker}
-            mode="dropdown"
-          >
-            {months.map((m) => (
-              <Picker.Item key={m} label={formatMonthDate(m)} value={m} />
-            ))}
-          </Picker>
+           <Text style={styles.monthLabel}>
+            {selectedMonth ? formatMonthDate(selectedMonth) : ''}
+          </Text>
         </View>
         <TouchableOpacity
           onPress={() => changeMonth(-1)}
@@ -333,10 +325,12 @@ const styles = StyleSheet.create({
   arrowButton: {
     padding: 4,
   },
-  picker: {
+   monthLabel: {
     height: 50,
-    width: '100%',
+      textAlignVertical: 'center',
+    textAlign: 'center',
     color: Colors.textPrimary,
+    fontSize: 16,
   },
 
   listContent: {
