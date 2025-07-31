@@ -36,7 +36,7 @@ export default function HistoriaScreen() {
   const [months, setMonths] = useState<string[]>([]);
   const [loadingMonths, setLoadingMonths] = useState<boolean>(true);
    const [selectedMonth, setSelectedMonth] = useState<string | null>(null);
-  const [monthData, setMonthData] = useState<Record<string, {loading: boolean; categories: Category[]; expenses: Record<string, number>;}>>({});
+  const [monthData, setMonthData] = useState<Record<string, { loading: boolean; categories: Category[]; expenses: Record<string, number> }>>({});
   const [chartData, setChartData] = useState<{pieData: any[]; totals: {income: number; expense: number}} | null>(null);
   const [currentPeriodId, setCurrentPeriodId] = useState<string | null>(null);
 
@@ -118,7 +118,16 @@ export default function HistoriaScreen() {
     if (selectedMonth) {
       loadMonthData(selectedMonth);
     }
-   }, [selectedMonth, userId]);
+    }, [selectedMonth, userId]);
+
+  const changeMonth = (dir: number) => {
+    if (!selectedMonth) return;
+    const idx = months.indexOf(selectedMonth);
+    const newIdx = idx + dir;
+    if (newIdx >= 0 && newIdx < months.length) {
+      setSelectedMonth(months[newIdx]);
+    }
+  };
 
   const handleDeleteMonth = (m: string) => {
     if (!userId) return;
@@ -177,17 +186,45 @@ const screenWidth = Dimensions.get('window').width - 32;
   } as const;
  return (
     <SafeAreaView style={styles.safeContainer}>
-      <View style={styles.pickerContainer}>
-        <Picker
-          selectedValue={selectedMonth}
-          onValueChange={(v) => setSelectedMonth(v)}
-          style={styles.picker}
-          mode="dropdown"
+    <View style={styles.monthNav}>
+        <TouchableOpacity
+          onPress={() => changeMonth(1)}
+          disabled={months.indexOf(selectedMonth ?? '') <= 0}
+          style={styles.arrowButton}
         >
-          {months.map((m) => (
-            <Picker.Item key={m} label={formatMonthRange(m)} value={m} />
-          ))}
-        </Picker>
+          <Ionicons
+            name="chevron-back"
+            size={24}
+            color={months.indexOf(selectedMonth ?? '') <= 0 ? Colors.border : Colors.evergreen}
+          />
+        </TouchableOpacity>
+        <View style={styles.pickerWrapper}>
+          <Picker
+            selectedValue={selectedMonth}
+            onValueChange={(v) => setSelectedMonth(v)}
+            style={styles.picker}
+            mode="dropdown"
+          >
+            {months.map((m) => (
+              <Picker.Item key={m} label={formatMonthRange(m)} value={m} />
+            ))}
+          </Picker>
+        </View>
+        <TouchableOpacity
+          onPress={() => changeMonth(-1)}
+          disabled={months.indexOf(selectedMonth ?? '') >= months.length - 1}
+          style={styles.arrowButton}
+        >
+          <Ionicons
+            name="chevron-forward"
+            size={24}
+            color={
+              months.indexOf(selectedMonth ?? '') >= months.length - 1
+                ? Colors.border
+                : Colors.evergreen
+            }
+          />
+        </TouchableOpacity>
       </View>
       {selectedMonth && (
         <ScrollView contentContainerStyle={styles.listContent}>
@@ -273,8 +310,19 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     backgroundColor: Colors.background,
   },
-   pickerContainer: {
+   monthNav: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    borderBottomWidth: StyleSheet.hairlineWidth,
+    borderBottomColor: Colors.border,
+    paddingVertical: 8,
     marginBottom: 12,
+  },
+   pickerWrapper: {
+    flex: 1,
+  },
+  arrowButton: {
+    padding: 4,
   },
   picker: {
     height: 50,
