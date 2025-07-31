@@ -281,13 +281,13 @@ const styles = StyleSheet.create({
   arrowButton: {
     padding: 8,
   },
-  monthLabel: {
-    height: 50,
+ monthLabel: {
     textAlignVertical: 'center',
     textAlign: 'center',
     color: Colors.textPrimary,
     fontSize: 24,
     fontWeight: '600',
+    marginTop: 1,
   },
 
   listContent: {
