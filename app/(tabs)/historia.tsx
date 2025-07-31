@@ -23,7 +23,7 @@ import {
   clearCurrentBudgetPeriod,
    getBudgetPeriodFromHistory,
 } from '../../src/services/budget';
-import { formatMonthRange, formatMonthDate } from '@/src/utils';
+import { formatMonthRange, formatMonthDate, generateMonthRange } from '@/src/utils';
 import { getExpensesByPeriod, Expense } from '../../src/services/expenses';
 import { getIncomes } from '../../src/services/incomes';
 import Colors from '../../constants/Colors';
@@ -54,10 +54,14 @@ export default function HistoriaScreen() {
         } else {
           setCurrentPeriodId(null);
         }
-        m.sort();
-        m.reverse();
-        setMonths(m);
-        if (m.length > 0) setSelectedMonth(m[0]);
+       if (m.length > 0) {
+          const filled = generateMonthRange(m[0], m[m.length - 1]);
+          setMonths(filled);
+          setSelectedMonth(filled[0]);
+        } else {
+          setMonths([]);
+          setSelectedMonth(null);
+        }
       })
       .catch((e) => console.error('getHistoryMonths error:', e))
       .finally(() => setLoadingMonths(false));
@@ -146,15 +150,24 @@ export default function HistoriaScreen() {
           try {
             await deleteBudgetPeriod(userId, m);
            setMonths((prev) => {
-              const updated = prev.filter((mon) => mon !== m);
-              if (updated.length > 0 && selectedMonth === m) setSelectedMonth(updated[0]);
-              else if (updated.length === 0) setSelectedMonth(null);
-              return updated;
+              const remaining = prev.filter((mon) => mon !== m);
+              if (remaining.length === 0) {
+                setSelectedMonth(null);
+                return remaining;
+              }
+              const filled = generateMonthRange(
+                remaining[remaining.length - 1],
+                remaining[0]
+              );
+              if (selectedMonth === m || !filled.includes(selectedMonth ?? '')) {
+                setSelectedMonth(filled[0]);
+              }
+              return filled;
             });
            if (m === currentPeriodId) {
-             await clearCurrentBudgetPeriod(userId);
-             setCurrentPeriodId(null);
-           }
+              await clearCurrentBudgetPeriod(userId);
+              setCurrentPeriodId(null);
+            }
           } catch (e) {
             console.error('deleteBudgetPeriod error:', e);
             Alert.alert('Virhe', 'Poistaminen epäonnistui.');
@@ -200,7 +213,7 @@ const screenWidth = Dimensions.get('window').width - 32;
         >
           <Ionicons
             name="chevron-back"
-            size={24}
+            size={32}
             color={months.indexOf(selectedMonth ?? '') <= 0 ? Colors.border : Colors.evergreen}
           />
         </TouchableOpacity>
@@ -216,7 +229,7 @@ const screenWidth = Dimensions.get('window').width - 32;
         >
           <Ionicons
             name="chevron-forward"
-            size={24}
+            size={32}
             color={
               months.indexOf(selectedMonth ?? '') >= months.length - 1
                 ? Colors.border
@@ -321,16 +334,19 @@ const styles = StyleSheet.create({
   },
    pickerWrapper: {
     flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
   },
   arrowButton: {
-    padding: 4,
+    padding: 8,
   },
    monthLabel: {
     height: 50,
       textAlignVertical: 'center',
     textAlign: 'center',
     color: Colors.textPrimary,
-    fontSize: 16,
+    fontSize: 24,
+    fontWeight: '600',
   },
 
   listContent: {
