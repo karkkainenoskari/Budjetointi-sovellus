@@ -18,9 +18,9 @@ import {
   getHistoryCategories,
 } from '../../src/services/history';
 import {
- 
+
   getCurrentBudgetPeriod,
-   getBudgetPeriodFromHistory,
+  getBudgetPeriodFromHistory,
 } from '../../src/services/budget';
 import {
   formatMonthRange,
@@ -39,9 +39,9 @@ export default function HistoriaScreen() {
 
   const [months, setMonths] = useState<string[]>([]);
   const [loadingMonths, setLoadingMonths] = useState<boolean>(true);
-   const [selectedMonth, setSelectedMonth] = useState<string | null>(null);
+  const [selectedMonth, setSelectedMonth] = useState<string | null>(null);
   const [monthData, setMonthData] = useState<Record<string, { loading: boolean; categories: Category[]; expenses: Record<string, number> }>>({});
-  const [chartData, setChartData] = useState<{pieData: any[]; totals: {income: number; expense: number}} | null>(null);
+  const [chartData, setChartData] = useState<{ pieData: any[]; totals: { income: number; expense: number } } | null>(null);
   const [currentPeriodId, setCurrentPeriodId] = useState<string | null>(null);
   const [monthHasPeriod, setMonthHasPeriod] = useState<Record<string, boolean>>({});
 
@@ -58,7 +58,7 @@ export default function HistoriaScreen() {
         } else {
           setCurrentPeriodId(null);
         }
-       if (m.length > 0) {
+        if (m.length > 0) {
           const filled = generateMonthRange(m[0], m[m.length - 1]);
           setMonths(filled);
           setSelectedMonth(filled[0]);
@@ -71,15 +71,15 @@ export default function HistoriaScreen() {
       .finally(() => setLoadingMonths(false));
   }, [userId]);
 
-   const loadMonthData = async (m: string) => {
+  const loadMonthData = async (m: string) => {
     if (!userId) return;
-    
+
     setMonthData((prev) => ({ ...prev, [m]: { loading: true, categories: [], expenses: {} } }));
     try {
       const [cats, incomes, period] = await Promise.all([
         getHistoryCategories(userId, m),
         getIncomes(userId),
-         getBudgetPeriodFromHistory(userId, m),
+        getBudgetPeriodFromHistory(userId, m),
       ]);
       const [year, month] = m.split('-').map((x) => parseInt(x, 10));
       const start = new Date(year, month - 1, 1);
@@ -90,7 +90,7 @@ export default function HistoriaScreen() {
         sums[exp.categoryId] = (sums[exp.categoryId] || 0) + exp.amount;
       });
 
-       const colors = [
+      const colors = [
         Colors.evergreen,
         Colors.moss,
         '#FF9F1C',
@@ -115,7 +115,7 @@ export default function HistoriaScreen() {
       const totalIncome = incomes.reduce((sum, i) => sum + i.amount, 0);
       const totalExpense = expenses.reduce((sum, e) => sum + e.amount, 0);
 
-        const hasPeriod = !!period || m === currentPeriodId;
+      const hasPeriod = !!period || m === currentPeriodId;
       setMonthHasPeriod((prev) => ({ ...prev, [m]: hasPeriod }));
 
       setMonthData((prev) => ({ ...prev, [m]: { loading: false, categories: cats, expenses: sums } }));
@@ -123,7 +123,7 @@ export default function HistoriaScreen() {
     } catch (e) {
       console.error('loadMonthData error:', e);
       setMonthData((prev) => ({ ...prev, [m]: { loading: false, categories: [], expenses: {} } }));
-       setMonthHasPeriod((prev) => ({ ...prev, [m]: m === currentPeriodId }));
+      setMonthHasPeriod((prev) => ({ ...prev, [m]: m === currentPeriodId }));
       if (selectedMonth === m) setChartData({ pieData: [], totals: { income: 0, expense: 0 } });
     }
   };
@@ -132,11 +132,11 @@ export default function HistoriaScreen() {
     if (selectedMonth) {
       loadMonthData(selectedMonth);
     }
-    }, [selectedMonth, userId]);
+  }, [selectedMonth, userId]);
 
   const changeMonth = (dir: number) => {
     if (!selectedMonth) return;
-  const newMonth = dir > 0 ? prevMonthId(selectedMonth) : nextMonthId(selectedMonth);
+    const newMonth = dir > 0 ? prevMonthId(selectedMonth) : nextMonthId(selectedMonth);
     setSelectedMonth(newMonth);
     if (!months.includes(newMonth)) {
       setMonths((prev) => [...prev, newMonth].sort().reverse());
@@ -159,7 +159,7 @@ export default function HistoriaScreen() {
     );
   }
 
-const screenWidth = Dimensions.get('window').width - 32;
+  const screenWidth = Dimensions.get('window').width - 32;
   const chartConfig = {
     backgroundColor: Colors.background,
     backgroundGradientFrom: Colors.background,
@@ -168,14 +168,14 @@ const screenWidth = Dimensions.get('window').width - 32;
     labelColor: () => Colors.textPrimary,
     decimalPlaces: 2,
   } as const;
- return (
+  return (
     <SafeAreaView style={styles.safeContainer}>
-    <View style={styles.monthNav}>
-         <TouchableOpacity onPress={() => changeMonth(1)} style={styles.arrowButton}>
+      <View style={styles.monthNav}>
+        <TouchableOpacity onPress={() => changeMonth(1)} style={styles.arrowButton}>
           <Ionicons name="chevron-back" size={32} color={Colors.evergreen} />
         </TouchableOpacity>
         <View style={styles.pickerWrapper}>
-         <Text style={styles.monthLabel}>
+          <Text style={styles.monthLabel}>
             {selectedMonth ? formatMonthRange(selectedMonth) : ''}
           </Text>
         </View>
@@ -184,78 +184,80 @@ const screenWidth = Dimensions.get('window').width - 32;
         </TouchableOpacity>
       </View>
       {selectedMonth && (
-        <ScrollView contentContainerStyle={styles.listContent}>
-    
-          <View style={styles.monthCard}>
-            <View style={styles.monthHeader}>
-              <Text style={styles.monthTitle}>{formatMonthRange(selectedMonth)}</Text>
-            </View>
-           {monthData[selectedMonth]?.loading || !chartData ? (
-              <ActivityIndicator color={Colors.moss} style={{ marginTop: 12 }} />
-               ) : monthHasPeriod[selectedMonth] === false ? (
-              <Text style={styles.noData}>Ei luotua budjettijaksoa tälle aikavälille</Text>
-            ) : (
-              <>
-                <Text style={styles.header}>Menot kategorioittain</Text>
-                {chartData.pieData.length > 0 ? (
-                  <PieChart
-                    data={chartData.pieData as any}
-                    width={screenWidth}
-                    height={220}
-                    accessor="amount"
-                    chartConfig={chartConfig}
-                    paddingLeft="0"
-                    absolute
-                    backgroundColor="transparent"
-                    style={{ alignSelf: 'center' }}
-                  />
-                ) : (
-                  <Text style={styles.noData}>Ei kuluja tältä jaksolta</Text>
-                )}
+        monthData[selectedMonth]?.loading || !chartData ? (
+          <View style={styles.loaderContainer}>
+            <ActivityIndicator size="large" color={Colors.moss} />
+          </View>
+        ) : monthHasPeriod[selectedMonth] === false ? (
+          <View style={styles.noPeriodContainer}>
+            <Text style={styles.noPeriodText}>Ei luotua budjettijaksoa tälle aikavälille</Text>
+          </View>
+        ) : (
+          <ScrollView contentContainerStyle={styles.listContent}>
 
-                <Text style={[styles.header, { marginTop: 24 }]}>Tulot vs. Menot</Text>
-                <BarChart
-                  data={{
-                    labels: ['Tulot', 'Menot'],
-                    datasets: [{ data: [chartData.totals.income, chartData.totals.expense] }],
-                  }}
+            <View style={styles.monthCard}>
+              <View style={styles.monthHeader}>
+                <Text style={styles.monthTitle}>{formatMonthRange(selectedMonth)}</Text>
+              </View>
+
+              <Text style={styles.header}>Menot kategorioittain</Text>
+              {chartData.pieData.length > 0 ? (
+                <PieChart
+                  data={chartData.pieData as any}
                   width={screenWidth}
                   height={220}
+                  accessor="amount"
                   chartConfig={chartConfig}
-                  fromZero
+                  paddingLeft="0"
+                  absolute
+                  backgroundColor="transparent"
                   style={{ alignSelf: 'center' }}
-                  yAxisLabel={''}
-                  yAxisSuffix={''}
                 />
+              ) : (
+                <Text style={styles.noData}>Ei kuluja tältä jaksolta</Text>
+              )}
 
-                <View style={styles.monthContent}>
-                  {monthData[selectedMonth]?.categories.map((cat) => (
-                    <View key={cat.id} style={styles.catRow}>
-                      <Text style={styles.catTitle}>{cat.title}</Text>
-                      <Text style={styles.catAmount}>
-                        {monthData[selectedMonth]?.expenses[cat.id] || 0} / {cat.allocated} €
-                      </Text>
-                    </View>
-                   ))}
+              <Text style={[styles.header, { marginTop: 24 }]}>Tulot vs. Menot</Text>
+              <BarChart
+                data={{
+                  labels: ['Tulot', 'Menot'],
+                  datasets: [{ data: [chartData.totals.income, chartData.totals.expense] }],
+                }}
+                width={screenWidth}
+                height={220}
+                chartConfig={chartConfig}
+                fromZero
+                style={{ alignSelf: 'center' }}
+                yAxisLabel={''}
+                yAxisSuffix={''}
+              />
+
+              <View style={styles.monthContent}>
+                {monthData[selectedMonth]?.categories.map((cat) => (
+                  <View key={cat.id} style={styles.catRow}>
+                    <Text style={styles.catTitle}>{cat.title}</Text>
+                    <Text style={styles.catAmount}>
+                      {monthData[selectedMonth]?.expenses[cat.id] || 0} / {cat.allocated} €
+                   </Text>
                 </View>
-              </>
-            )}
+              ))}
+            </View>
           </View>
-      </ScrollView>
-      )}
-    </SafeAreaView>
-  );
+        </ScrollView>
+      )
+    )}
+  </SafeAreaView>
+);
 
 }
-
 const styles = StyleSheet.create({
- safeContainer: {
-  flex: 1,
-  backgroundColor: Colors.background,
-  paddingHorizontal: 16,
-  paddingTop: 24,
-  paddingBottom: 16,
-},
+  safeContainer: {
+    flex: 1,
+    backgroundColor: Colors.background,
+    paddingHorizontal: 16,
+    paddingTop: 24,
+    paddingBottom: 16,
+  },
 
   loaderContainer: {
     flex: 1,
@@ -263,7 +265,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     backgroundColor: Colors.background,
   },
-   monthNav: {
+  monthNav: {
     flexDirection: 'row',
     alignItems: 'center',
     borderBottomWidth: StyleSheet.hairlineWidth,
@@ -271,7 +273,7 @@ const styles = StyleSheet.create({
     paddingVertical: 8,
     marginBottom: 12,
   },
-   pickerWrapper: {
+  pickerWrapper: {
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
@@ -279,9 +281,9 @@ const styles = StyleSheet.create({
   arrowButton: {
     padding: 8,
   },
-   monthLabel: {
+  monthLabel: {
     height: 50,
-      textAlignVertical: 'center',
+    textAlignVertical: 'center',
     textAlign: 'center',
     color: Colors.textPrimary,
     fontSize: 24,
@@ -289,24 +291,24 @@ const styles = StyleSheet.create({
   },
 
   listContent: {
-     paddingTop: 8,
+    paddingTop: 8,
     paddingBottom: 24,
   },
- monthCard: {
-  backgroundColor: Colors.cardBackground,
-  borderRadius: 12,
-  padding: 12,
-  marginBottom: 12,
-  borderWidth: 1,
-  borderColor: Colors.border,
-  shadowColor: '#000',
-  shadowOpacity: 0.05,
-  shadowOffset: { width: 0, height: 2 },
-  shadowRadius: 4,
-  elevation: 2,
-},
+  monthCard: {
+    backgroundColor: Colors.cardBackground,
+    borderRadius: 12,
+    padding: 12,
+    marginBottom: 12,
+    borderWidth: 1,
+    borderColor: Colors.border,
+    shadowColor: '#000',
+    shadowOpacity: 0.05,
+    shadowOffset: { width: 0, height: 2 },
+    shadowRadius: 4,
+    elevation: 2,
+  },
 
-   monthHeader: {
+  monthHeader: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
@@ -332,7 +334,7 @@ const styles = StyleSheet.create({
     fontSize: 16,
     color: Colors.textSecondary,
   },
-   header: {
+  header: {
     fontSize: 20,
     fontWeight: '600',
     color: Colors.textPrimary,
@@ -341,6 +343,17 @@ const styles = StyleSheet.create({
   },
   noData: {
     color: Colors.textPrimary,
+    textAlign: 'center',
+  },
+  noPeriodContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    backgroundColor: Colors.background,
+  },
+  noPeriodText: {
+    color: Colors.textPrimary,
+    fontSize: 20,
     textAlign: 'center',
   },
 });
