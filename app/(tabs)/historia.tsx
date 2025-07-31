@@ -18,14 +18,12 @@ import {
   getHistoryCategories,
 } from '../../src/services/history';
 import {
-  deleteBudgetPeriod,
+ 
   getCurrentBudgetPeriod,
-  clearCurrentBudgetPeriod,
    getBudgetPeriodFromHistory,
 } from '../../src/services/budget';
 import {
   formatMonthRange,
-  formatMonthDate,
   generateMonthRange,
   nextMonthId,
   prevMonthId,
@@ -145,45 +143,6 @@ export default function HistoriaScreen() {
     }
   };
 
-  const handleDeleteMonth = (m: string) => {
-    if (!userId) return;
-    Alert.alert('Poista jakso', `Poistetaanko jakso ${m}?`, [
-      { text: 'Peruuta', style: 'cancel' },
-      {
-        text: 'Poista',
-        style: 'destructive',
-        onPress: async () => {
-          try {
-            await deleteBudgetPeriod(userId, m);
-           setMonths((prev) => {
-              const remaining = prev.filter((mon) => mon !== m);
-              if (remaining.length === 0) {
-                setSelectedMonth(null);
-                return remaining;
-              }
-              const filled = generateMonthRange(
-                remaining[remaining.length - 1],
-                remaining[0]
-              );
-              if (selectedMonth === m || !filled.includes(selectedMonth ?? '')) {
-                setSelectedMonth(filled[0]);
-              }
-              return filled;
-            });
-           if (m === currentPeriodId) {
-              await clearCurrentBudgetPeriod(userId);
-              setCurrentPeriodId(null);
-            }
-          } catch (e) {
-            console.error('deleteBudgetPeriod error:', e);
-            Alert.alert('Virhe', 'Poistaminen epäonnistui.');
-          }
-        },
-      },
-    ]);
-  };
-
-
   if (!userId) {
     return (
       <View style={styles.loaderContainer}>
@@ -216,8 +175,8 @@ const screenWidth = Dimensions.get('window').width - 32;
           <Ionicons name="chevron-back" size={32} color={Colors.evergreen} />
         </TouchableOpacity>
         <View style={styles.pickerWrapper}>
-           <Text style={styles.monthLabel}>
-            {selectedMonth ? formatMonthDate(selectedMonth) : ''}
+         <Text style={styles.monthLabel}>
+            {selectedMonth ? formatMonthRange(selectedMonth) : ''}
           </Text>
         </View>
         <TouchableOpacity onPress={() => changeMonth(-1)} style={styles.arrowButton}>
@@ -230,12 +189,6 @@ const screenWidth = Dimensions.get('window').width - 32;
           <View style={styles.monthCard}>
             <View style={styles.monthHeader}>
               <Text style={styles.monthTitle}>{formatMonthRange(selectedMonth)}</Text>
-              <TouchableOpacity
-                 onPress={() => handleDeleteMonth(selectedMonth)}
-                style={styles.iconButtonSmall}
-              >
-                <Ionicons name="trash-outline" size={18} color={Colors.evergreen} />
-              </TouchableOpacity>
             </View>
            {monthData[selectedMonth]?.loading || !chartData ? (
               <ActivityIndicator color={Colors.moss} style={{ marginTop: 12 }} />
@@ -362,9 +315,6 @@ const styles = StyleSheet.create({
     fontSize: 18,
     fontWeight: '600',
     color: Colors.textPrimary,
-  },
-  iconButtonSmall: {
-    marginLeft: 8,
   },
   monthContent: {
     marginTop: 8,
