@@ -12,6 +12,7 @@ import {
 } from 'react-native';
 import { PieChart, BarChart } from 'react-native-chart-kit';
 import { Ionicons } from '@expo/vector-icons';
+import { useFocusEffect } from '@react-navigation/native';
 import { auth } from '../../src/api/firebaseConfig';
 import {
   getHistoryMonths,
@@ -45,31 +46,55 @@ export default function HistoriaScreen() {
   const [currentPeriodId, setCurrentPeriodId] = useState<string | null>(null);
   const [monthHasPeriod, setMonthHasPeriod] = useState<Record<string, boolean>>({});
 
-  useEffect(() => {
+   const loadMonths = async (active: { current: boolean }) => {
     if (!userId) return;
     setLoadingMonths(true);
-    Promise.all([getHistoryMonths(userId), getCurrentBudgetPeriod(userId)])
-      .then(([m, curr]) => {
-        if (curr) {
-          const d = curr.startDate.toDate();
-          const id = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`;
-          if (!m.includes(id)) m.push(id);
-          setCurrentPeriodId(id);
-        } else {
-          setCurrentPeriodId(null);
-        }
-        if (m.length > 0) {
-          const filled = generateMonthRange(m[0], m[m.length - 1]);
-          setMonths(filled);
-          setSelectedMonth(filled[0]);
-        } else {
-          setMonths([]);
-          setSelectedMonth(null);
-        }
-      })
-      .catch((e) => console.error('getHistoryMonths error:', e))
-      .finally(() => setLoadingMonths(false));
+     try {
+      const [m, curr] = await Promise.all([
+        getHistoryMonths(userId),
+        getCurrentBudgetPeriod(userId),
+      ]);
+      if (!active.current) return;
+      if (curr) {
+        const d = curr.startDate.toDate();
+        const id = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`;
+        if (!m.includes(id)) m.push(id);
+        setCurrentPeriodId(id);
+      } else {
+        setCurrentPeriodId(null);
+      }
+      if (m.length > 0) {
+        const filled = generateMonthRange(m[0], m[m.length - 1]);
+        setMonths(filled);
+        setSelectedMonth((prev) => prev && filled.includes(prev) ? prev : filled[0]);
+      } else {
+        setMonths([]);
+        setSelectedMonth(null);
+      }
+    } catch (e) {
+      if (active.current) console.error('getHistoryMonths error:', e);
+    } finally {
+      if (active.current) setLoadingMonths(false);
+    }
+  };
+
+  useEffect(() => {
+    const active = { current: true };
+    loadMonths(active);
+    return () => {
+      active.current = false;
+    };
   }, [userId]);
+
+  useFocusEffect(
+    React.useCallback(() => {
+      const active = { current: true };
+      loadMonths(active);
+      return () => {
+        active.current = false;
+      };
+    }, [userId])
+  );
 
   const loadMonthData = async (m: string) => {
     if (!userId) return;
