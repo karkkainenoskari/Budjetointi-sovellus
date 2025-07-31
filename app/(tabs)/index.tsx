@@ -1129,6 +1129,23 @@ const handleDeleteCategory = (categoryId: string) => {
             <TouchableOpacity onPress={handleOpenNewPeriod} style={styles.iconButton}>
               <Ionicons name="add-circle-outline" size={22} color={Colors.moss} />
             </TouchableOpacity>
+              {selectedTab === 'plan' && (
+              <TouchableOpacity
+                onPress={() =>
+                  Alert.alert(
+                    'Vinkki',
+                    'Klikkaa summaa tai kategoriaa muokataksesi sitä.'
+                  )
+                }
+                style={styles.iconButton}
+              >
+                <Ionicons
+                  name="information-circle-outline"
+                  size={22}
+                  color={Colors.textSecondary}
+                />
+              </TouchableOpacity>
+            )}
           </View>
           {/* ─── Tilannevälilehdet ────────────────────────────────────────── */}
           <View style={styles.tabsContainer}>
