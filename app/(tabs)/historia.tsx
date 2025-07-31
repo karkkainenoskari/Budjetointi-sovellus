@@ -23,7 +23,13 @@ import {
   clearCurrentBudgetPeriod,
    getBudgetPeriodFromHistory,
 } from '../../src/services/budget';
-import { formatMonthRange, formatMonthDate, generateMonthRange } from '@/src/utils';
+import {
+  formatMonthRange,
+  formatMonthDate,
+  generateMonthRange,
+  nextMonthId,
+  prevMonthId,
+} from '@/src/utils';
 import { getExpensesByPeriod, Expense } from '../../src/services/expenses';
 import { getIncomes } from '../../src/services/incomes';
 import Colors from '../../constants/Colors';
@@ -132,10 +138,10 @@ export default function HistoriaScreen() {
 
   const changeMonth = (dir: number) => {
     if (!selectedMonth) return;
-    const idx = months.indexOf(selectedMonth);
-    const newIdx = idx + dir;
-    if (newIdx >= 0 && newIdx < months.length) {
-      setSelectedMonth(months[newIdx]);
+  const newMonth = dir > 0 ? prevMonthId(selectedMonth) : nextMonthId(selectedMonth);
+    setSelectedMonth(newMonth);
+    if (!months.includes(newMonth)) {
+      setMonths((prev) => [...prev, newMonth].sort().reverse());
     }
   };
 
@@ -206,36 +212,16 @@ const screenWidth = Dimensions.get('window').width - 32;
  return (
     <SafeAreaView style={styles.safeContainer}>
     <View style={styles.monthNav}>
-        <TouchableOpacity
-          onPress={() => changeMonth(1)}
-          disabled={months.indexOf(selectedMonth ?? '') <= 0}
-          style={styles.arrowButton}
-        >
-          <Ionicons
-            name="chevron-back"
-            size={32}
-            color={months.indexOf(selectedMonth ?? '') <= 0 ? Colors.border : Colors.evergreen}
-          />
+         <TouchableOpacity onPress={() => changeMonth(1)} style={styles.arrowButton}>
+          <Ionicons name="chevron-back" size={32} color={Colors.evergreen} />
         </TouchableOpacity>
         <View style={styles.pickerWrapper}>
            <Text style={styles.monthLabel}>
             {selectedMonth ? formatMonthDate(selectedMonth) : ''}
           </Text>
         </View>
-        <TouchableOpacity
-          onPress={() => changeMonth(-1)}
-          disabled={months.indexOf(selectedMonth ?? '') >= months.length - 1}
-          style={styles.arrowButton}
-        >
-          <Ionicons
-            name="chevron-forward"
-            size={32}
-            color={
-              months.indexOf(selectedMonth ?? '') >= months.length - 1
-                ? Colors.border
-                : Colors.evergreen
-            }
-          />
+        <TouchableOpacity onPress={() => changeMonth(-1)} style={styles.arrowButton}>
+          <Ionicons name="chevron-forward" size={32} color={Colors.evergreen} />
         </TouchableOpacity>
       </View>
       {selectedMonth && (

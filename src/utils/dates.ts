@@ -42,3 +42,21 @@ export function generateMonthRange(startId: string, endId: string): string[] {
   }
   return months;
   }
+
+export function addMonthsToId(id: string, diff: number): string {
+  const [yStr, mStr] = id.split('-');
+  const y = parseInt(yStr, 10);
+  const m = parseInt(mStr, 10) - 1;
+  if (isNaN(y) || isNaN(m)) return id;
+  const d = new Date(y, m, 1);
+  d.setMonth(d.getMonth() + diff);
+  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`;
+}
+
+export function nextMonthId(id: string): string {
+  return addMonthsToId(id, 1);
+}
+
+export function prevMonthId(id: string): string {
+  return addMonthsToId(id, -1);
+}
