@@ -180,6 +180,15 @@ export default function HistoriaScreen() {
     }
   }, [selectedMonth, userId]);
 
+   useFocusEffect(
+    React.useCallback(() => {
+      if (selectedMonth) {
+        loadMonthData(selectedMonth);
+      }
+    }, [selectedMonth, userId])
+  );
+
+
   const changeMonth = (dir: number) => {
     if (!selectedMonth) return;
     const newMonth = dir > 0 ? prevMonthId(selectedMonth) : nextMonthId(selectedMonth);
