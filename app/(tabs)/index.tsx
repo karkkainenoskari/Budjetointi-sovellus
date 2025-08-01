@@ -381,7 +381,7 @@ export default function BudjettiScreen() {
  const handleAddSubCategory = async (parentId: string) => {
     if (!userId || !budgetPeriod) return;
     if (!newSubTitle.trim()) {
-      Alert.alert('Virhe', 'Anna nimi');
+      Alert.alert('Virhe', 'Syötä nimi ja summa');
       return;
     }
     const amt = parseFloat(newSubAmount.replace(',', '.'));
@@ -422,7 +422,7 @@ export default function BudjettiScreen() {
  const handleAddIncome = () => {
     if (!userId) return;
     if (!newIncomeTitle.trim()) {
-      Alert.alert('Virhe', 'Anna nimi');
+      Alert.alert('Virhe', 'Syötä tulo ja summa');
       return;
     }
     const amt = parseFloat(newIncomeAmount.replace(',', '.'));
@@ -785,7 +785,7 @@ const handleDeleteCategory = (categoryId: string) => {
             <View style={styles.addSubInlineRow}>
               <TextInput
                 style={styles.inlineInput}
-                placeholder="Nimi"
+                placeholder="Meno"
                 placeholderTextColor="#888"
                 value={newSubTitle}
                 onChangeText={setNewSubTitle}
@@ -1237,10 +1237,10 @@ const handleDeleteCategory = (categoryId: string) => {
           </View>
 
           {selectedTab === 'plan' && showAddIncome && (
-            <View style={styles.addSubInlineRow}>
+           <View style={styles.addIncomeRow}>
               <TextInput
                 style={styles.inlineInput}
-                placeholder="Nimi"
+                placeholder="Tulo"
                 placeholderTextColor="#888"
                 value={newIncomeTitle}
                 onChangeText={setNewIncomeTitle}
@@ -1578,6 +1578,15 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     marginTop: 6,
+      marginBottom: 6,
+    paddingHorizontal: 16,
+  },
+    addIncomeRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginTop: 8,
+    marginBottom: 8,
+    paddingHorizontal: 16,
   },
   inlineInput: {
     flex: 1,
