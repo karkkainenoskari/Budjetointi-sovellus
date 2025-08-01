@@ -278,6 +278,33 @@ export default function HistoriaScreen() {
                 yAxisSuffix={''}
               />
 
+               <PieChart
+                data={[
+                  {
+                    name: 'Tulot',
+                    amount: chartData.totals.income,
+                    color: Colors.moss,
+                    legendFontColor: Colors.textPrimary,
+                    legendFontSize: 12,
+                  },
+                  {
+                    name: 'Menot',
+                    amount: chartData.totals.expense,
+                    color: Colors.danger,
+                    legendFontColor: Colors.textPrimary,
+                    legendFontSize: 12,
+                  },
+                ] as any}
+                width={screenWidth}
+                height={220}
+                accessor="amount"
+                chartConfig={chartConfig}
+                paddingLeft="0"
+                absolute
+                backgroundColor="transparent"
+                style={{ alignSelf: 'center', marginTop: 16 }}
+              />
+
                <TouchableOpacity
                 onPress={() => setOpenIncomes((o) => !o)}
                 style={styles.summaryHeader}
