@@ -30,7 +30,7 @@ import {
   prevMonthId,
 } from '@/src/utils';
 import { getExpensesByPeriod, Expense } from '../../src/services/expenses';
-import { getIncomes } from '../../src/services/incomes';
+import { getIncomes, Income } from '../../src/services/incomes';
 import Colors from '../../constants/Colors';
 import { Category } from '../../src/services/categories';
 
@@ -47,11 +47,13 @@ export default function HistoriaScreen() {
   const [months, setMonths] = useState<string[]>([]);
   const [loadingMonths, setLoadingMonths] = useState<boolean>(true);
   const [selectedMonth, setSelectedMonth] = useState<string | null>(null);
-  const [monthData, setMonthData] = useState<Record<string, { loading: boolean; categories: Category[]; expenses: Record<string, number> }>>({});
+  const [monthData, setMonthData] = useState<Record<string, { loading: boolean; categories: Category[]; expenses: Record<string, number>; incomes: Income[] }>>({});
   const [chartData, setChartData] = useState<{ pieData: any[]; totals: { income: number; expense: number } } | null>(null);
   const [currentPeriodId, setCurrentPeriodId] = useState<string | null>(null);
   const [monthHasPeriod, setMonthHasPeriod] = useState<Record<string, boolean>>({});
   const [openCats, setOpenCats] = useState<Record<string, boolean>>({});
+    const [openIncomes, setOpenIncomes] = useState<boolean>(false);
+  const [openExpenses, setOpenExpenses] = useState<boolean>(false);
 
   const toggleCat = (id: string) =>
     setOpenCats((prev) => ({ ...prev, [id]: !prev[id] }));
@@ -109,7 +111,10 @@ export default function HistoriaScreen() {
   const loadMonthData = async (m: string) => {
     if (!userId) return;
 
-    setMonthData((prev) => ({ ...prev, [m]: { loading: true, categories: [], expenses: {} } }));
+     setMonthData((prev) => ({
+      ...prev,
+      [m]: { loading: true, categories: [], expenses: {}, incomes: [] },
+    }));
     try {
       const [cats, incomes, period] = await Promise.all([
         getHistoryCategories(userId, m),
@@ -153,11 +158,17 @@ export default function HistoriaScreen() {
       const hasPeriod = !!period || m === currentPeriodId;
       setMonthHasPeriod((prev) => ({ ...prev, [m]: hasPeriod }));
 
-      setMonthData((prev) => ({ ...prev, [m]: { loading: false, categories: cats, expenses: sums } }));
+        setMonthData((prev) => ({
+        ...prev,
+        [m]: { loading: false, categories: cats, expenses: sums, incomes },
+      }));
       if (selectedMonth === m) setChartData({ pieData: pie, totals: { income: totalIncome, expense: totalExpense } });
     } catch (e) {
       console.error('loadMonthData error:', e);
-      setMonthData((prev) => ({ ...prev, [m]: { loading: false, categories: [], expenses: {} } }));
+      setMonthData((prev) => ({
+        ...prev,
+        [m]: { loading: false, categories: [], expenses: {}, incomes: [] },
+      }));
       setMonthHasPeriod((prev) => ({ ...prev, [m]: m === currentPeriodId }));
       if (selectedMonth === m) setChartData({ pieData: [], totals: { income: 0, expense: 0 } });
     }
@@ -267,52 +278,84 @@ export default function HistoriaScreen() {
                 yAxisSuffix={''}
               />
 
-              <View style={styles.monthContent}>
-                {monthData[selectedMonth]?.categories
-                  .filter((c) => c.parentId === null)
-                  .map((main) => {
-                    const subs = monthData[selectedMonth]?.categories.filter(
-                      (c) => c.parentId === main.id
-                    );
-                    const totalRow = subs.find((s) =>
-                      s.title.toLowerCase().includes('yhteensä')
-                    );
-                    let totalAllocated = totalRow ? totalRow.allocated : main.allocated;
-                    let totalExpense = totalRow
-                      ? monthData[selectedMonth]?.expenses[totalRow.id] || 0
-                      : monthData[selectedMonth]?.expenses[main.id] || 0;
-                    if (!totalRow) {
-                      subs.forEach((s) => {
-                        totalAllocated += s.allocated;
-                        totalExpense += monthData[selectedMonth]?.expenses[s.id] || 0;
-                      });
-                    }
-                    return (
-                      <View key={main.id} style={styles.catRow}>
-                        <TouchableOpacity
-                          onPress={() => toggleCat(main.id)}
-                          style={styles.catHeader}
-                        >
-                          <Text style={styles.catTitle}>{`${main.title} yhteensä`}</Text>
-                          <Text style={styles.catAmount}>
-                            {formatCurrency(totalExpense)} / {formatCurrency(totalAllocated)} €
-                          </Text>
-                        </TouchableOpacity>
-                        {openCats[main.id] &&
-                          subs
-                            .filter((s) => !s.title.toLowerCase().includes('yhteensä'))
-                            .map((sub) => (
-                              <View key={sub.id} style={styles.subRow}>
-                                <Text style={styles.subTitle}>{sub.title}</Text>
-                                <Text style={styles.subAmount}>
-                                  {formatCurrency(monthData[selectedMonth]?.expenses[sub.id] || 0)} / {formatCurrency(sub.allocated)} €
-                                </Text>
-                              </View>
-                            ))}
-                      </View>
-                    );
-                  })}
-              </View>
+               <TouchableOpacity
+                onPress={() => setOpenIncomes((o) => !o)}
+                style={styles.summaryHeader}
+              >
+                <Text style={styles.catTitle}>Tulot yhteensä</Text>
+                <Text style={styles.catAmount}>
+                  {formatCurrency(chartData.totals.income)} €
+                </Text>
+              </TouchableOpacity>
+              {openIncomes && (
+                <View style={styles.monthContent}>
+                  {monthData[selectedMonth]?.incomes.map((inc) => (
+                    <View key={inc.id} style={styles.subRow}>
+                      <Text style={styles.subTitle}>{inc.title}</Text>
+                      <Text style={styles.subAmount}>{formatCurrency(inc.amount)} €</Text>
+                    </View>
+                  ))}
+                </View>
+              )}
+
+              <TouchableOpacity
+                onPress={() => setOpenExpenses((o) => !o)}
+                style={[styles.summaryHeader, { marginTop: 16 }]}
+              >
+                <Text style={styles.catTitle}>Menot yhteensä</Text>
+                <Text style={styles.catAmount}>
+                  {formatCurrency(chartData.totals.expense)} €
+                </Text>
+              </TouchableOpacity>
+              {openExpenses && (
+                <View style={styles.monthContent}>
+                  {monthData[selectedMonth]?.categories
+                    .filter((c) => c.parentId === null)
+                    .map((main) => {
+                      const subs = monthData[selectedMonth]?.categories.filter(
+                        (c) => c.parentId === main.id
+                      );
+                      const totalRow = subs.find((s) =>
+                        s.title.toLowerCase().includes('yhteensä')
+                      );
+                      let totalExpense = totalRow
+                        ? monthData[selectedMonth]?.expenses[totalRow.id] || 0
+                        : monthData[selectedMonth]?.expenses[main.id] || 0;
+                      if (!totalRow) {
+                        subs.forEach((s) => {
+                          totalExpense +=
+                            monthData[selectedMonth]?.expenses[s.id] || 0;
+                        });
+                      }
+                      return (
+                        <View key={main.id} style={styles.catRow}>
+                          <TouchableOpacity
+                            onPress={() => toggleCat(main.id)}
+                            style={styles.catHeader}
+                          >
+                            <Text style={styles.catTitle}>{`${main.title} yhteensä`}</Text>
+                            <Text style={styles.catAmount}>
+                              {formatCurrency(totalExpense)} €
+                            </Text>
+                          </TouchableOpacity>
+                          {openCats[main.id] &&
+                            subs
+                              .filter((s) => !s.title.toLowerCase().includes('yhteensä'))
+                              .map((sub) => (
+                                <View key={sub.id} style={styles.subRow}>
+                                  <Text style={styles.subTitle}>{sub.title}</Text>
+                                  <Text style={styles.subAmount}>
+                                    {formatCurrency(
+                                      monthData[selectedMonth]?.expenses[sub.id] || 0
+                                    )} €
+                                  </Text>
+                                </View>
+                              ))}
+                        </View>
+                      );
+                    })}
+                </View>
+              )}
           </View>
         </ScrollView>
       )
@@ -409,6 +452,12 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
+  },
+  summaryHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    paddingVertical: 12,
   },
   subRow: {
     flexDirection: 'row',
