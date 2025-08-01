@@ -38,6 +38,12 @@ export default function HistoriaScreen() {
   const user = auth.currentUser;
   const userId = user ? user.uid : null;
 
+    const formatCurrency = (value: number) =>
+    value.toLocaleString('fi-FI', {
+      minimumFractionDigits: 2,
+      maximumFractionDigits: 2,
+    });
+
   const [months, setMonths] = useState<string[]>([]);
   const [loadingMonths, setLoadingMonths] = useState<boolean>(true);
   const [selectedMonth, setSelectedMonth] = useState<string | null>(null);
@@ -45,6 +51,10 @@ export default function HistoriaScreen() {
   const [chartData, setChartData] = useState<{ pieData: any[]; totals: { income: number; expense: number } } | null>(null);
   const [currentPeriodId, setCurrentPeriodId] = useState<string | null>(null);
   const [monthHasPeriod, setMonthHasPeriod] = useState<Record<string, boolean>>({});
+  const [openCats, setOpenCats] = useState<Record<string, boolean>>({});
+
+  const toggleCat = (id: string) =>
+    setOpenCats((prev) => ({ ...prev, [id]: !prev[id] }));
 
    const loadMonths = async (active: { current: boolean }) => {
     if (!userId) return;
@@ -258,15 +268,51 @@ export default function HistoriaScreen() {
               />
 
               <View style={styles.monthContent}>
-                {monthData[selectedMonth]?.categories.map((cat) => (
-                  <View key={cat.id} style={styles.catRow}>
-                    <Text style={styles.catTitle}>{cat.title}</Text>
-                    <Text style={styles.catAmount}>
-                      {monthData[selectedMonth]?.expenses[cat.id] || 0} / {cat.allocated} €
-                   </Text>
-                </View>
-              ))}
-            </View>
+                {monthData[selectedMonth]?.categories
+                  .filter((c) => c.parentId === null)
+                  .map((main) => {
+                    const subs = monthData[selectedMonth]?.categories.filter(
+                      (c) => c.parentId === main.id
+                    );
+                    const totalRow = subs.find((s) =>
+                      s.title.toLowerCase().includes('yhteensä')
+                    );
+                    let totalAllocated = totalRow ? totalRow.allocated : main.allocated;
+                    let totalExpense = totalRow
+                      ? monthData[selectedMonth]?.expenses[totalRow.id] || 0
+                      : monthData[selectedMonth]?.expenses[main.id] || 0;
+                    if (!totalRow) {
+                      subs.forEach((s) => {
+                        totalAllocated += s.allocated;
+                        totalExpense += monthData[selectedMonth]?.expenses[s.id] || 0;
+                      });
+                    }
+                    return (
+                      <View key={main.id} style={styles.catRow}>
+                        <TouchableOpacity
+                          onPress={() => toggleCat(main.id)}
+                          style={styles.catHeader}
+                        >
+                          <Text style={styles.catTitle}>{`${main.title} yhteensä`}</Text>
+                          <Text style={styles.catAmount}>
+                            {formatCurrency(totalExpense)} / {formatCurrency(totalAllocated)} €
+                          </Text>
+                        </TouchableOpacity>
+                        {openCats[main.id] &&
+                          subs
+                            .filter((s) => !s.title.toLowerCase().includes('yhteensä'))
+                            .map((sub) => (
+                              <View key={sub.id} style={styles.subRow}>
+                                <Text style={styles.subTitle}>{sub.title}</Text>
+                                <Text style={styles.subAmount}>
+                                  {formatCurrency(monthData[selectedMonth]?.expenses[sub.id] || 0)} / {formatCurrency(sub.allocated)} €
+                                </Text>
+                              </View>
+                            ))}
+                      </View>
+                    );
+                  })}
+              </View>
           </View>
         </ScrollView>
       )
@@ -347,10 +393,36 @@ const styles = StyleSheet.create({
     marginTop: 8,
   },
   catRow: {
+     backgroundColor: Colors.cardBackground,
+    borderRadius: 12,
+    padding: 16,
+    marginBottom: 12,
+    borderWidth: 1,
+    borderColor: Colors.border,
+    shadowColor: '#000',
+    shadowOpacity: 0.05,
+    shadowOffset: { width: 0, height: 2 },
+    shadowRadius: 4,
+    elevation: 2,
+  },
+  catHeader: {
     flexDirection: 'row',
     justifyContent: 'space-between',
-    marginBottom: 4,
+    alignItems: 'center',
   },
+  subRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    paddingTop: 8,
+  },
+  subTitle: {
+    fontSize: 15,
+    color: Colors.textPrimary,
+  },
+  subAmount: {
+    fontSize: 15,
+    color: Colors.textSecondary,
+     },
   catTitle: {
     fontSize: 16,
     color: Colors.textPrimary,
