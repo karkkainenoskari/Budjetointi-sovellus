@@ -255,7 +255,7 @@ export default function HistoriaScreen() {
 
 
               <View style={styles.monthCard}>
-                <Text style={styles.header}>Menot kategorioittain</Text>
+                <Text style={styles.header}></Text>
                 {chartData.pieData.length > 0 ? (
                 <PieChart
                   data={chartData.pieData as any}
@@ -272,14 +272,14 @@ export default function HistoriaScreen() {
                 <Text style={styles.noData}>Ei kuluja tältä jaksolta</Text>
               )}
 
-              <Text style={[styles.header, { marginTop: 24 }]}>Tulot vs. Menot</Text>
+              <Text style={[styles.header, { marginTop: 20 }]}>Tulot vs. Menot</Text>
               <BarChart
                 data={{
                   labels: ['Tulot', 'Menot'],
                   datasets: [{ data: [chartData.totals.income, chartData.totals.expense] }],
                 }}
                 width={screenWidth}
-                height={220}
+                height={200}
                 chartConfig={chartConfig}
                 fromZero
                 style={{ alignSelf: 'center' }}
