@@ -840,6 +840,10 @@ const handleDeleteCategory = (categoryId: string) => {
               }
             }
 
+            function startAddSubCategory(id: string): void {
+              throw new Error('Function not implemented.');
+            }
+
            return editingCategoryId === sub.id ? (
               <View style={styles.addSubInlineRow} key={sub.id}>
                 <TextInput
@@ -872,19 +876,38 @@ const handleDeleteCategory = (categoryId: string) => {
                 key={sub.id}
                 style={[styles.subCategoryRow, isTotalRow && styles.subCategoryTotalRow]}
               >
-                <Text
-                  style={[
-                    styles.subCategoryTitle,
-                    isTotalRow && styles.subCategoryTotalTitle,
-                  ]}
-                >
-                  {subTitle}
-                </Text>
+               {isTotalRow ? (
+                  <View style={styles.flex1}>
+                    <Text
+                      style={[
+                        styles.subCategoryTitle,
+                        isTotalRow && styles.subCategoryTotalTitle,
+                      ]}
+                    >
+                      {subTitle}
+                    </Text>
+                  </View>
+                ) : (
+                  <TouchableOpacity
+                    disabled={readOnly || selectedTab !== 'plan'}
+                    onPress={() =>
+                      handleEditCategory(sub.id, sub.title, sub.allocated)
+                    }
+                    style={[styles.flex1, selectedTab === 'plan' && styles.editableField]}
+                  >
+                    <Text style={styles.subCategoryTitle}>{subTitle}</Text>
+                  </TouchableOpacity>
+                )}
                 <View style={styles.subCategoryRight}>
                   <TouchableOpacity
                     disabled={readOnly || selectedTab !== 'plan' || isTotalRow}
                     onPress={() =>
                       handleEditCategory(sub.id, sub.title, sub.allocated)
+                    }
+                     style={
+                      selectedTab === 'plan' && !isTotalRow
+                        ? styles.editableField
+                        : undefined
                     }
                   >
                     <Text
@@ -907,6 +930,19 @@ const handleDeleteCategory = (categoryId: string) => {
                             name="trash-outline"
                             size={14}
                             color={Colors.iconMuted}
+                          />
+                        </TouchableOpacity>
+                      )}
+
+                       {selectedTab === 'plan' && (
+                        <TouchableOpacity
+                          onPress={() => startAddSubCategory(sub.id)}
+                          style={styles.iconButtonSmall}
+                        >
+                          <Ionicons
+                            name="add-circle-outline"
+                            size={14}
+                            color={Colors.moss}
                           />
                         </TouchableOpacity>
                       )}
@@ -1134,23 +1170,7 @@ const handleDeleteCategory = (categoryId: string) => {
             <TouchableOpacity onPress={handleOpenNewPeriod} style={styles.iconButton}>
               <Ionicons name="add-circle-outline" size={22} color={Colors.moss} />
             </TouchableOpacity>
-              {selectedTab === 'plan' && (
-              <TouchableOpacity
-                onPress={() =>
-                  Alert.alert(
-                    'Vinkki',
-                    'Klikkaa summaa tai kategoriaa muokataksesi sitä.'
-                  )
-                }
-                style={styles.iconButton}
-              >
-                <Ionicons
-                  name="information-circle-outline"
-                  size={22}
-                  color={Colors.textSecondary}
-                />
-              </TouchableOpacity>
-            )}
+            
           </View>
           {/* ─── Tilannevälilehdet ────────────────────────────────────────── */}
           <View style={styles.tabsContainer}>
@@ -1303,6 +1323,7 @@ const handleDeleteCategory = (categoryId: string) => {
                       onPress={() =>
                         handleEditIncome(item.id, item.title, item.amount)
                       }
+                       style={selectedTab === 'plan' ? styles.editableField : undefined}
                     >
                       <Text style={styles.categoryValue}>
                         {formatCurrency(item.amount)} €
@@ -1598,6 +1619,22 @@ const styles = StyleSheet.create({
     marginRight: 8,
     backgroundColor: Colors.cardBackground,
     color: Colors.textPrimary,
+  },
+    editableField: {
+    borderWidth: 1,
+    borderColor: Colors.border,
+    borderRadius: 6,
+    paddingHorizontal: 8,
+    paddingVertical: 4,
+    backgroundColor: Colors.cardBackground,
+    marginRight: 8,
+  },
+  flex1: {
+    flex: 1,
+  },
+  amountField: {
+    width: 100,
+    alignItems: 'flex-end',
   },
   subCategoryRow: {
     flexDirection: 'row',
