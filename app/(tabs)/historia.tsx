@@ -5,7 +5,6 @@ import {
   StyleSheet,
   TouchableOpacity,
   ActivityIndicator,
-  Alert,
   SafeAreaView,
   ScrollView,
   Dimensions,
@@ -191,6 +190,10 @@ export default function HistoriaScreen() {
 
   const changeMonth = (dir: number) => {
     if (!selectedMonth) return;
+    if (dir < 0) {
+      const latestAllowed = currentPeriodId || months[0];
+      if (selectedMonth === latestAllowed) return;
+    }
     const newMonth = dir > 0 ? prevMonthId(selectedMonth) : nextMonthId(selectedMonth);
     setSelectedMonth(newMonth);
     if (!months.includes(newMonth)) {
@@ -248,15 +251,12 @@ export default function HistoriaScreen() {
             <Text style={styles.noPeriodText}>Ei luotua budjettijaksoa tälle aikavälille</Text>
           </View>
         ) : (
-          <ScrollView contentContainerStyle={styles.listContent}>
+           <ScrollView contentContainerStyle={styles.listContent}>
 
-            <View style={styles.monthCard}>
-              <View style={styles.monthHeader}>
-                <Text style={styles.monthTitle}>{formatMonthRange(selectedMonth)}</Text>
-              </View>
 
-              <Text style={styles.header}>Menot kategorioittain</Text>
-              {chartData.pieData.length > 0 ? (
+              <View style={styles.monthCard}>
+                <Text style={styles.header}>Menot kategorioittain</Text>
+                {chartData.pieData.length > 0 ? (
                 <PieChart
                   data={chartData.pieData as any}
                   width={screenWidth}
@@ -456,17 +456,6 @@ const styles = StyleSheet.create({
     shadowOffset: { width: 0, height: 2 },
     shadowRadius: 4,
     elevation: 2,
-  },
-
-  monthHeader: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-  },
-  monthTitle: {
-    fontSize: 18,
-    fontWeight: '600',
-    color: Colors.textPrimary,
   },
   monthContent: {
     marginTop: 8,

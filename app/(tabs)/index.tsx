@@ -988,7 +988,7 @@ const handleDeleteCategory = (categoryId: string) => {
         <View style={styles.modalOverlay}>
           <View style={styles.modalContainer}>
             <Text style={styles.modalTitle}>Aloita uusi jakso</Text>
-            <Text style={styles.label}>Aloitus ajankohta</Text>
+            <Text style={styles.label}>Alku</Text>
             <TouchableOpacity
               onPress={openStartPicker}
               style={styles.dateButton}
@@ -1028,7 +1028,7 @@ const handleDeleteCategory = (categoryId: string) => {
                 </TouchableOpacity>
               </Modal>
             )}
-            <Text style={styles.label}>Päättymis ajankohta</Text>
+            <Text style={styles.label}>Loppu</Text>
             <TouchableOpacity
               onPress={openEndPicker}
               style={styles.dateButton}
