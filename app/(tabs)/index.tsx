@@ -840,10 +840,6 @@ const handleDeleteCategory = (categoryId: string) => {
               }
             }
 
-            function startAddSubCategory(id: string): void {
-              throw new Error('Function not implemented.');
-            }
-
            return editingCategoryId === sub.id ? (
               <View style={styles.addSubInlineRow} key={sub.id}>
                 <TextInput
@@ -921,35 +917,17 @@ const handleDeleteCategory = (categoryId: string) => {
                         {formatCurrency(displayValue)} €
                     </Text>
                   </TouchableOpacity>
-                  {!readOnly && !isTotalRow && (
-                    <>
-                      {selectedTab === 'plan' && (
-                        <TouchableOpacity
-                          onPress={() => handleDeleteCategory(sub.id)}
-                          style={styles.iconButtonSmall}
-                        >
-                          <Ionicons
-                            name="trash-outline"
-                            size={14}
-                            color={Colors.iconMuted}
-                          />
-                        </TouchableOpacity>
-                      )}
-
-                       {selectedTab === 'plan' && (
-                        <TouchableOpacity
-                          onPress={() => startAddSubCategory(sub.id)}
-                          style={styles.iconButtonSmall}
-                        >
-                          <Ionicons
-                            name="add-circle-outline"
-                            size={14}
-                            color={Colors.moss}
-                          />
-                        </TouchableOpacity>
-                      )}
-                    
-                    </>
+                  {!readOnly && !isTotalRow && selectedTab === 'plan' && (
+                    <TouchableOpacity
+                      onPress={() => handleDeleteCategory(sub.id)}
+                      style={styles.iconButtonSmall}
+                    >
+                      <Ionicons
+                        name="trash-outline"
+                        size={14}
+                        color={Colors.iconMuted}
+                      />
+                    </TouchableOpacity>
                   )}
                 </View>
               </View>
@@ -1350,7 +1328,7 @@ const handleDeleteCategory = (categoryId: string) => {
             )}
             contentContainerStyle={styles.listContent}
           />
-          <View style={styles.incomeTotalRow}>
+            <View style={[styles.categoryCard, styles.incomeTotalRow]}>
             <Text style={styles.subCategoryTotalTitle}>Saadut tulot yhteensä:</Text>
             <Text style={styles.subCategoryTotalValue}>{formatCurrency(totalIncome)} €</Text>
           </View>
@@ -1543,12 +1521,7 @@ const styles = StyleSheet.create({
     fontWeight: '700',
     color: Colors.textPrimary,
   },
-  incomeTotalRow: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    paddingHorizontal: 16,
-    marginBottom: 16,
-  },
+ incomeTotalRow: {},
 
 
   categoryHeaderButtons: {
