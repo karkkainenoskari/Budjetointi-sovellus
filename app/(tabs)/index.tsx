@@ -781,17 +781,17 @@ const handleDeleteCategory = (categoryId: string) => {
             </View>
           </View>
 
-           {selectedTab === 'plan' && addingSubFor === item.id && (
+             {selectedTab === 'plan' && addingSubFor === item.id && (
             <View style={styles.addSubInlineRow}>
               <TextInput
-                style={styles.inlineInput}
+                 style={styles.expenseCategoryInput}
                 placeholder="Meno"
                 placeholderTextColor="#888"
                 value={newSubTitle}
                 onChangeText={setNewSubTitle}
               />
               <TextInput
-                style={styles.inlineInput}
+                 style={styles.expenseAmountInput}
                 placeholder="Summa"
                 placeholderTextColor="#888"
                 keyboardType="numeric"
@@ -847,14 +847,14 @@ const handleDeleteCategory = (categoryId: string) => {
            return editingCategoryId === sub.id ? (
               <View style={styles.addSubInlineRow} key={sub.id}>
                 <TextInput
-                  style={styles.inlineInput}
+                  style={styles.expenseCategoryInput}
                   placeholder="Nimi"
                   placeholderTextColor="#888"
                   value={editCategoryTitle}
                   onChangeText={setEditCategoryTitle}
                 />
                 <TextInput
-                  style={styles.inlineInput}
+                   style={styles.expenseAmountInput}
                   placeholder="Summa"
                   placeholderTextColor="#888"
                   keyboardType="numeric"
@@ -877,7 +877,7 @@ const handleDeleteCategory = (categoryId: string) => {
                 style={[styles.subCategoryRow, isTotalRow && styles.subCategoryTotalRow]}
               >
                {isTotalRow ? (
-                  <View style={styles.flex1}>
+                  <View style={styles.categoryField}>
                     <Text
                       style={[
                         styles.subCategoryTitle,
@@ -893,7 +893,10 @@ const handleDeleteCategory = (categoryId: string) => {
                     onPress={() =>
                       handleEditCategory(sub.id, sub.title, sub.allocated)
                     }
-                    style={[styles.flex1, selectedTab === 'plan' && styles.editableField]}
+                     style={[
+                      styles.categoryField,
+                      selectedTab === 'plan' && styles.editableField,
+                    ]}
                   >
                     <Text style={styles.subCategoryTitle}>{subTitle}</Text>
                   </TouchableOpacity>
@@ -904,11 +907,10 @@ const handleDeleteCategory = (categoryId: string) => {
                     onPress={() =>
                       handleEditCategory(sub.id, sub.title, sub.allocated)
                     }
-                     style={
-                      selectedTab === 'plan' && !isTotalRow
-                        ? styles.editableField
-                        : undefined
-                    }
+                    style={[
+                      styles.amountField,
+                      selectedTab === 'plan' && !isTotalRow && styles.editableField,
+                    ]}
                   >
                     <Text
                       style={[
@@ -1620,21 +1622,50 @@ const styles = StyleSheet.create({
     backgroundColor: Colors.cardBackground,
     color: Colors.textPrimary,
   },
-    editableField: {
+    expenseCategoryInput: {
+    flex: 1,
+    height: 40,
     borderWidth: 1,
     borderColor: Colors.border,
     borderRadius: 6,
     paddingHorizontal: 8,
-    paddingVertical: 4,
+    marginRight: 8,
     backgroundColor: Colors.cardBackground,
+    color: Colors.textPrimary,
+  },
+  expenseAmountInput: {
+    flex: 1.2,
+    height: 40,
+    borderWidth: 1,
+    borderColor: Colors.border,
+    borderRadius: 6,
+    paddingHorizontal: 8,
+    marginRight: 8,
+     backgroundColor: Colors.cardBackground,
+    color: Colors.textPrimary,
+    textAlign: 'right',
+  },
+  editableField: {
+    height: 40,
+    borderWidth: 1,
+    borderColor: Colors.border,
+    borderRadius: 6,
+    paddingHorizontal: 8,
+    backgroundColor: Colors.cardBackground,
+    justifyContent: 'center',
+  },
+  categoryField: {
+    flex: 1,
+     height: 40,
+    justifyContent: 'center',
     marginRight: 8,
   },
-  flex1: {
-    flex: 1,
-  },
   amountField: {
-    width: 100,
+    flex: 1.2,
+    height: 40,
+    justifyContent: 'center',
     alignItems: 'flex-end',
+     marginRight: 8,
   },
   subCategoryRow: {
     flexDirection: 'row',
@@ -1654,6 +1685,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   subCategoryRight: {
+     flex: 1.2,
     flexDirection: 'row',
     alignItems: 'center',
 
