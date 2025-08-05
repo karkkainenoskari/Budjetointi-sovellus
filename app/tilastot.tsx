@@ -80,11 +80,11 @@ export default function TilastotScreen() {
         });
 
         const incRef = collection(firestore, 'budjetit', userId, 'incomes');
-          const incQuery = period
+           const incQuery = period
           ? query(
               incRef,
-              where('date', '>=', period.startDate.toDate()),
-              where('date', '<=', period.endDate.toDate())
+               where('createdAt', '>=', period.startDate.toDate()),
+              where('createdAt', '<=', period.endDate.toDate())
             )
           : incRef;
         unsubscribeIncomes = onSnapshot(incQuery, (snapshot) => {

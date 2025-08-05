@@ -201,8 +201,8 @@ export default function HistoriaScreen() {
     const incRef = collection(firestore, 'budjetit', userId, 'incomes');
     const incQuery = query(
       incRef,
-      where('date', '>=', start),
-      where('date', '<=', end)
+      where('createdAt', '>=', start),
+      where('createdAt', '<=', end)
     );
     const unsubIncomes = onSnapshot(incQuery, (snapshot) => {
       const incomes: Income[] = snapshot.docs.map((doc) => ({
