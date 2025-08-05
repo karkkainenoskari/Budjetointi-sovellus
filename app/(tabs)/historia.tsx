@@ -13,7 +13,8 @@ import { PieChart, BarChart } from 'react-native-chart-kit';
 import { Picker } from '@react-native-picker/picker';
 import { Ionicons } from '@expo/vector-icons';
 import { useFocusEffect } from '@react-navigation/native';
-import { auth } from '../../src/api/firebaseConfig';
+import { auth, firestore } from '../../src/api/firebaseConfig';
+import { collection, onSnapshot, query, where } from 'firebase/firestore';
 import {
   getHistoryMonths,
   getHistoryCategories,
@@ -29,8 +30,7 @@ import {
   nextMonthId,
   prevMonthId,
 } from '@/src/utils';
-import { getExpensesByPeriod, Expense } from '../../src/services/expenses';
-import { getIncomes, Income } from '../../src/services/incomes';
+import { Income } from '../../src/services/incomes';
 import Colors from '../../constants/Colors';
 import { Category } from '../../src/services/categories';
 
@@ -114,31 +114,28 @@ export default function HistoriaScreen() {
 
      setMonthData((prev) => ({
       ...prev,
-      [m]: { loading: true, categories: [], expenses: {}, incomes: [] },
+      [m]: {
+        ...(prev[m] || { expenses: {}, incomes: [] }),
+        loading: true,
+        categories: [],
+      },
     }));
     try {
-      const [cats, incomes, period] = await Promise.all([
-        getHistoryCategories(userId, m),
-        getIncomes(userId),
+        const [cats, period] = await Promise.all([
+        getHistoryCategories(userId, m),,
         getBudgetPeriodFromHistory(userId, m),
       ]);
-      const [year, month] = m.split('-').map((x) => parseInt(x, 10));
-      const start = new Date(year, month - 1, 1);
-      const end = new Date(year, month, 0);
-      const expenses = await getExpensesByPeriod(userId, start, end);
-      const sums: Record<string, number> = {};
-      expenses.forEach((exp: Expense) => {
-        sums[exp.categoryId] = (sums[exp.categoryId] || 0) + exp.amount;
-      });
-
-      
 
       const hasPeriod = !!period || m === currentPeriodId;
       setMonthHasPeriod((prev) => ({ ...prev, [m]: hasPeriod }));
 
          setMonthData((prev) => ({
         ...prev,
-        [m]: { loading: false, categories: cats, expenses: sums, incomes },
+        [m]: {
+          ...(prev[m] || { expenses: {}, incomes: [] }),
+          loading: false,
+          categories: cats,
+        },
       }));
        if (selectedMonth === m) {
         const mainCats = cats.filter((c) => c.parentId === null);
@@ -173,6 +170,59 @@ export default function HistoriaScreen() {
       }
     }, [selectedMonth, userId])
   );
+
+   useEffect(() => {
+    if (!userId || !selectedMonth) return;
+    const [year, month] = selectedMonth.split('-').map((x) => parseInt(x, 10));
+    const start = new Date(year, month - 1, 1);
+    const end = new Date(year, month, 0);
+
+    const expRef = collection(firestore, 'budjetit', userId, 'expenses');
+    const expQuery = query(
+      expRef,
+      where('date', '>=', start),
+      where('date', '<=', end)
+    );
+    const unsubExpenses = onSnapshot(expQuery, (snapshot) => {
+      const sums: Record<string, number> = {};
+      snapshot.forEach((doc) => {
+        const data = doc.data() as any;
+        sums[data.categoryId] = (sums[data.categoryId] || 0) + data.amount;
+      });
+      setMonthData((prev) => ({
+        ...prev,
+        [selectedMonth]: {
+          ...(prev[selectedMonth] || { loading: false, categories: [], incomes: [] }),
+          expenses: sums,
+        },
+      }));
+    });
+
+    const incRef = collection(firestore, 'budjetit', userId, 'incomes');
+    const incQuery = query(
+      incRef,
+      where('date', '>=', start),
+      where('date', '<=', end)
+    );
+    const unsubIncomes = onSnapshot(incQuery, (snapshot) => {
+      const incomes: Income[] = snapshot.docs.map((doc) => ({
+        id: doc.id,
+        ...(doc.data() as any),
+      }));
+      setMonthData((prev) => ({
+        ...prev,
+        [selectedMonth]: {
+          ...(prev[selectedMonth] || { loading: false, categories: [], expenses: {} }),
+          incomes,
+        },
+      }));
+    });
+
+    return () => {
+      unsubExpenses();
+      unsubIncomes();
+    };
+  }, [userId, selectedMonth]);
   
   useEffect(() => {
     if (!selectedMonth || !monthData[selectedMonth]) return;
