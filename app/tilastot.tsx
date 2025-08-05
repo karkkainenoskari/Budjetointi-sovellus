@@ -1,10 +1,16 @@
 import React, { useEffect, useState } from 'react';
-import { View, Text, StyleSheet, Dimensions, ActivityIndicator, ScrollView } from 'react-native';
+import {
+  View,
+  Text,
+  StyleSheet,
+  Dimensions,
+  ActivityIndicator,
+  ScrollView,
+} from 'react-native';
 import { PieChart, BarChart } from 'react-native-chart-kit';
-import { auth } from '../src/api/firebaseConfig';
+import { collection, onSnapshot, query, where } from 'firebase/firestore';
+import { auth, firestore } from '../src/api/firebaseConfig';
 import { getCurrentBudgetPeriod } from '../src/services/budget';
-import { getExpensesByPeriod } from '../src/services/expenses';
-import { getIncomes } from '../src/services/incomes';
 import { getCategories, Category } from '../src/services/categories';
 import Colors from '../constants/Colors';
 
@@ -14,47 +20,80 @@ export default function TilastotScreen() {
 
   const [loading, setLoading] = useState(true);
   const [pieData, setPieData] = useState<any[]>([]);
-  const [totals, setTotals] = useState<{ income: number; expense: number }>({ income: 0, expense: 0 });
+  const [totals, setTotals] = useState<{ income: number; expense: number }>({
+    income: 0,
+    expense: 0,
+  });
 
   useEffect(() => {
+     if (!userId) return;
+    let unsubscribeExpenses: (() => void) | undefined;
+    let unsubscribeIncomes: (() => void) | undefined
     const loadData = async () => {
-      if (!userId) return;
       setLoading(true);
       try {
         const period = await getCurrentBudgetPeriod(userId);
-        if (!period) {
-          setPieData([]);
-          setTotals({ income: 0, expense: 0 });
-          return;
-        }
-        const [expenses, cats, incs] = await Promise.all([
-          getExpensesByPeriod(userId, period.startDate.toDate(), period.endDate.toDate()),
-          getCategories(userId),
-          getIncomes(userId),
-        ]);
-        const sums: Record<string, number> = {};
-        expenses.forEach((e) => {
-          sums[e.categoryId] = (sums[e.categoryId] || 0) + e.amount;
-        });
-        const colors = [Colors.evergreen, Colors.moss, '#FF9F1C', '#E71D36', '#2EC4B6', '#FFBF69'];
-        let colorIndex = 0;
-        const pData = cats
-          .filter((c: Category) => sums[c.id])
-          .map((c: Category) => {
-            const color = colors[colorIndex % colors.length];
-            colorIndex += 1;
-            return {
-              name: c.title,
-              amount: sums[c.id],
-              color,
-              legendFontColor: Colors.textPrimary,
-              legendFontSize: 12,
-            };
+        
+       const cats = await getCategories(userId);
+        const colors = [
+          Colors.evergreen,
+          Colors.moss,
+          '#FF9F1C',
+          '#E71D36',
+          '#2EC4B6',
+          '#FFBF69',
+        ];
+
+        const expRef = collection(firestore, 'budjetit', userId, 'expenses');
+        const expQuery = period
+          ? query(
+              expRef,
+              where('date', '>=', period.startDate.toDate()),
+              where('date', '<=', period.endDate.toDate())
+            )
+          : expRef;
+        unsubscribeExpenses = onSnapshot(expQuery, (snapshot) => {
+          const sums: Record<string, number> = {};
+          let totalExpense = 0;
+          snapshot.forEach((doc) => {
+            const data = doc.data() as any;
+            sums[data.categoryId] = (sums[data.categoryId] || 0) + data.amount;
+            totalExpense += data.amount;
           });
-        const totalIncome = incs.reduce((sum, i) => sum + i.amount, 0);
-        const totalExpense = expenses.reduce((sum, e) => sum + e.amount, 0);
-        setPieData(pData);
-        setTotals({ income: totalIncome, expense: totalExpense });
+
+         let colorIndex = 0;
+          const pData = cats
+            .filter((c: Category) => sums[c.id])
+            .map((c: Category) => {
+              const color = colors[colorIndex % colors.length];
+              colorIndex += 1;
+              return {
+                name: c.title,
+                amount: sums[c.id],
+                color,
+                legendFontColor: Colors.textPrimary,
+                legendFontSize: 12,
+              };
+            });
+          setPieData(pData);
+          setTotals((prev) => ({ ...prev, expense: totalExpense }));
+        });
+
+        const incRef = collection(firestore, 'budjetit', userId, 'incomes');
+          const incQuery = period
+          ? query(
+              incRef,
+              where('date', '>=', period.startDate.toDate()),
+              where('date', '<=', period.endDate.toDate())
+            )
+          : incRef;
+        unsubscribeIncomes = onSnapshot(incQuery, (snapshot) => {
+          const totalIncome = snapshot.docs.reduce(
+            (sum, d) => sum + ((d.data() as any).amount || 0),
+            0
+          );
+          setTotals((prev) => ({ ...prev, income: totalIncome }));
+        });
       } catch (e) {
         console.error('tilastot load error', e);
       } finally {
@@ -62,6 +101,10 @@ export default function TilastotScreen() {
       }
     };
     loadData();
+     return () => {
+      if (unsubscribeExpenses) unsubscribeExpenses();
+      if (unsubscribeIncomes) unsubscribeIncomes();
+    };
   }, [userId]);
 
   if (!userId) {
@@ -88,6 +131,7 @@ export default function TilastotScreen() {
     color: () => Colors.moss,
     labelColor: () => Colors.textPrimary,
     decimalPlaces: 2,
+    barPercentage: 0.5,
   } as const;
 
   return (
