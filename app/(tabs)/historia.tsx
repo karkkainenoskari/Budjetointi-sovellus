@@ -10,6 +10,7 @@ import {
   Dimensions,
 } from 'react-native';
 import { PieChart, BarChart } from 'react-native-chart-kit';
+import { Picker } from '@react-native-picker/picker';
 import { Ionicons } from '@expo/vector-icons';
 import { useFocusEffect } from '@react-navigation/native';
 import { auth } from '../../src/api/firebaseConfig';
@@ -53,6 +54,7 @@ export default function HistoriaScreen() {
   const [openCats, setOpenCats] = useState<Record<string, boolean>>({});
     const [openIncomes, setOpenIncomes] = useState<boolean>(false);
   const [openExpenses, setOpenExpenses] = useState<boolean>(false);
+   const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
 
   const toggleCat = (id: string) =>
     setOpenCats((prev) => ({ ...prev, [id]: !prev[id] }));
@@ -129,39 +131,21 @@ export default function HistoriaScreen() {
         sums[exp.categoryId] = (sums[exp.categoryId] || 0) + exp.amount;
       });
 
-      const colors = [
-        Colors.evergreen,
-        Colors.moss,
-        '#FF9F1C',
-        '#E71D36',
-        '#2EC4B6',
-        '#FFBF69',
-      ];
-      let colorIndex = 0;
-      const pie = cats
-        .filter((c) => sums[c.id])
-        .map((c) => {
-          const color = colors[colorIndex % colors.length];
-          colorIndex += 1;
-          return {
-            name: c.title,
-            amount: sums[c.id],
-            color,
-            legendFontColor: Colors.textPrimary,
-            legendFontSize: 12,
-          };
-        });
-      const totalIncome = incomes.reduce((sum, i) => sum + i.amount, 0);
-      const totalExpense = expenses.reduce((sum, e) => sum + e.amount, 0);
+      
 
       const hasPeriod = !!period || m === currentPeriodId;
       setMonthHasPeriod((prev) => ({ ...prev, [m]: hasPeriod }));
 
-        setMonthData((prev) => ({
+         setMonthData((prev) => ({
         ...prev,
         [m]: { loading: false, categories: cats, expenses: sums, incomes },
       }));
-      if (selectedMonth === m) setChartData({ pieData: pie, totals: { income: totalIncome, expense: totalExpense } });
+       if (selectedMonth === m) {
+        const mainCats = cats.filter((c) => c.parentId === null);
+        setSelectedCategory((prev) =>
+          prev && mainCats.some((c) => c.id === prev) ? prev : mainCats[0]?.id || null
+        );
+      }
     } catch (e) {
       console.error('loadMonthData error:', e);
       setMonthData((prev) => ({
@@ -169,7 +153,10 @@ export default function HistoriaScreen() {
         [m]: { loading: false, categories: [], expenses: {}, incomes: [] },
       }));
       setMonthHasPeriod((prev) => ({ ...prev, [m]: m === currentPeriodId }));
-      if (selectedMonth === m) setChartData({ pieData: [], totals: { income: 0, expense: 0 } });
+      if (selectedMonth === m) {
+        setChartData({ pieData: [], totals: { income: 0, expense: 0 } });
+        setSelectedCategory(null);
+      }
     }
   };
 
@@ -186,7 +173,46 @@ export default function HistoriaScreen() {
       }
     }, [selectedMonth, userId])
   );
-
+  
+  useEffect(() => {
+    if (!selectedMonth || !monthData[selectedMonth]) return;
+    const data = monthData[selectedMonth];
+    if (data.loading) return;
+    const totalIncome = data.incomes.reduce((sum, i) => sum + i.amount, 0);
+    const totalExpense = Object.values(data.expenses).reduce(
+      (sum, v) => sum + v,
+      0
+    );
+    const colors = [
+      Colors.evergreen,
+      Colors.moss,
+      '#FF9F1C',
+      '#E71D36',
+      '#2EC4B6',
+      '#FFBF69',
+    ];
+    let colorIndex = 0;
+    let pie: any[] = [];
+    if (selectedCategory) {
+      const subs = data.categories.filter(
+        (c) => c.parentId === selectedCategory && !c.title.toLowerCase().includes('yhteensä')
+      );
+      pie = subs
+        .filter((s) => data.expenses[s.id])
+        .map((s) => {
+          const color = colors[colorIndex % colors.length];
+          colorIndex += 1;
+          return {
+            name: s.title,
+            amount: data.expenses[s.id],
+            color,
+            legendFontColor: Colors.textPrimary,
+            legendFontSize: 12,
+          };
+        });
+    }
+    setChartData({ pieData: pie, totals: { income: totalIncome, expense: totalExpense } });
+  }, [selectedMonth, selectedCategory, monthData]);
 
   const changeMonth = (dir: number) => {
     if (!selectedMonth) return;
@@ -255,64 +281,56 @@ export default function HistoriaScreen() {
 
 
               <View style={styles.monthCard}>
-                <Text style={styles.header}></Text>
+                 <Text style={styles.header}>Menot</Text>
+                {monthData[selectedMonth]?.categories.filter((c) => c.parentId === null)
+                  .length > 0 && (
+                  <Picker
+                    selectedValue={selectedCategory}
+                    onValueChange={(v) => setSelectedCategory(v)}
+                    style={styles.picker}
+                  >
+                    {monthData[selectedMonth]?.categories
+                      .filter((c) => c.parentId === null)
+                      .map((c) => (
+                        <Picker.Item key={c.id} label={c.title} value={c.id} />
+                      ))}
+                  </Picker>
+                )}
                 {chartData.pieData.length > 0 ? (
-                <PieChart
-                  data={chartData.pieData as any}
-                  width={screenWidth}
-                  height={220}
-                  accessor="amount"
-                  chartConfig={chartConfig}
-                  paddingLeft="0"
-                  absolute
-                  backgroundColor="transparent"
-                  style={{ alignSelf: 'center' }}
-                />
-              ) : (
-                <Text style={styles.noData}>Ei kuluja tältä jaksolta</Text>
-              )}
-
-              <Text style={[styles.header, { marginTop: 20 }]}>Tulot vs. Menot</Text>
-              <BarChart
-                data={{
-                  labels: ['Tulot', 'Menot'],
-                  datasets: [{ data: [chartData.totals.income, chartData.totals.expense] }],
-                }}
-                width={screenWidth}
-                height={200}
-                chartConfig={chartConfig}
-                fromZero
-                style={{ alignSelf: 'center' }}
-                yAxisLabel={''}
-                yAxisSuffix={''}
-              />
-
                <PieChart
-                data={[
-                  {
-                    name: 'Tulot',
-                    amount: chartData.totals.income,
-                    color: Colors.moss,
-                    legendFontColor: Colors.textPrimary,
-                    legendFontSize: 12,
-                  },
-                  {
-                    name: 'Menot',
-                    amount: chartData.totals.expense,
-                    color: Colors.danger,
-                    legendFontColor: Colors.textPrimary,
-                    legendFontSize: 12,
-                  },
-                ] as any}
-                width={screenWidth}
-                height={220}
-                accessor="amount"
-                chartConfig={chartConfig}
-                paddingLeft="0"
-                absolute
-                backgroundColor="transparent"
-                style={{ alignSelf: 'center', marginTop: 16 }}
-              />
+                    data={chartData.pieData as any}
+                    width={screenWidth}
+                    height={220}
+                    accessor="amount"
+                    chartConfig={chartConfig}
+                    paddingLeft="0"
+                    absolute
+                    backgroundColor="transparent"
+                    style={{ alignSelf: 'center' }}
+                  />
+                ) : (
+                  <Text style={styles.noData}>Ei kuluja valitulle kategorialle</Text>
+                )}
+
+                <Text style={[styles.header, { marginTop: 20 }]}>Tulot vs. Menot</Text>
+                <BarChart
+                  data={{
+                    labels: ['Tulot', 'Menot'],
+                    datasets: [
+                      {
+                        data: [chartData.totals.income, chartData.totals.expense],
+                      },
+                    ],
+                  }}
+                  width={screenWidth}
+                  height={200}
+                  chartConfig={chartConfig}
+                   fromZero
+                  style={{ alignSelf: 'center' }}
+                  yAxisLabel={''}
+                  yAxisSuffix={''}
+                />
+             
 
                <TouchableOpacity
                 onPress={() => setOpenIncomes((o) => !o)}
@@ -456,6 +474,10 @@ const styles = StyleSheet.create({
     shadowOffset: { width: 0, height: 2 },
     shadowRadius: 4,
     elevation: 2,
+  },
+   picker: {
+    color: Colors.textPrimary,
+    marginBottom: 8,
   },
   monthContent: {
     marginTop: 8,
