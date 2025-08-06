@@ -32,7 +32,7 @@ import {
 } from '@/src/utils';
 import { Income } from '../../src/services/incomes';
 import Colors from '../../constants/Colors';
-import { Category } from '../../src/services/categories';
+import { Category, getCategories } from '../../src/services/categories';
 
 export default function HistoriaScreen() {
   const user = auth.currentUser;
@@ -121,10 +121,12 @@ export default function HistoriaScreen() {
       },
     }));
     try {
-        const [cats, period] = await Promise.all([
-        getHistoryCategories(userId, m),,
-        getBudgetPeriodFromHistory(userId, m),
-      ]);
+       const [cats, period] = await Promise.all([
+  m === currentPeriodId
+    ? getCategories(userId)
+    : getHistoryCategories(userId, m),
+  getBudgetPeriodFromHistory(userId, m),
+]);
 
       const hasPeriod = !!period || m === currentPeriodId;
       setMonthHasPeriod((prev) => ({ ...prev, [m]: hasPeriod }));
