@@ -140,7 +140,7 @@ export default function HistoriaScreen() {
         },
       }));
        if (selectedMonth === m) {
-        const mainCats = cats.filter((c) => c.parentId === null);
+          const mainCats = cats.filter((c) => c.parentId === null && c.type === 'main');
         setSelectedCategory((prev) =>
           prev && mainCats.some((c) => c.id === prev) ? prev : mainCats[0]?.id || null
         );
@@ -247,7 +247,10 @@ export default function HistoriaScreen() {
     let pie: any[] = [];
       if (selectedCategory) {
       const subs = data.categories.filter(
-        (c) => c.parentId === selectedCategory && !c.title.toLowerCase().includes('yhteensä')
+         (c) =>
+          c.parentId === selectedCategory &&
+          c.type === 'sub' &&
+          !c.title.toLowerCase().includes('yhteensä')
       );
       pie = subs
         .filter((s) => data.expenses[s.id])
@@ -334,17 +337,19 @@ export default function HistoriaScreen() {
 
               <View style={styles.monthCard}>
                  <Text style={styles.header}>Menot</Text>
-                  {monthData[selectedMonth]?.categories.filter((c) => c.parentId === null).length > 0 && (
+                   {monthData[selectedMonth]?.categories.filter(
+                     (c) => c.parentId === null && c.type === 'main'
+                  ).length > 0 && (
                   <Picker
                     selectedValue={selectedCategory}
                     onValueChange={(v) => setSelectedCategory(v)}
                     style={styles.picker}
                   >
                       {monthData[selectedMonth]?.categories
-                      .filter((c) => c.parentId === null)
-                      .map((c) => (
-                        <Picker.Item key={c.id} label={c.title} value={c.id} />
-                      ))}
+                       .filter((c) => c.parentId === null && c.type === 'main')
+                        .map((c) => (
+                          <Picker.Item key={c.id} label={c.title} value={c.id} />
+                        ))}
                   </Picker>
                 )}
                 {chartData.pieData.length > 0 ? (
@@ -415,10 +420,10 @@ export default function HistoriaScreen() {
               {openExpenses && (
                 <View style={styles.monthContent}>
                   {monthData[selectedMonth]?.categories
-                    .filter((c) => c.parentId === null)
+                      .filter((c) => c.parentId === null && c.type === 'main')
                     .map((main) => {
                       const subs = monthData[selectedMonth]?.categories.filter(
-                        (c) => c.parentId === main.id
+                       (c) => c.parentId === main.id && c.type === 'sub'
                       );
                       const totalRow = subs.find((s) =>
                         s.title.toLowerCase().includes('yhteensä')
