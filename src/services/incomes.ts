@@ -7,6 +7,8 @@ import {
   updateDoc,
   deleteDoc,
   serverTimestamp,
+  QueryDocumentSnapshot,
+  DocumentData,
 } from 'firebase/firestore';
 import { firestore } from '../api/firebaseConfig';
 
@@ -50,4 +52,16 @@ export async function deleteIncome(
 ): Promise<void> {
   const ref = doc(firestore, 'budjetit', userId, 'incomes', incomeId);
   await deleteDoc(ref);
+}
+
+/**
+ * Poistaa kaikki tulot käyttäjältä.
+ * Käytetään uuden budjettijakson alussa, jotta arvot alkavat nollasta.
+ */
+export async function clearIncomes(userId: string): Promise<void> {
+  const colRef = collection(firestore, 'budjetit', userId, 'incomes');
+  const snap = await getDocs(colRef);
+  for (const d of snap.docs as QueryDocumentSnapshot<DocumentData>[]) {
+    await deleteDoc(doc(firestore, 'budjetit', userId, 'incomes', d.id));
+  }
 }

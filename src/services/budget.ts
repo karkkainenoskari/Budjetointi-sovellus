@@ -14,6 +14,7 @@ import { firestore } from '../api/firebaseConfig';
 import { getActiveRecurringExpenses } from './recurringExpenses';
 import { addExpense } from './expenses';
 import { getCategories } from './categories';
+import { clearIncomes } from './incomes';
 
 export interface BudgetPeriod {
   startDate: any; // Timestamp
@@ -174,6 +175,7 @@ export async function startNewBudgetPeriod(
     await archiveCurrentCategories(userId, id);
   }
   await setCurrentBudgetPeriod(userId, periodInfo);
+  await clearIncomes(userId);
 
 
   const recurring = await getActiveRecurringExpenses(userId);

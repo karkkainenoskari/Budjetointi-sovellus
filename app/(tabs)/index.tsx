@@ -659,6 +659,9 @@ const handleDeleteCategory = (categoryId: string) => {
         endDate: newPeriodEnd,
         totalAmount: 0,
       });
+       setIncomes([]);
+      setExpensesByCategory({});
+      setTotalExpenses(0);
       let updatedCats = await getCategories(userId);
       if (updatedCats.length === 0) {
         await seedDefaultCategories(userId);
