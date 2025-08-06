@@ -9,21 +9,11 @@ import {
   SafeAreaView,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
-import { signOut } from 'firebase/auth';
-import { auth } from '../src/api/firebaseConfig';
 import { useRouter } from 'expo-router';
 import Colors from '../constants/Colors';
 
 export default function ValikkoScreen() {
   const router = useRouter();
-
-  const handleLogout = async () => {
-    try {
-      await signOut(auth);
-    } catch (err) {
-      console.log('Kirjaudu ulos epäonnistui:', err);
-    }
-  };
 
   return (
     <SafeAreaView style={styles.safeContainer}>
@@ -76,15 +66,6 @@ export default function ValikkoScreen() {
             style={styles.menuIcon}
           />
           <Text style={styles.menuText}>Toistuvat menot</Text>
-        </TouchableOpacity>
-        <TouchableOpacity onPress={handleLogout} style={styles.menuItem}>
-          <Ionicons
-            name="log-out-outline"
-            size={24}
-            color={Colors.evergreen}
-            style={styles.menuIcon}
-          />
-          <Text style={styles.menuText}>Kirjaudu ulos</Text>
         </TouchableOpacity>
       </View>
     </SafeAreaView>
