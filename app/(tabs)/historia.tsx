@@ -55,6 +55,7 @@ export default function HistoriaScreen() {
     const [openIncomes, setOpenIncomes] = useState<boolean>(false);
   const [openExpenses, setOpenExpenses] = useState<boolean>(false);
    const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
+   const [chartMode, setChartMode] = useState<'categories' | 'summary'>('categories');
 
   const toggleCat = (id: string) =>
     setOpenCats((prev) => ({ ...prev, [id]: !prev[id] }));
@@ -245,7 +246,7 @@ export default function HistoriaScreen() {
     ];
     let colorIndex = 0;
     let pie: any[] = [];
-    if (selectedCategory) {
+     if (chartMode === 'categories' && selectedCategory) {
       const subs = data.categories.filter(
         (c) => c.parentId === selectedCategory && !c.title.toLowerCase().includes('yhteensä')
       );
@@ -262,10 +263,26 @@ export default function HistoriaScreen() {
             legendFontSize: 12,
           };
         });
+         } else if (chartMode === 'summary') {
+      pie = [
+        {
+          name: 'Tulot',
+          amount: totalIncome,
+          color: Colors.moss,
+          legendFontColor: Colors.textPrimary,
+          legendFontSize: 12,
+        },
+        {
+          name: 'Menot',
+          amount: totalExpense,
+          color: Colors.evergreen,
+          legendFontColor: Colors.textPrimary,
+          legendFontSize: 12,
+        },
+      ];
     }
     setChartData({ pieData: pie, totals: { income: totalIncome, expense: totalExpense } });
-  }, [selectedMonth, selectedCategory, monthData]);
-
+  }, [selectedMonth, selectedCategory, monthData, chartMode]);
   const changeMonth = (dir: number) => {
     if (!selectedMonth) return;
     if (dir < 0) {
@@ -334,20 +351,29 @@ export default function HistoriaScreen() {
 
               <View style={styles.monthCard}>
                  <Text style={styles.header}>Menot</Text>
-                {monthData[selectedMonth]?.categories.filter((c) => c.parentId === null)
-                  .length > 0 && (
-                  <Picker
-                    selectedValue={selectedCategory}
-                    onValueChange={(v) => setSelectedCategory(v)}
+                <Picker
+                    selectedValue={chartMode}
+                    onValueChange={(v) => setChartMode(v)}
                     style={styles.picker}
                   >
-                    {monthData[selectedMonth]?.categories
-                      .filter((c) => c.parentId === null)
-                      .map((c) => (
-                        <Picker.Item key={c.id} label={c.title} value={c.id} />
-                      ))}
+                     <Picker.Item label="Menot kategorioittain" value="categories" />
+                    <Picker.Item label="Tulot vs. menot" value="summary" />
                   </Picker>
-                )}
+                 {chartMode === 'categories' &&
+                  monthData[selectedMonth]?.categories.filter((c) => c.parentId === null)
+                    .length > 0 && (
+                    <Picker
+                      selectedValue={selectedCategory}
+                      onValueChange={(v) => setSelectedCategory(v)}
+                      style={styles.picker}
+                    >
+                      {monthData[selectedMonth]?.categories
+                        .filter((c) => c.parentId === null)
+                        .map((c) => (
+                          <Picker.Item key={c.id} label={c.title} value={c.id} />
+                        ))}
+                    </Picker>
+                  )}
                 {chartData.pieData.length > 0 ? (
                <PieChart
                     data={chartData.pieData as any}
@@ -361,7 +387,11 @@ export default function HistoriaScreen() {
                     style={{ alignSelf: 'center' }}
                   />
                 ) : (
-                  <Text style={styles.noData}>Ei kuluja valitulle kategorialle</Text>
+                   <Text style={styles.noData}>
+                    {chartMode === 'categories'
+                      ? 'Ei kuluja valitulle kategorialle'
+                      : 'Ei tuloja tai menoja'}
+                  </Text>
                 )}
 
                 <Text style={[styles.header, { marginTop: 20 }]}>Tulot vs. Menot</Text>
