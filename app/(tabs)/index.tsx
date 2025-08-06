@@ -1195,7 +1195,7 @@ const handleDeleteCategory = (categoryId: string) => {
                      unallocatedBudget === 0 && styles.unallocatedZero,
                   ]}
                 >
-                  Budjetoitavaa jäljellä{' '}
+                  Budjetoitavaa yhteensä:{' '}
                   <Text
                     style={[
                       styles.unallocatedValue,
@@ -1217,7 +1217,7 @@ const handleDeleteCategory = (categoryId: string) => {
               )}
               {selectedTab === 'left' && (
                 <Text style={styles.unallocatedText}>
-                    Jäljellä Yhteensä{' '}
+                    Jäljellä yhteensä:{' '}
                     <Text style={styles.unallocatedValue}>{formatCurrency(budgetLeftOverall)} €</Text>
                 </Text>
               )}
@@ -1307,7 +1307,7 @@ const handleDeleteCategory = (categoryId: string) => {
                     </View>
               ) : (
                 <View style={styles.categoryCard}>
-                  <Text style={styles.categoryTitle}>{item.title}</Text>
+                   <Text style={[styles.categoryTitle]}>{item.title}</Text>
                   <View style={styles.categoryRight}>
                     <TouchableOpacity
                        disabled={readOnly}
@@ -1553,6 +1553,7 @@ const styles = StyleSheet.create({
   categoryCard: {
     flexDirection: 'row',
     justifyContent: 'space-between',
+      alignItems: 'center',
     backgroundColor: Colors.cardBackground,
     borderRadius: 12, // aiemmin 8
     padding: 16,      // aiemmin 12
@@ -1583,6 +1584,7 @@ const styles = StyleSheet.create({
     fontWeight: '500',
     color: Colors.textPrimary,
   },
+ 
   iconButtonSmall: {
     marginLeft: 12,
   },
