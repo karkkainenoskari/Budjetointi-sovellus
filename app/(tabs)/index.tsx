@@ -1084,19 +1084,27 @@ const handleDeleteCategory = (categoryId: string) => {
                 </TouchableOpacity>
               </Modal>
             )}
-             <TouchableOpacity
-              style={styles.copyPrevRow}
-              onPress={() =>
-                setCopyPreviousPlanChecked((prev) => !prev)
-              }
-            >
-              <Ionicons
-                name={copyPreviousPlanChecked ? 'checkbox-outline' : 'square-outline'}
-                size={20}
-                color={Colors.textPrimary}
-              />
-              <Text style={styles.copyPrevText}>Kopioi edellisen kuukauden suunnitelma</Text>
-            </TouchableOpacity>
+            {availablePeriods.length > 0 && (
+              <TouchableOpacity
+                style={styles.copyPrevRow}
+                onPress={() =>
+                  setCopyPreviousPlanChecked((prev) => !prev)
+                }
+              >
+                <Ionicons
+                  name={
+                    copyPreviousPlanChecked
+                      ? 'checkbox-outline'
+                      : 'square-outline'
+                  }
+                  size={20}
+                  color={Colors.textPrimary}
+                />
+                <Text style={styles.copyPrevText}>
+                  Kopioi edellisen kuukauden suunnitelma
+                </Text>
+              </TouchableOpacity>
+            )}
             <View style={styles.modalButtons}>
               <TouchableOpacity
                 onPress={() => setShowNewPeriodModal(false)}
