@@ -1005,7 +1005,6 @@ const handleDeleteCategory = (categoryId: string) => {
              onChange={(event, date) => {
                 if (date) {
                   setPeriodPickerDate(date);
-                  handleSelectPeriod(getPeriodId(date));
                 } else if (event.nativeEvent.timestamp) {
                   setPeriodPickerDate(new Date(event.nativeEvent.timestamp));
                 }
@@ -1017,7 +1016,6 @@ const handleDeleteCategory = (categoryId: string) => {
               style={styles.modalButton}
             >
               <Text style={styles.modalButtonText}>Sulje</Text>
-              <Text style={styles.modalButtonText}>Valitse</Text>
             </TouchableOpacity>
           </View>
         </View>
