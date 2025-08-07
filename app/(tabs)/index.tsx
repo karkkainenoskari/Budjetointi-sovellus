@@ -122,7 +122,8 @@ export default function BudjettiScreen() {
         onChange: (_, d) => {
           if (d) setNewPeriodStart(d);
         },
-      });
+        locale: 'fi-FI',
+       } as any);
     } else {
       setShowStartPicker(true);
     }
@@ -137,7 +138,8 @@ export default function BudjettiScreen() {
         onChange: (_, d) => {
           if (d) setNewPeriodEnd(d);
         },
-      });
+        locale: 'fi-FI',
+       } as any);
     } else {
       setShowEndPicker(true);
     }
@@ -147,6 +149,18 @@ export default function BudjettiScreen() {
   const [viewPeriodId, setViewPeriodId] = useState<string | null>(null);
   const [showPeriodModal, setShowPeriodModal] = useState<boolean>(false);
   const [currentPeriodId, setCurrentPeriodId] = useState<string>('');
+  const [periodPickerDate, setPeriodPickerDate] = useState(new Date());
+ const [periodHasBudget, setPeriodHasBudget] = useState(false);
+
+  const getPeriodId = (d: Date) =>
+    `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`;
+
+ 
+  useEffect(() => {
+    setPeriodHasBudget(
+      availablePeriods.includes(getPeriodId(periodPickerDate))
+    );
+  }, [periodPickerDate, availablePeriods]);
 
   const loadCurrentPeriod = async (active: { current: boolean }) => {
     if (!userId) return;
@@ -974,23 +988,36 @@ const handleDeleteCategory = (categoryId: string) => {
         <View style={styles.modalOverlay}>
           <View style={styles.modalContainer}>
             <Text style={styles.modalTitle}>Valitse jakso</Text>
-            <FlatList
-              data={availablePeriods}
-              keyExtractor={(item) => item}
-              renderItem={({ item }) => (
-                <TouchableOpacity
-                  onPress={() => handleSelectPeriod(item)}
-                  style={styles.periodItem}
-                >
-                  <Text style={styles.periodItemText}>{formatMonthRange(item)}</Text>
-                </TouchableOpacity>
-              )}
+               <Text
+              style={[
+                styles.periodInfo,
+                periodHasBudget ? styles.periodExists : styles.periodMissing,
+              ]}
+            >
+              {periodHasBudget
+                ? 'Budjettijakso luotu tälle kuukaudelle'
+                : 'Budjettijaksoa ei luotu tälle kaudelle'}
+            </Text>
+           <DateTimePicker
+              value={periodPickerDate}
+              mode="date"
+              display={Platform.OS === 'ios' ? 'inline' : 'calendar'}
+             onChange={(event, date) => {
+                if (date) {
+                  setPeriodPickerDate(date);
+                  handleSelectPeriod(getPeriodId(date));
+                } else if (event.nativeEvent.timestamp) {
+                  setPeriodPickerDate(new Date(event.nativeEvent.timestamp));
+                }
+              }}
+              locale="fi-FI"
             />
             <TouchableOpacity
-              onPress={() => setShowPeriodModal(false)}
+              onPress={() => handleSelectPeriod(getPeriodId(periodPickerDate))}
               style={styles.modalButton}
             >
               <Text style={styles.modalButtonText}>Sulje</Text>
+              <Text style={styles.modalButtonText}>Valitse</Text>
             </TouchableOpacity>
           </View>
         </View>
@@ -1035,12 +1062,12 @@ const handleDeleteCategory = (categoryId: string) => {
                         value={newPeriodStart}
                         mode="date"
                         display={Platform.OS === 'ios' ? 'inline' : 'default'}
-                        locale="fi-FI"
                         style={Platform.OS === 'ios' ? styles.inlinePicker : undefined}
                         onChange={(_, d) => {
                           setShowStartPicker(false);
                           if (d) setNewPeriodStart(d);
                         }}
+                        locale="fi-FI"
                       />
                     </View>
                   </TouchableWithoutFeedback>
@@ -1075,12 +1102,12 @@ const handleDeleteCategory = (categoryId: string) => {
                         value={newPeriodEnd}
                         mode="date"
                         display={Platform.OS === 'ios' ? 'inline' : 'default'}
-                        locale="fi-FI"
                         style={Platform.OS === 'ios' ? styles.inlinePicker : undefined}
                         onChange={(_, d) => {
                           setShowEndPicker(false);
                           if (d) setNewPeriodEnd(d);
                         }}
+                        locale="fi-FI"
                       />
                     </View>
                   </TouchableWithoutFeedback>
@@ -1729,6 +1756,16 @@ const styles = StyleSheet.create({
     color: Colors.textPrimary,
     marginBottom: 12,
   },
+   periodInfo: {
+    marginBottom: 12,
+    fontSize: 14,
+  },
+  periodExists: {
+    color: Colors.moss,
+  },
+  periodMissing: {
+    color: Colors.danger,
+  },
 
   label: {
     fontSize: 16,
@@ -1818,11 +1855,5 @@ const styles = StyleSheet.create({
     fontWeight: '600',
     textAlign: 'center',
   },
-  periodItem: {
-    paddingVertical: 8,
-  },
-  periodItemText: {
-    fontSize: 16,
-    color: Colors.textPrimary,
-  },
+  
 });
