@@ -155,7 +155,16 @@ export default function BudjettiScreen() {
   const getPeriodId = (d: Date) =>
     `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`;
 
- 
+    const changePeriodMonth = (offset: number) => {
+    setPeriodPickerDate(prev => {
+      const d = new Date(prev);
+      d.setDate(1);
+      d.setMonth(d.getMonth() + offset);
+       setPeriodHasBudget(availablePeriods.includes(getPeriodId(d)));
+      return d;
+    });
+  };
+
   useEffect(() => {
     setPeriodHasBudget(
       availablePeriods.includes(getPeriodId(periodPickerDate))
@@ -998,19 +1007,36 @@ const handleDeleteCategory = (categoryId: string) => {
                 ? 'Budjettijakso luotu tälle kuukaudelle'
                 : 'Budjettijaksoa ei luotu tälle kaudelle'}
             </Text>
-           <DateTimePicker
+             <View style={styles.periodPickerWrapper}>
+            <DateTimePicker
               value={periodPickerDate}
               mode="date"
               display={Platform.OS === 'ios' ? 'inline' : 'calendar'}
-             onChange={(event, date) => {
+              onChange={(event, date) => {
                 if (date) {
-                  setPeriodPickerDate(date);
-                } else if (event.nativeEvent.timestamp) {
+                 // Clone date to ensure state updates when navigating months
+                  setPeriodPickerDate(new Date(date));
+                } else if (event.nativeEvent?.timestamp) {
                   setPeriodPickerDate(new Date(event.nativeEvent.timestamp));
                 }
               }}
               locale="fi-FI"
             />
+              {Platform.OS === 'ios' && (
+              <>
+                <TouchableOpacity
+                  activeOpacity={1}
+                  style={[styles.monthNavOverlay, styles.monthNavPrev]}
+                  onPress={() => changePeriodMonth(-1)}
+                />
+                <TouchableOpacity
+                  activeOpacity={1}
+                  style={[styles.monthNavOverlay, styles.monthNavNext]}
+                  onPress={() => changePeriodMonth(1)}
+                />
+              </>
+            )}
+          </View>
             <TouchableOpacity
               onPress={() => handleSelectPeriod(getPeriodId(periodPickerDate))}
               style={styles.modalButton}
@@ -1742,7 +1768,8 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   modalContainer: {
-    width: '80%',
+     width: '90%',
+    maxWidth: 420,
     backgroundColor: Colors.background,
     padding: 20,
     borderRadius: 8,
@@ -1763,6 +1790,24 @@ const styles = StyleSheet.create({
   },
   periodMissing: {
     color: Colors.danger,
+  },
+  periodPickerWrapper: {
+    position: 'relative',
+    alignSelf: 'stretch',
+    alignItems: 'center',
+  },
+  monthNavOverlay: {
+    position: 'absolute',
+    top: 0,
+    bottom: 0,
+    width: 40,
+    zIndex: 1,
+  },
+  monthNavPrev: {
+    left: 0,
+  },
+  monthNavNext: {
+    right: 0,
   },
 
   label: {
