@@ -157,10 +157,8 @@ export default function BudjettiScreen() {
 
     const changePeriodMonth = (offset: number) => {
     setPeriodPickerDate(prev => {
-      const d = new Date(prev);
-      d.setDate(1);
-      d.setMonth(d.getMonth() + offset);
-       setPeriodHasBudget(availablePeriods.includes(getPeriodId(d)));
+      const d = new Date(prev.getFullYear(), prev.getMonth() + offset, 1);
+      setPeriodHasBudget(availablePeriods.includes(getPeriodId(d)));
       return d;
     });
   };
@@ -1013,11 +1011,16 @@ const handleDeleteCategory = (categoryId: string) => {
               mode="date"
               display={Platform.OS === 'ios' ? 'inline' : 'calendar'}
               onChange={(event, date) => {
-                if (date) {
-                 // Clone date to ensure state updates when navigating months
-                  setPeriodPickerDate(new Date(date));
-                } else if (event.nativeEvent?.timestamp) {
-                  setPeriodPickerDate(new Date(event.nativeEvent.timestamp));
+                 const selected = date
+                  ? new Date(date)
+                  : event.nativeEvent?.timestamp
+                  ? new Date(event.nativeEvent.timestamp)
+                  : null;
+                if (selected) {
+                  // Clone date to ensure state updates when navigating months
+                  const d = new Date(selected);
+                  setPeriodPickerDate(d);
+                  setPeriodHasBudget(availablePeriods.includes(getPeriodId(d)));
                 }
               }}
               locale="fi-FI"
