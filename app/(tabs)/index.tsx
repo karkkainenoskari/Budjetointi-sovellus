@@ -1025,20 +1025,18 @@ const handleDeleteCategory = (categoryId: string) => {
               }}
               locale="fi-FI"
             />
-              {Platform.OS === 'ios' && (
-              <>
-                <TouchableOpacity
-                  activeOpacity={1}
-                  style={[styles.monthNavOverlay, styles.monthNavPrev]}
-                  onPress={() => changePeriodMonth(-1)}
-                />
-                <TouchableOpacity
-                  activeOpacity={1}
-                  style={[styles.monthNavOverlay, styles.monthNavNext]}
-                  onPress={() => changePeriodMonth(1)}
-                />
-              </>
-            )}
+               <TouchableOpacity
+                style={[styles.monthNavOverlay, styles.monthNavPrev]}
+                onPress={() => changePeriodMonth(-1)}
+              >
+                <Ionicons name="chevron-back" size={24} color={Colors.textPrimary} />
+              </TouchableOpacity>
+              <TouchableOpacity
+                style={[styles.monthNavOverlay, styles.monthNavNext]}
+                onPress={() => changePeriodMonth(1)}
+              >
+                <Ionicons name="chevron-forward" size={24} color={Colors.textPrimary} />
+              </TouchableOpacity>
           </View>
             <TouchableOpacity
               onPress={() => handleSelectPeriod(getPeriodId(periodPickerDate))}
@@ -1804,6 +1802,8 @@ const styles = StyleSheet.create({
     top: 0,
     bottom: 0,
     width: 40,
+    justifyContent: 'center',
+    alignItems: 'center',
     zIndex: 1,
   },
   monthNavPrev: {
