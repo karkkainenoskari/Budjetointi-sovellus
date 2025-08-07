@@ -1769,7 +1769,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   modalContainer: {
-     width: '90%',
+     width: '95%',
     maxWidth: 420,
     backgroundColor: Colors.background,
     padding: 20,
