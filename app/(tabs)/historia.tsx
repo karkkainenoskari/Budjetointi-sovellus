@@ -60,10 +60,11 @@ export default function HistoriaScreen() {
   const toggleCat = (id: string) =>
     setOpenCats((prev) => ({ ...prev, [id]: !prev[id] }));
 
-   const loadMonths = async (active: { current: boolean }) => {
-    if (!userId) return;
-    setLoadingMonths(true);
-     try {
+   const loadMonths = React.useCallback(
+    async (active: { current: boolean }) => {
+      if (!userId) return;
+      setLoadingMonths(true);
+      try {
       const [m, curr] = await Promise.all([
         getHistoryMonths(userId),
         getCurrentBudgetPeriod(userId),
@@ -88,9 +89,11 @@ export default function HistoriaScreen() {
     } catch (e) {
       if (active.current) console.error('getHistoryMonths error:', e);
     } finally {
-      if (active.current) setLoadingMonths(false);
-    }
-  };
+        if (active.current) setLoadingMonths(false);
+      }
+    },
+    [userId]
+  );
 
   useEffect(() => {
     const active = { current: true };
@@ -98,7 +101,7 @@ export default function HistoriaScreen() {
     return () => {
       active.current = false;
     };
-  }, [userId]);
+ }, [loadMonths]);
 
   useFocusEffect(
     React.useCallback(() => {
@@ -107,71 +110,74 @@ export default function HistoriaScreen() {
       return () => {
         active.current = false;
       };
-    }, [userId])
+     }, [loadMonths])
   );
 
-  const loadMonthData = async (m: string) => {
-    if (!userId) return;
+   const loadMonthData = React.useCallback(
+    async (m: string) => {
+      if (!userId) return;
 
-     setMonthData((prev) => ({
-      ...prev,
-      [m]: {
-        ...(prev[m] || { expenses: {}, incomes: [] }),
-        loading: true,
-        categories: [],
-      },
-    }));
-    try {
-       const [cats, period] = await Promise.all([
-  m === currentPeriodId
-    ? getCategories(userId)
-    : getHistoryCategories(userId, m),
-  getBudgetPeriodFromHistory(userId, m),
-]);
-
-      const hasPeriod = !!period || m === currentPeriodId;
-      setMonthHasPeriod((prev) => ({ ...prev, [m]: hasPeriod }));
-
-         setMonthData((prev) => ({
+      setMonthData((prev) => ({
         ...prev,
         [m]: {
           ...(prev[m] || { expenses: {}, incomes: [] }),
-          loading: false,
-          categories: cats,
+       loading: true,
+          categories: [],
         },
       }));
-       if (selectedMonth === m) {
+      try {
+        const [cats, period] = await Promise.all([
+          m === currentPeriodId
+            ? getCategories(userId)
+            : getHistoryCategories(userId, m),
+          getBudgetPeriodFromHistory(userId, m),
+        ]);
+
+        const hasPeriod = !!period || m === currentPeriodId;
+        setMonthHasPeriod((prev) => ({ ...prev, [m]: hasPeriod }));
+
+        setMonthData((prev) => ({
+          ...prev,
+          [m]: {
+            ...(prev[m] || { expenses: {}, incomes: [] }),
+            loading: false,
+            categories: cats,
+          },
+        }));
+        if (selectedMonth === m) {
           const mainCats = cats.filter((c) => c.parentId === null && c.type === 'main');
         setSelectedCategory((prev) =>
-          prev && mainCats.some((c) => c.id === prev) ? prev : mainCats[0]?.id || null
-        );
+            prev && mainCats.some((c) => c.id === prev) ? prev : mainCats[0]?.id || null
+          );
+        }
+      } catch (e) {
+        console.error('loadMonthData error:', e);
+        setMonthData((prev) => ({
+          ...prev,
+          [m]: { loading: false, categories: [], expenses: {}, incomes: [] },
+        }));
+        setMonthHasPeriod((prev) => ({ ...prev, [m]: m === currentPeriodId }));
+        if (selectedMonth === m) {
+          setChartData({ pieData: [], totals: { income: 0, expense: 0 } });
+          setSelectedCategory(null);
+        }
       }
-    } catch (e) {
-      console.error('loadMonthData error:', e);
-      setMonthData((prev) => ({
-        ...prev,
-        [m]: { loading: false, categories: [], expenses: {}, incomes: [] },
-      }));
-      setMonthHasPeriod((prev) => ({ ...prev, [m]: m === currentPeriodId }));
-      if (selectedMonth === m) {
-        setChartData({ pieData: [], totals: { income: 0, expense: 0 } });
-        setSelectedCategory(null);
-      }
-    }
-  };
+   },
+    [userId, currentPeriodId, selectedMonth]
+  );
 
   useEffect(() => {
     if (selectedMonth) {
       loadMonthData(selectedMonth);
     }
-  }, [selectedMonth, userId]);
+  }, [selectedMonth, loadMonthData]);
 
    useFocusEffect(
     React.useCallback(() => {
       if (selectedMonth) {
         loadMonthData(selectedMonth);
       }
-    }, [selectedMonth, userId])
+    }, [selectedMonth, loadMonthData])
   );
 
    useEffect(() => {
