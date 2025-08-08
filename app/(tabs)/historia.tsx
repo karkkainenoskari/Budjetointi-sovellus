@@ -9,7 +9,8 @@ import {
   ScrollView,
   Dimensions,
 } from 'react-native';
-import { PieChart, BarChart } from 'react-native-chart-kit';
+import DonutChart from '../../components/DonutChart';
+import ComparisonBars from '../../components/ComparisonBars';
 import { Picker } from '@react-native-picker/picker';
 import { Ionicons } from '@expo/vector-icons';
 import { useFocusEffect } from '@react-navigation/native';
@@ -299,14 +300,7 @@ export default function HistoriaScreen() {
   }
 
   const screenWidth = Dimensions.get('window').width - 32;
-  const chartConfig = {
-    backgroundColor: Colors.background,
-    backgroundGradientFrom: Colors.background,
-    backgroundGradientTo: Colors.background,
-    color: () => Colors.moss,
-    labelColor: () => Colors.textPrimary,
-    decimalPlaces: 2,
-  } as const;
+
   return (
     <SafeAreaView style={styles.safeContainer}>
       <View style={styles.monthNav}>
@@ -353,38 +347,20 @@ export default function HistoriaScreen() {
                   </Picker>
                 )}
                 {chartData.pieData.length > 0 ? (
-              <PieChart
-                    data={chartData.pieData as any}
+               <DonutChart
+                    data={chartData.pieData.map(p => ({ label: p.name, value: p.amount, color: p.color }))}
                     width={screenWidth}
-                    height={220}
-                    accessor="amount"
-                    chartConfig={chartConfig}
-                    paddingLeft="0"
-                    absolute
-                    backgroundColor="transparent"
-                    style={{ alignSelf: 'center' }}
+                    
                   />
                 ) : (
-                   <Text style={styles.noData}>Ei kuluja valitulle kategorialle</Text>
+                    <Text style={styles.noData}>Ei kuluja valitulle kategorialle</Text>
                 )}
 
                 <Text style={[styles.header, { marginTop: 20 }]}>Tulot vs. Menot</Text>
-                <BarChart
-                  data={{
-                    labels: ['Tulot', 'Menot'],
-                    datasets: [
-                      {
-                        data: [chartData.totals.income, chartData.totals.expense],
-                      },
-                    ],
-                  }}
+               < ComparisonBars
+                  income={chartData.totals.income}
+                  expense={chartData.totals.expense}
                   width={screenWidth}
-                  height={200}
-                  chartConfig={chartConfig}
-                   fromZero
-                  style={{ alignSelf: 'center' }}
-                  yAxisLabel={''}
-                  yAxisSuffix={''}
                 />
              
 

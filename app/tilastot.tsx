@@ -7,7 +7,8 @@ import {
   ActivityIndicator,
   ScrollView,
 } from 'react-native';
-import { PieChart, BarChart } from 'react-native-chart-kit';
+import DonutChart from '../components/DonutChart';
+import ComparisonBars from '../components/ComparisonBars';
 import { collection, onSnapshot, query, where } from 'firebase/firestore';
 import { auth, firestore } from '../src/api/firebaseConfig';
 import { getCurrentBudgetPeriod } from '../src/services/budget';
@@ -124,46 +125,26 @@ export default function TilastotScreen() {
   }
 
   const screenWidth = Dimensions.get('window').width - 32;
-  const chartConfig = {
-    backgroundColor: Colors.background,
-    backgroundGradientFrom: Colors.background,
-    backgroundGradientTo: Colors.background,
-    color: () => Colors.moss,
-    labelColor: () => Colors.textPrimary,
-    decimalPlaces: 2,
-    barPercentage: 0.5,
-  } as const;
+ 
 
   return (
     <ScrollView style={styles.container} contentContainerStyle={{ paddingBottom: 24 }}>
       <Text style={styles.header}>Menot kategorioittain</Text>
       {pieData.length > 0 ? (
-        <PieChart
-                   data={pieData as any}
+       <DonutChart
+          data={pieData.map(p => ({ label: p.name, value: p.amount, color: p.color }))}
           width={screenWidth}
-          height={220}
-          accessor="amount"
-          chartConfig={chartConfig}
-          paddingLeft="0"
-          absolute
-          backgroundColor="transparent"
-          style={{ alignSelf: 'center' }}
         />
       ) : (
         <Text style={styles.noData}>Ei kuluja tältä jaksolta</Text>
       )}
 
       <Text style={[styles.header, { marginTop: 24 }]}>Tulot vs. Menot</Text>
-      <BarChart
-              data={{
-                  labels: ['Tulot', 'Menot'],
-                  datasets: [{ data: [totals.income, totals.expense] }],
-              }}
-              width={screenWidth}
-              height={220}
-              chartConfig={chartConfig}
-              fromZero
-              style={{ alignSelf: 'center' }} yAxisLabel={''} yAxisSuffix={''}      />
+      <ComparisonBars
+        income={totals.income}
+        expense={totals.expense}
+        width={screenWidth}
+      />
     </ScrollView>
   );
 }
