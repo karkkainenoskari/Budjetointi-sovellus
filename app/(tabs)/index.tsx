@@ -152,16 +152,11 @@ export default function BudjettiScreen() {
   const [periodPickerDate, setPeriodPickerDate] = useState(new Date());
  const [periodHasBudget, setPeriodHasBudget] = useState(false);
 
+
   const getPeriodId = (d: Date) =>
     `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`;
 
-    const changePeriodMonth = (offset: number) => {
-    setPeriodPickerDate(prev => {
-      const d = new Date(prev.getFullYear(), prev.getMonth() + offset, 1);
-      setPeriodHasBudget(availablePeriods.includes(getPeriodId(d)));
-      return d;
-    });
-  };
+
 
   useEffect(() => {
     setPeriodHasBudget(
@@ -1005,39 +1000,27 @@ const handleDeleteCategory = (categoryId: string) => {
                 ? 'Budjettijakso luotu tälle kuukaudelle'
                 : 'Budjettijaksoa ei luotu tälle kaudelle'}
             </Text>
-             <View style={styles.periodPickerWrapper}>
-            <DateTimePicker
-              value={periodPickerDate}
-              mode="date"
-              display={Platform.OS === 'ios' ? 'inline' : 'calendar'}
-              onChange={(event, date) => {
-                 const selected = date
-                  ? new Date(date)
-                  : event.nativeEvent?.timestamp
-                  ? new Date(event.nativeEvent.timestamp)
-                  : null;
-                if (selected) {
-                  // Clone date to ensure state updates when navigating months
-                  const d = new Date(selected);
-                  setPeriodPickerDate(d);
-                  setPeriodHasBudget(availablePeriods.includes(getPeriodId(d)));
-                }
-              }}
-              locale="fi-FI"
-            />
-               <TouchableOpacity
-                style={[styles.monthNavOverlay, styles.monthNavPrev]}
-                onPress={() => changePeriodMonth(-1)}
-              >
-                <Ionicons name="chevron-back" size={24} color={Colors.textPrimary} />
-              </TouchableOpacity>
-              <TouchableOpacity
-                style={[styles.monthNavOverlay, styles.monthNavNext]}
-                onPress={() => changePeriodMonth(1)}
-              >
-                <Ionicons name="chevron-forward" size={24} color={Colors.textPrimary} />
-              </TouchableOpacity>
-          </View>
+              <View style={styles.periodPickerWrapper}>
+              <DateTimePicker
+                value={periodPickerDate}
+                mode="date"
+                display={Platform.OS === 'ios' ? 'inline' : 'calendar'}
+                onChange={(event, date) => {
+                  const selected = date
+                    ? new Date(date)
+                    : event.nativeEvent?.timestamp
+                      ? new Date(event.nativeEvent.timestamp)
+                      : null;
+                  if (selected) {
+                    // Clone date to ensure state updates when navigating months
+                    const d = new Date(selected);
+                    setPeriodPickerDate(d);
+                    setPeriodHasBudget(availablePeriods.includes(getPeriodId(d)));
+                  }
+                }}
+                locale="fi-FI"
+              />
+            </View>
             <TouchableOpacity
               onPress={() => handleSelectPeriod(getPeriodId(periodPickerDate))}
               style={styles.modalButton}
@@ -1797,22 +1780,7 @@ const styles = StyleSheet.create({
     alignSelf: 'stretch',
     alignItems: 'center',
   },
-  monthNavOverlay: {
-    position: 'absolute',
-    top: 0,
-    bottom: 0,
-    width: 40,
-    justifyContent: 'center',
-    alignItems: 'center',
-    zIndex: 1,
-  },
-  monthNavPrev: {
-    left: 0,
-  },
-  monthNavNext: {
-    right: 0,
-  },
-
+  
   label: {
     fontSize: 16,
     fontWeight: '500',
