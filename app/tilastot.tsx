@@ -9,6 +9,7 @@ import {
 } from 'react-native';
 import DonutChart from '../components/DonutChart';
 import ComparisonBars from '../components/ComparisonBars';
+import SummaryCards from '../components/SummaryCards';
 import { collection, onSnapshot, query, where } from 'firebase/firestore';
 import { auth, firestore } from '../src/api/firebaseConfig';
 import { getCurrentBudgetPeriod } from '../src/services/budget';
@@ -129,6 +130,7 @@ export default function TilastotScreen() {
 
   return (
     <ScrollView style={styles.container} contentContainerStyle={{ paddingBottom: 24 }}>
+       <SummaryCards income={totals.income} expense={totals.expense} />
       <Text style={styles.header}>Menot kategorioittain</Text>
       {pieData.length > 0 ? (
        <DonutChart
