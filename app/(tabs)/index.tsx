@@ -150,19 +150,10 @@ export default function BudjettiScreen() {
   const [showPeriodModal, setShowPeriodModal] = useState<boolean>(false);
   const [currentPeriodId, setCurrentPeriodId] = useState<string>('');
   const [periodPickerDate, setPeriodPickerDate] = useState(new Date());
- const [periodHasBudget, setPeriodHasBudget] = useState(false);
 
 
   const getPeriodId = (d: Date) =>
     `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`;
-
-
-
-  useEffect(() => {
-    setPeriodHasBudget(
-      availablePeriods.includes(getPeriodId(periodPickerDate))
-    );
-  }, [periodPickerDate, availablePeriods]);
 
   const loadCurrentPeriod = async (active: { current: boolean }) => {
     if (!userId) return;
@@ -999,17 +990,7 @@ const handleDeleteCategory = (categoryId: string) => {
         <View style={styles.modalOverlay}>
           <View style={styles.modalContainer}>
             <Text style={styles.modalTitle}>Valitse jakso</Text>
-               <Text
-              style={[
-                styles.periodInfo,
-                periodHasBudget ? styles.periodExists : styles.periodMissing,
-              ]}
-            >
-              {periodHasBudget
-                ? 'Budjettijakso luotu tälle kuukaudelle'
-                : 'Budjettijaksoa ei luotu tälle kaudelle'}
-            </Text>
-              <View style={styles.periodPickerWrapper}>
+               <View style={styles.periodPickerWrapper}>
               <DateTimePicker
                 value={periodPickerDate}
                 mode="date"
@@ -1024,18 +1005,25 @@ const handleDeleteCategory = (categoryId: string) => {
                     // Clone date to ensure state updates when navigating months
                     const d = new Date(selected);
                     setPeriodPickerDate(d);
-                    setPeriodHasBudget(availablePeriods.includes(getPeriodId(d)));
                   }
                 }}
                 locale="fi-FI"
               />
             </View>
-            <TouchableOpacity
-              onPress={() => handleSelectPeriod(getPeriodId(periodPickerDate))}
-              style={styles.modalButton}
-            >
-              <Text style={styles.modalButtonText}>Sulje</Text>
-            </TouchableOpacity>
+           <View style={styles.modalButtons}>
+              <TouchableOpacity
+                onPress={() => setShowPeriodModal(false)}
+                style={styles.modalButton}
+              >
+                <Text style={styles.modalButtonText}>Sulje</Text>
+              </TouchableOpacity>
+              <TouchableOpacity
+                onPress={() => handleSelectPeriod(getPeriodId(periodPickerDate))}
+                style={styles.modalButton}
+              >
+                <Text style={styles.modalButtonText}>Valitse</Text>
+              </TouchableOpacity>
+            </View>
           </View>
         </View>
       </Modal>
@@ -1786,16 +1774,7 @@ const styles = StyleSheet.create({
     fontWeight: '600',
     color: Colors.textPrimary,
     marginBottom: 12,
-  },
-   periodInfo: {
-    marginBottom: 12,
-    fontSize: 14,
-  },
-  periodExists: {
-    color: Colors.moss,
-  },
-  periodMissing: {
-    color: Colors.danger,
+
   },
   periodPickerWrapper: {
     position: 'relative',
