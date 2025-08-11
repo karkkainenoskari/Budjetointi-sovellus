@@ -55,7 +55,7 @@ const styles = StyleSheet.create({
   },
   value: {
     color: Colors.background,
-    fontSize: 18,
+    fontSize: 10,
     fontWeight: '700',
     marginTop: 4,
   },

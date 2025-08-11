@@ -883,7 +883,7 @@ const handleDeleteCategory = (categoryId: string) => {
           )}
 
 
-          {subCategories.map((sub) => {
+          {subCategories.map((sub, index) => {
             const subSpent = expensesByCategory[sub.id] || 0;
             const subLeft = sub.allocated - subSpent;
             let subValue: number;
@@ -939,7 +939,11 @@ const handleDeleteCategory = (categoryId: string) => {
             ) : (
               <View
                 key={sub.id}
-                style={[styles.subCategoryRow, isTotalRow && styles.subCategoryTotalRow]}
+                 style={[
+                  styles.subCategoryRow,
+                  index === 0 && styles.firstSubCategoryRow,
+                  isTotalRow && styles.subCategoryTotalRow,
+                ]}
               >
                {isTotalRow ? (
                   <View style={styles.categoryField}>
@@ -1775,6 +1779,9 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     paddingLeft: 12,
     marginTop: 4,
+  },
+   firstSubCategoryRow: {
+    marginTop: 12,
   },
   subCategoryTotalRow: {
     marginTop: 8,
