@@ -155,6 +155,56 @@ export default function BudjettiScreen() {
   const getPeriodId = (d: Date) =>
     `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`;
 
+  const periodExists = availablePeriods.includes(getPeriodId(periodPickerDate));
+
+    const changePeriodMonth = (offset: number) => {
+    setPeriodPickerDate((prev) => {
+      const d = new Date(prev);
+      d.setMonth(d.getMonth() + offset, 1);
+      return d;
+    });
+  };
+ const renderCalendar = () => {
+    const year = periodPickerDate.getFullYear();
+    const month = periodPickerDate.getMonth();
+    const daysInMonth = new Date(year, month + 1, 0).getDate();
+    const firstWeekDay = (new Date(year, month, 1).getDay() + 6) % 7; // Monday start
+
+    const cells = [];
+    for (let i = 0; i < firstWeekDay; i++) {
+      cells.push(<View key={`b-${i}`} style={styles.calendarDay} />);
+    }
+    for (let d = 1; d <= daysInMonth; d++) {
+      const selected = d === periodPickerDate.getDate();
+      cells.push(
+        <TouchableOpacity
+          key={`d-${d}`}
+          style={[styles.calendarDay, selected && styles.calendarDaySelected]}
+          onPress={() => setPeriodPickerDate(new Date(year, month, d))}
+        >
+          <Text
+            style={[styles.calendarDayText, selected && styles.calendarDayTextSelected]}
+          >
+            {d}
+          </Text>
+        </TouchableOpacity>
+      );
+    }
+
+    return (
+      <View style={styles.calendar}>
+        <View style={styles.weekRow}>
+          {['Ma', 'Ti', 'Ke', 'To', 'Pe', 'La', 'Su'].map((w) => (
+            <Text key={w} style={styles.weekDayText}>
+              {w}
+            </Text>
+          ))}
+        </View>
+        <View style={styles.calendarGrid}>{cells}</View>
+      </View>
+    );
+  };
+
   const loadCurrentPeriod = async (active: { current: boolean }) => {
     if (!userId) return;
     try {
@@ -990,25 +1040,41 @@ const handleDeleteCategory = (categoryId: string) => {
         <View style={styles.modalOverlay}>
           <View style={styles.modalContainer}>
             <Text style={styles.modalTitle}>Valitse jakso</Text>
+             {!periodExists && (
+              <Text style={styles.calendarNoPeriodText}>
+                budjettijaksoa ei luotu tälle kuukaudelle
+              </Text>
+            )}
                <View style={styles.periodPickerWrapper}>
-              <DateTimePicker
-                value={periodPickerDate}
-                mode="date"
-                display={Platform.OS === 'ios' ? 'inline' : 'calendar'}
-                onChange={(event, date) => {
-                  const selected = date
-                    ? new Date(date)
-                    : event.nativeEvent?.timestamp
-                      ? new Date(event.nativeEvent.timestamp)
-                      : null;
-                  if (selected) {
-                    // Clone date to ensure state updates when navigating months
-                    const d = new Date(selected);
-                    setPeriodPickerDate(d);
-                  }
-                }}
-                locale="fi-FI"
-              />
+             <View style={styles.calendarHeader}>
+                <TouchableOpacity
+                  onPress={() => changePeriodMonth(-1)}
+                  style={styles.calendarNavButton}
+                >
+                  <Ionicons
+                    name="chevron-back"
+                    size={20}
+                    color={Colors.textPrimary}
+                  />
+                </TouchableOpacity>
+                <Text style={styles.calendarHeaderText}>
+                  {periodPickerDate.toLocaleDateString('fi-FI', {
+                    month: 'long',
+                    year: 'numeric',
+                  })}
+                </Text>
+                <TouchableOpacity
+                  onPress={() => changePeriodMonth(1)}
+                  style={styles.calendarNavButton}
+                >
+                  <Ionicons
+                    name="chevron-forward"
+                    size={20}
+                    color={Colors.textPrimary}
+                  />
+                </TouchableOpacity>
+              </View>
+                {renderCalendar()}
             </View>
            <View style={styles.modalButtons}>
               <TouchableOpacity
@@ -1780,6 +1846,66 @@ const styles = StyleSheet.create({
     position: 'relative',
     alignSelf: 'stretch',
     alignItems: 'center',
+  },
+  calendarHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    width: '100%',
+    marginBottom: 8,
+    paddingHorizontal: 16,
+  },
+  calendarHeaderText: {
+    fontSize: 16,
+    fontWeight: '500',
+    color: Colors.textPrimary,
+  },
+  calendarNavButton: {
+    padding: 4,
+  },
+    calendarNoPeriodText: {
+    color: Colors.danger,
+    marginBottom: 8,
+    textAlign: 'center',
+  },
+   calendar: {
+    width: '100%',
+  },
+  weekRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    width: '100%',
+    paddingHorizontal: 16,
+    marginBottom: 4,
+  },
+  weekDayText: {
+    width: '14.2857%',
+    textAlign: 'center',
+    fontWeight: '500',
+    color: Colors.textPrimary,
+  },
+  calendarGrid: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    width: '100%',
+    paddingHorizontal: 16,
+  },
+  calendarDay: {
+    width: '14.2857%',
+    aspectRatio: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginBottom: 4,
+  },
+  calendarDayText: {
+    color: Colors.textPrimary,
+  },
+  calendarDaySelected: {
+    backgroundColor: Colors.moss,
+    borderRadius: 16,
+  },
+  calendarDayTextSelected: {
+    color: Colors.buttonPrimaryText,
   },
   
   label: {
