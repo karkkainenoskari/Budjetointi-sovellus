@@ -4,7 +4,7 @@
     "slug": "budjettikoutsi",
     "version": "1.0.0",
     "orientation": "portrait",
-    "icon": "./assets/images/budjettikoutsi_logo.png",
+  "icon": "./assets/images/icon.png",
     "scheme": "budjettikoutsi",
     "userInterfaceStyle": "automatic",
     "newArchEnabled": true,
@@ -13,7 +13,7 @@
     },
     "android": {
       "adaptiveIcon": {
-        "foregroundImage": "./assets/images/budjettikoutsi_logo.png",
+         "foregroundImage": "./assets/images/icon.png",
         "backgroundColor": "#ffffff"
       },
       "edgeToEdgeEnabled": true

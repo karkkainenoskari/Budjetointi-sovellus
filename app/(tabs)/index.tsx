@@ -787,7 +787,16 @@ const handleDeleteCategory = (categoryId: string) => {
                      onPress={() => toggleAddSubCategory(item.id)}
                     style={styles.iconButtonSmall}
                   >
-                    <Ionicons name="add-circle-outline" size={14} color={Colors.moss} />
+                      <View style={styles.addSubCategoryContent}>
+                      <Ionicons
+                        name="add-circle-outline"
+                        size={14}
+                        color={Colors.moss}
+                      />
+                      <Text style={styles.addSubCategoryText}>
+                        Lisää alakategoria
+                      </Text>
+                    </View>
                   </TouchableOpacity>
                   <TouchableOpacity
                     onPress={() => handleDeleteCategory(item.id)}
@@ -1164,7 +1173,7 @@ const handleDeleteCategory = (categoryId: string) => {
       {!budgetPeriod ? (
         <View style={styles.noPeriodContainer}>
           <Image
-            source={require('@/assets/images/budjettikoutsi_logo.png')}
+            source={require('@/assets/images/icon.png')}
             style={styles.noPeriodLogo}
           />
           <Text style={styles.noPeriodText}>
@@ -1230,7 +1239,7 @@ const handleDeleteCategory = (categoryId: string) => {
                      unallocatedBudget === 0 && styles.unallocatedZero,
                   ]}
                 >
-                  Budjetoitavaa yhteensä:{' '}
+                  Budjetoitavaa jäljellä:{' '}
                   <Text
                     style={[
                       styles.unallocatedValue,
@@ -1389,7 +1398,7 @@ const handleDeleteCategory = (categoryId: string) => {
                   onPress={handleAddMainCategory}
                 >
                   <Ionicons name="add-circle-outline" size={20} color={Colors.moss} />
-                  <Text style={styles.addMainCategoryText}>Lisää meno</Text>
+                  <Text style={styles.addMainCategoryText}>Lisää kategoria</Text>
                 </TouchableOpacity>
               </View>
             ) : (
@@ -1620,8 +1629,21 @@ const styles = StyleSheet.create({
     color: Colors.textPrimary,
   },
  
-  iconButtonSmall: {
+ iconButtonSmall: {
     marginLeft: 12,
+  },
+  addSubCategoryButton: {
+    marginLeft: 12,
+  },
+  addSubCategoryContent: {
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  addSubCategoryText: {
+    marginLeft: 4,
+    color: Colors.moss,
+    fontSize: 14,
+    fontWeight: '600',
   },
   addSubInlineRow: {
     flexDirection: 'row',
