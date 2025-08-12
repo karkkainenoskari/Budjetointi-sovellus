@@ -1,6 +1,6 @@
 // app/(tabs)/index.tsx
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import {
   SafeAreaView,
   View,
@@ -94,6 +94,7 @@ export default function BudjettiScreen() {
   // Budjettijakso ja lataustila
   const [budgetPeriod, setBudgetPeriod] = useState<{ startDate: Date; endDate: Date; totalAmount: number } | null>(null);
   const [loadingPeriod, setLoadingPeriod] = useState<boolean>(true);
+  const currentPeriodFetch = useRef<{ current: boolean } | null>(null);
 
   // Valittu välilehti: 'plan' | 'spent' | 'left'
   const [selectedTab, setSelectedTab] = useState<'plan' | 'spent' | 'left'>('plan');
@@ -317,6 +318,7 @@ export default function BudjettiScreen() {
     if (!userId) return;
 
     const active = { current: true };
+     currentPeriodFetch.current = active;
 
     setLoadingPeriod(true);
 
@@ -332,6 +334,7 @@ export default function BudjettiScreen() {
     React.useCallback(() => {
       if (!userId) return;
       const active = { current: true };
+       currentPeriodFetch.current = active;
       setLoadingPeriod(true);
       loadCurrentPeriod(active).finally(() => {
         if (active.current) setLoadingPeriod(false);
@@ -746,28 +749,38 @@ const handleDeleteCategory = (categoryId: string) => {
 
   const handleSelectPeriod = async (pid: string) => {
     if (!userId || !pid) return;
+    if (currentPeriodFetch.current) {
+      currentPeriodFetch.current.current = false;
+    }
     setShowPeriodModal(false);
     setLoadingPeriod(true);
     if (pid === currentPeriodId) {
-      setViewPeriodId(pid);
-      setLoadingPeriod(false);
+       const active = { current: true };
+      currentPeriodFetch.current = active;
+      await loadCurrentPeriod(active);
+      if (active.current) setLoadingPeriod(false);
       return;
     }
-    const hist = await getBudgetPeriodFromHistory(userId, pid);
-    if (hist) {
-      setBudgetPeriod({
-        startDate: hist.startDate.toDate(),
-        endDate: hist.endDate.toDate(),
-        totalAmount: hist.totalAmount,
-      });
-    } else {
-      const [y, m] = pid.split('-').map((n) => parseInt(n, 10));
-      const start = new Date(y, m - 1, 1);
-      const end = new Date(y, m, 0);
-      setBudgetPeriod({ startDate: start, endDate: end, totalAmount: 0 });
+     try {
+      const hist = await getBudgetPeriodFromHistory(userId, pid);
+      if (hist) {
+        setBudgetPeriod({
+          startDate: hist.startDate.toDate(),
+          endDate: hist.endDate.toDate(),
+          totalAmount: hist.totalAmount,
+        });
+      } else {
+        const [y, m] = pid.split('-').map((n) => parseInt(n, 10));
+        const start = new Date(y, m - 1, 1);
+        const end = new Date(y, m, 0);
+        setBudgetPeriod({ startDate: start, endDate: end, totalAmount: 0 });
+      }
+      setViewPeriodId(pid);
+    } catch (e) {
+      console.error('getBudgetPeriodFromHistory virhe:', e);
+    } finally {
+      setLoadingPeriod(false);
     }
-    setViewPeriodId(pid);
-    setLoadingPeriod(false);
   };
 
 
