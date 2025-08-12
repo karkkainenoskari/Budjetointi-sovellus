@@ -1785,6 +1785,7 @@ const styles = StyleSheet.create({
   },
 addSubCategoryRow: {
     justifyContent: 'flex-start',
+      marginTop: 10,
   },
   addSubCategoryContent: {
     flexDirection: 'row',
