@@ -1953,7 +1953,8 @@ addSubCategoryRow: {
      width: '95%',
     maxWidth: 420,
     backgroundColor: Colors.background,
-    padding: 20,
+       paddingHorizontal: 20,
+    paddingVertical: 12,
     borderRadius: 8,
     alignItems: 'center',
   },
@@ -1961,7 +1962,7 @@ addSubCategoryRow: {
     fontSize: 18,
     fontWeight: '600',
     color: Colors.textPrimary,
-    marginBottom: 12,
+    marginBottom: 4,
 
   },
   periodPickerWrapper: {
@@ -1982,7 +1983,7 @@ addSubCategoryRow: {
     fontWeight: '500',
     color: Colors.textPrimary,
      alignSelf: 'center',
-    marginBottom: 80,
+    marginBottom: 20,
   },
   calendarHeaderText: {
     fontSize: 16,
@@ -1994,7 +1995,7 @@ addSubCategoryRow: {
   },
     calendarNoPeriodText: {
     color: Colors.danger,
-    marginBottom: 8,
+     marginBottom: 4,
     textAlign: 'center',
   },
    calendar: {
@@ -2024,7 +2025,7 @@ addSubCategoryRow: {
     aspectRatio: 1,
     justifyContent: 'center',
     alignItems: 'center',
-    marginBottom: 4,
+    marginBottom: 10,
   },
   calendarDayText: {
     color: Colors.textPrimary,
@@ -2041,7 +2042,7 @@ addSubCategoryRow: {
     fontSize: 16,
     fontWeight: '500',
     color: Colors.textPrimary,
-    marginBottom: 4,
+    marginBottom: 6,
     alignSelf: 'flex-start',
   },
   dateButton: {
@@ -2064,7 +2065,7 @@ addSubCategoryRow: {
   modalButtons: {
     flexDirection: 'row',
     justifyContent: 'flex-end',
-      marginBottom: 80,
+      marginTop: 2,
     
   },
   modalButton: {
