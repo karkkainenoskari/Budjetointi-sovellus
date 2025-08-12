@@ -26,6 +26,7 @@ import {
   getBudgetPeriodFromHistory,
 } from '../../src/services/budget';
 import {
+   formatDateRange,
   formatMonthRange,
   generateMonthRange,
   nextMonthId,
@@ -48,7 +49,18 @@ export default function HistoriaScreen() {
   const [months, setMonths] = useState<string[]>([]);
   const [loadingMonths, setLoadingMonths] = useState<boolean>(true);
   const [selectedMonth, setSelectedMonth] = useState<string | null>(null);
-  const [monthData, setMonthData] = useState<Record<string, { loading: boolean; categories: Category[]; expenses: Record<string, number>; incomes: Income[] }>>({});
+  const [monthData, setMonthData] = useState<
+    Record<
+      string,
+      {
+        loading: boolean;
+        categories: Category[];
+        expenses: Record<string, number>;
+        incomes: Income[];
+        period: { startDate: Date; endDate: Date } | null;
+      }
+    >
+  >({});
   const [chartData, setChartData] = useState<{ pieData: any[]; totals: { income: number; expense: number } } | null>(null);
   const [currentPeriodId, setCurrentPeriodId] = useState<string | null>(null);
   const [monthHasPeriod, setMonthHasPeriod] = useState<Record<string, boolean>>({});
@@ -120,8 +132,8 @@ export default function HistoriaScreen() {
       setMonthData((prev) => ({
         ...prev,
         [m]: {
-          ...(prev[m] || { expenses: {}, incomes: [] }),
-       loading: true,
+           ...(prev[m] || { expenses: {}, incomes: [], period: null }),
+          loading: true,
           categories: [],
         },
       }));
@@ -133,15 +145,23 @@ export default function HistoriaScreen() {
           getBudgetPeriodFromHistory(userId, m),
         ]);
 
-        const hasPeriod = !!period || m === currentPeriodId;
+        const periodInfo = period
+          ? {
+              startDate: period.startDate.toDate(),
+              endDate: period.endDate.toDate(),
+            }
+          : null;
+
+        const hasPeriod = !!periodInfo || m === currentPeriodId;
         setMonthHasPeriod((prev) => ({ ...prev, [m]: hasPeriod }));
 
         setMonthData((prev) => ({
           ...prev,
           [m]: {
-            ...(prev[m] || { expenses: {}, incomes: [] }),
+            ...(prev[m] || { expenses: {}, incomes: [], period: null }),
             loading: false,
             categories: cats,
+             period: periodInfo,
           },
         }));
         if (selectedMonth === m) {
@@ -154,7 +174,13 @@ export default function HistoriaScreen() {
         console.error('loadMonthData error:', e);
         setMonthData((prev) => ({
           ...prev,
-          [m]: { loading: false, categories: [], expenses: {}, incomes: [] },
+          [m]: {
+            loading: false,
+            categories: [],
+            expenses: {},
+            incomes: [],
+            period: null,
+          },
         }));
         setMonthHasPeriod((prev) => ({ ...prev, [m]: m === currentPeriodId }));
         if (selectedMonth === m) {
@@ -201,7 +227,13 @@ export default function HistoriaScreen() {
       setMonthData((prev) => ({
         ...prev,
         [selectedMonth]: {
-          ...(prev[selectedMonth] || { loading: false, categories: [], incomes: [] }),
+         ...(prev[selectedMonth] || {
+            loading: false,
+            categories: [],
+            incomes: [],
+            expenses: {},
+            period: null,
+          }),
           expenses: sums,
         },
       }));
@@ -221,7 +253,13 @@ export default function HistoriaScreen() {
       setMonthData((prev) => ({
         ...prev,
         [selectedMonth]: {
-          ...(prev[selectedMonth] || { loading: false, categories: [], expenses: {} }),
+         ...(prev[selectedMonth] || {
+            loading: false,
+            categories: [],
+            expenses: {},
+            incomes: [],
+            period: null,
+          }),
           incomes,
         },
       }));
@@ -315,7 +353,14 @@ export default function HistoriaScreen() {
         </TouchableOpacity>
         <View style={styles.pickerWrapper}>
           <Text style={styles.monthLabel}>
-            {selectedMonth ? formatMonthRange(selectedMonth) : ''}
+            {selectedMonth
+              ? monthData[selectedMonth]?.period
+                ? formatDateRange(
+                    monthData[selectedMonth]!.period!.startDate,
+                    monthData[selectedMonth]!.period!.endDate
+                  )
+                : formatMonthRange(selectedMonth)
+              : ''}
           </Text>
         </View>
         <TouchableOpacity onPress={() => changeMonth(-1)} style={styles.arrowButton}>

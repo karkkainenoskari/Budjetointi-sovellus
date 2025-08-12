@@ -22,6 +22,11 @@ const day = String(date.getDate()).padStart(2, '0');
   const month = String(date.getMonth() + 1).padStart(2, '0');
   return `${day}.${month}.${year}`;
 }
+export function formatDateRange(start: Date, end: Date): string {
+  const startStr = start.toLocaleDateString('fi-FI');
+  const endStr = end.toLocaleDateString('fi-FI');
+  return `${startStr}-${endStr}`;
+}
 
 
 export function generateMonthRange(startId: string, endId: string): string[] {

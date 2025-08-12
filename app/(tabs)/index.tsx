@@ -50,7 +50,7 @@ import {
   startNewBudgetPeriod,
   getBudgetPeriodFromHistory,
 } from '../../src/services/budget';
-import { formatMonthRange } from '@/src/utils';
+import { formatDateRange } from '@/src/utils';
 import {
   getHistoryMonths,
   getHistoryCategories,
@@ -1249,12 +1249,10 @@ const handleDeleteCategory = (categoryId: string) => {
         <>
           <View style={styles.budgetPeriodRow}>
             <Text style={styles.budgetPeriodText}>
-              {`Budjettijakso: ${viewPeriodId
-                  ? formatMonthRange(viewPeriodId)
-                  : `${budgetPeriod.startDate.getDate()}.${budgetPeriod.startDate.getMonth() + 1
-                  } – ${budgetPeriod.endDate.getDate()}.${budgetPeriod.endDate.getMonth() + 1
-                  }`
-                }`}
+              {`Budjettijakso: ${formatDateRange(
+                budgetPeriod.startDate,
+                budgetPeriod.endDate
+              )}`}
               {readOnly && ' (arkisto)'}
             </Text>
             <TouchableOpacity onPress={() => setShowPeriodModal(true)} style={styles.iconButton}>
