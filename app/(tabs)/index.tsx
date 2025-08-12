@@ -899,65 +899,15 @@ const handleDeleteCategory = (categoryId: string) => {
 
             <View style={styles.categoryIcons}>
               {!readOnly && selectedTab === 'plan' && (
-                 <>
-                  <TouchableOpacity
-                     onPress={() => toggleAddSubCategory(item.id)}
-                    style={styles.iconButtonSmall}
-                  >
-                      <View style={styles.addSubCategoryContent}>
-                      <Ionicons
-                        name="add-circle-outline"
-                        size={14}
-                        color={Colors.moss}
-                      />
-                      <Text style={styles.addSubCategoryText}>
-                        Lisää alakategoria
-                      </Text>
-                    </View>
-                  </TouchableOpacity>
-                  <TouchableOpacity
-                    onPress={() => handleDeleteCategory(item.id)}
-                    style={styles.iconButtonSmall}
-                  >
-                    <Ionicons name="trash-outline" size={14} color={Colors.iconMuted} />
-                  </TouchableOpacity>
-                </>
+                <TouchableOpacity
+                  onPress={() => handleDeleteCategory(item.id)}
+                  style={styles.iconButtonSmall}
+                >
+                  <Ionicons name="trash-outline" size={14} color={Colors.iconMuted} />
+                </TouchableOpacity>
               )}
             </View>
           </View>
-
-             {selectedTab === 'plan' && addingSubFor === item.id && (
-            <View style={styles.addSubInlineRow}>
-              <TextInput
-                 style={styles.expenseCategoryInput}
-                placeholder="Meno"
-                placeholderTextColor="#888"
-                value={newSubTitle}
-                onChangeText={setNewSubTitle}
-              />
-              <TextInput
-                 style={styles.expenseAmountInput}
-                placeholder="Summa"
-                placeholderTextColor="#888"
-                keyboardType="numeric"
-                value={newSubAmount}
-                onChangeText={setNewSubAmount}
-              />
-              <TouchableOpacity
-                onPress={() => handleAddSubCategory(item.id)}
-                style={styles.iconButtonSmall}
-              >
-                <Ionicons name="checkmark-circle-outline" size={20} color={Colors.moss} />
-              </TouchableOpacity>
-              <TouchableOpacity
-                onPress={() => toggleAddSubCategory(item.id)}
-                style={styles.iconButtonSmall}
-              >
-                <Ionicons name="close-circle-outline" size={20} color={Colors.iconMuted} />
-              </TouchableOpacity>
-            </View>
-          )}
-
 
           {subCategories.map((sub, index) => {
             const subSpent = expensesByCategory[sub.id] || 0;
@@ -985,8 +935,8 @@ const handleDeleteCategory = (categoryId: string) => {
               }
             }
 
-           return editingCategoryId === sub.id ? (
-              <View style={styles.addSubInlineRow} key={sub.id}>
+        const subRow = editingCategoryId === sub.id ? (
+              <View style={styles.addSubInlineRow}>
                 <TextInput
                   style={styles.expenseCategoryInput}
                   placeholder="Nimi"
@@ -1014,8 +964,7 @@ const handleDeleteCategory = (categoryId: string) => {
               </View>
             ) : (
               <View
-                key={sub.id}
-                 style={[
+                style={[
                   styles.subCategoryRow,
                   index === 0 && styles.firstSubCategoryRow,
                   isTotalRow && styles.subCategoryTotalRow,
@@ -1081,6 +1030,65 @@ const handleDeleteCategory = (categoryId: string) => {
                 </View>
               </View>
             );
+
+             if (isTotalRow) {
+              return (
+                <React.Fragment key={sub.id}>
+                  {selectedTab === 'plan' && (
+                    addingSubFor === item.id ? (
+                      <View style={styles.addSubInlineRow}>
+                        <TextInput
+                          style={styles.expenseCategoryInput}
+                          placeholder="Meno"
+                          placeholderTextColor="#888"
+                          value={newSubTitle}
+                          onChangeText={setNewSubTitle}
+                        />
+                        <TextInput
+                          style={styles.expenseAmountInput}
+                          placeholder="Summa"
+                          placeholderTextColor="#888"
+                          keyboardType="numeric"
+                          value={newSubAmount}
+                          onChangeText={setNewSubAmount}
+                        />
+                        <TouchableOpacity
+                          onPress={() => handleAddSubCategory(item.id)}
+                          style={styles.iconButtonSmall}
+                        >
+                          <Ionicons name="checkmark-circle-outline" size={20} color={Colors.moss} />
+                        </TouchableOpacity>
+                        <TouchableOpacity
+                          onPress={() => toggleAddSubCategory(item.id)}
+                          style={styles.iconButtonSmall}
+                        >
+                          <Ionicons name="close-circle-outline" size={20} color={Colors.iconMuted} />
+                        </TouchableOpacity>
+                      </View>
+                    ) : (
+                      !readOnly && (
+                        <TouchableOpacity
+                          onPress={() => toggleAddSubCategory(item.id)}
+                          style={[styles.subCategoryRow, styles.addSubCategoryRow]}
+                        >
+                          <View style={styles.addSubCategoryContent}>
+                            <Ionicons
+                              name="add-circle-outline"
+                              size={14}
+                              color={Colors.moss}
+                            />
+                            <Text style={styles.addSubCategoryText}>Lisää alakategoria</Text>
+                          </View>
+                        </TouchableOpacity>
+                      )
+                    )
+                  )}
+                  {subRow}
+                </React.Fragment>
+              );
+            }
+
+            return <React.Fragment key={sub.id}>{subRow}</React.Fragment>;
           })}
 
         </View>
@@ -1775,8 +1783,8 @@ const styles = StyleSheet.create({
  iconButtonSmall: {
     marginLeft: 12,
   },
-  addSubCategoryButton: {
-    marginLeft: 12,
+addSubCategoryRow: {
+    justifyContent: 'flex-start',
   },
   addSubCategoryContent: {
     flexDirection: 'row',
