@@ -1,6 +1,6 @@
 // app/(tabs)/index.tsx
 
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, useMemo } from 'react';
 import {
   SafeAreaView,
   View,
@@ -150,21 +150,93 @@ export default function BudjettiScreen() {
   const [viewPeriodId, setViewPeriodId] = useState<string | null>(null);
   const [showPeriodModal, setShowPeriodModal] = useState<boolean>(false);
   const [currentPeriodId, setCurrentPeriodId] = useState<string>('');
-  const [periodPickerDate, setPeriodPickerDate] = useState(new Date());
+ const [periodPickerIndex, setPeriodPickerIndex] = useState<number>(0);
+  const [periodPickerPeriod, setPeriodPickerPeriod] =
+    useState<{
+      id: string;
+      startDate: Date;
+      endDate: Date;
+    } | null>(null);
 
 
   const getPeriodId = (d: Date) =>
     `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`;
 
-  const periodExists = availablePeriods.includes(getPeriodId(periodPickerDate));
+  const periodExists = periodPickerPeriod !== null;
 
-    const changePeriodMonth = (offset: number) => {
-    setPeriodPickerDate((prev) => {
-      const d = new Date(prev);
-      d.setMonth(d.getMonth() + offset, 1);
-      return d;
+    const changePeriod = (offset: number) => {
+    setPeriodPickerIndex((prev) => {
+      const next = prev + offset;
+      if (next < 0 || next >= availablePeriods.length) return prev;
+      return next;
     });
   };
+
+  useEffect(() => {
+    if (showPeriodModal) {
+      const idx = availablePeriods.indexOf(viewPeriodId || '');
+      setPeriodPickerIndex(idx >= 0 ? idx : 0);
+    }
+  }, [showPeriodModal, availablePeriods, viewPeriodId]);
+
+  useEffect(() => {
+    if (
+      periodPickerIndex < 0 ||
+      periodPickerIndex >= availablePeriods.length ||
+      !userId
+    ) {
+      setPeriodPickerPeriod(null);
+      return;
+    }
+    const pid = availablePeriods[periodPickerIndex];
+    const [y, m] = pid.split('-').map(Number);
+    const start = new Date(y, m - 1, 1);
+    const end = new Date(y, m, 0);
+    setPeriodPickerPeriod({ id: pid, startDate: start, endDate: end });
+    if (pid === currentPeriodId && budgetPeriod) {
+      setPeriodPickerPeriod({
+        id: pid,
+        startDate: budgetPeriod.startDate,
+        endDate: budgetPeriod.endDate,
+      });
+    } else {
+      getBudgetPeriodFromHistory(userId, pid)
+        .then((bp) => {
+          if (bp) {
+            setPeriodPickerPeriod({
+              id: pid,
+              startDate: bp.startDate.toDate(),
+              endDate: bp.endDate.toDate(),
+            });
+          } else {
+            setPeriodPickerPeriod(null);
+          }
+        })
+        .catch((e) => {
+          console.error('getBudgetPeriodFromHistory virhe:', e);
+          setPeriodPickerPeriod(null);
+        });
+    }
+  }, [
+    periodPickerIndex,
+    availablePeriods,
+    userId,
+    currentPeriodId,
+    budgetPeriod,
+  ]);
+
+const periodPickerDate = useMemo(() => {
+    if (periodPickerIndex >= 0 && periodPickerIndex < availablePeriods.length) {
+      const [y, m] = availablePeriods[periodPickerIndex].split('-').map(Number);
+      return new Date(y, m - 1, 1);
+    }
+    return new Date();
+}, [periodPickerIndex, availablePeriods]);
+  const periodPickerMonth = useMemo(() => {
+    const m = periodPickerDate.toLocaleDateString('fi-FI', { month: 'long' });
+    return m.charAt(0).toUpperCase() + m.slice(1);
+  }, [periodPickerDate]);
+
  const renderCalendar = () => {
     const year = periodPickerDate.getFullYear();
     const month = periodPickerDate.getMonth();
@@ -176,19 +248,10 @@ export default function BudjettiScreen() {
       cells.push(<View key={`b-${i}`} style={styles.calendarDay} />);
     }
     for (let d = 1; d <= daysInMonth; d++) {
-      const selected = d === periodPickerDate.getDate();
       cells.push(
-        <TouchableOpacity
-          key={`d-${d}`}
-          style={[styles.calendarDay, selected && styles.calendarDaySelected]}
-          onPress={() => setPeriodPickerDate(new Date(year, month, d))}
-        >
-          <Text
-            style={[styles.calendarDayText, selected && styles.calendarDayTextSelected]}
-          >
-            {d}
-          </Text>
-        </TouchableOpacity>
+        <View key={`d-${d}`} style={styles.calendarDay}>
+          <Text style={styles.calendarDayText}>{d}</Text>
+        </View>
       );
     }
 
@@ -1062,10 +1125,11 @@ const handleDeleteCategory = (categoryId: string) => {
                 budjettijaksoa ei luotu tälle kuukaudelle
               </Text>
             )}
-               <View style={styles.periodPickerWrapper}>
-             <View style={styles.calendarHeader}>
+             <View style={styles.periodPickerWrapper}>
+              <Text style={styles.calendarMonthText}>{periodPickerMonth}</Text>
+              <View style={styles.calendarHeader}>
                 <TouchableOpacity
-                  onPress={() => changePeriodMonth(-1)}
+                    onPress={() => changePeriod(1)}
                   style={styles.calendarNavButton}
                 >
                   <Ionicons
@@ -1075,13 +1139,17 @@ const handleDeleteCategory = (categoryId: string) => {
                   />
                 </TouchableOpacity>
                 <Text style={styles.calendarHeaderText}>
-                  {periodPickerDate.toLocaleDateString('fi-FI', {
-                    month: 'long',
-                    year: 'numeric',
-                  })}
+                  {periodPickerPeriod
+                    ? formatDateRange(
+                        periodPickerPeriod.startDate,
+                        periodPickerPeriod.endDate
+                      )
+                    : periodPickerDate.toLocaleDateString('fi-FI', {
+                        year: 'numeric',
+                      })}
                 </Text>
                 <TouchableOpacity
-                  onPress={() => changePeriodMonth(1)}
+                  onPress={() => changePeriod(-1)}
                   style={styles.calendarNavButton}
                 >
                   <Ionicons
@@ -1101,7 +1169,13 @@ const handleDeleteCategory = (categoryId: string) => {
                 <Text style={styles.modalButtonText}>Sulje</Text>
               </TouchableOpacity>
               <TouchableOpacity
-                onPress={() => handleSelectPeriod(getPeriodId(periodPickerDate))}
+                onPress={() =>
+                  handleSelectPeriod(
+                    periodPickerPeriod
+                      ? periodPickerPeriod.id
+                      : getPeriodId(periodPickerDate)
+                  )
+                }
                 style={styles.modalButton}
               >
                 <Text style={styles.modalButtonText}>Valitse</Text>
@@ -1872,6 +1946,12 @@ const styles = StyleSheet.create({
     width: '100%',
     marginBottom: 8,
     paddingHorizontal: 16,
+  },
+  calendarMonthText: {
+    fontSize: 16,
+    fontWeight: '500',
+    color: Colors.textPrimary,
+    marginBottom: 4,
   },
   calendarHeaderText: {
     fontSize: 16,
