@@ -1156,7 +1156,7 @@ const handleDeleteCategory = (categoryId: string) => {
           <View style={styles.modalContainer}>
             <Text style={styles.modalTitle}>Valitse jakso</Text>
               <Text style={styles.calendarRangeText}>
-              {`budjettijakso ${periodPickerRange}`}
+              {`Budjettijakso: ${periodPickerRange}`}
             </Text>
              {!periodExists && (
               <Text style={styles.calendarNoPeriodText}>
@@ -1191,7 +1191,7 @@ const handleDeleteCategory = (categoryId: string) => {
               </View>
                 {renderCalendar()}
             </View>
-             <View style={styles.modalButtons}>
+           <View style={[styles.modalButtons, styles.periodPickerButtons]}>
               <TouchableOpacity
                 onPress={() => setShowPeriodModal(false)}
                 style={styles.modalButton}
@@ -1954,7 +1954,8 @@ addSubCategoryRow: {
     maxWidth: 420,
     backgroundColor: Colors.background,
        paddingHorizontal: 20,
-    paddingVertical: 12,
+     paddingTop: 12,
+    paddingBottom: 4,
     borderRadius: 8,
     alignItems: 'center',
   },
@@ -1962,7 +1963,7 @@ addSubCategoryRow: {
     fontSize: 18,
     fontWeight: '600',
     color: Colors.textPrimary,
-    marginBottom: 4,
+    marginBottom: 12,
 
   },
   periodPickerWrapper: {
@@ -2065,8 +2066,12 @@ addSubCategoryRow: {
   modalButtons: {
     flexDirection: 'row',
     justifyContent: 'flex-end',
-      marginTop: 2,
+
     
+  },
+  periodPickerButtons: {
+    marginTop: -55,
+    marginBottom: 10
   },
   modalButton: {
     marginLeft: 12,
