@@ -157,6 +157,7 @@ export default function BudjettiScreen() {
       startDate: Date;
       endDate: Date;
     } | null>(null);
+     const periodPickerFetch = useRef<{ current: boolean } | null>(null);
 
 
   const getPeriodId = (d: Date) =>
@@ -188,6 +189,9 @@ export default function BudjettiScreen() {
       setPeriodPickerPeriod(null);
       return;
     }
+    const controller = { current: true };
+    periodPickerFetch.current = controller;
+
     const pid = availablePeriods[periodPickerIndex];
     const [y, m] = pid.split('-').map(Number);
     const start = new Date(y, m - 1, 1);
@@ -202,21 +206,23 @@ export default function BudjettiScreen() {
     } else {
       getBudgetPeriodFromHistory(userId, pid)
         .then((bp) => {
+            if (!controller.current) return;
           if (bp) {
             setPeriodPickerPeriod({
               id: pid,
               startDate: bp.startDate.toDate(),
               endDate: bp.endDate.toDate(),
             });
-          } else {
-            setPeriodPickerPeriod(null);
           }
         })
         .catch((e) => {
+           if (!controller.current) return;
           console.error('getBudgetPeriodFromHistory virhe:', e);
-          setPeriodPickerPeriod(null);
         });
     }
+     return () => {
+      controller.current = false;
+    };
   }, [
     periodPickerIndex,
     availablePeriods,
