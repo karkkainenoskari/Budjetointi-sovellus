@@ -238,10 +238,31 @@ const periodPickerDate = useMemo(() => {
     }
     return new Date();
 }, [periodPickerIndex, availablePeriods]);
+
   const periodPickerMonth = useMemo(() => {
     const m = periodPickerDate.toLocaleDateString('fi-FI', { month: 'long' });
     return m.charAt(0).toUpperCase() + m.slice(1);
   }, [periodPickerDate]);
+
+   const periodPickerRange = useMemo(() => {
+    if (periodPickerPeriod) {
+      return formatDateRange(
+        periodPickerPeriod.startDate,
+        periodPickerPeriod.endDate
+      );
+    }
+    const start = new Date(
+      periodPickerDate.getFullYear(),
+      periodPickerDate.getMonth(),
+      1
+    );
+    const end = new Date(
+      periodPickerDate.getFullYear(),
+      periodPickerDate.getMonth() + 1,
+      0
+    );
+    return formatDateRange(start, end);
+  }, [periodPickerPeriod, periodPickerDate]);
 
  const renderCalendar = () => {
     const year = periodPickerDate.getFullYear();
@@ -1134,13 +1155,15 @@ const handleDeleteCategory = (categoryId: string) => {
         <View style={styles.modalOverlay}>
           <View style={styles.modalContainer}>
             <Text style={styles.modalTitle}>Valitse jakso</Text>
+              <Text style={styles.calendarRangeText}>
+              {`budjettijakso ${periodPickerRange}`}
+            </Text>
              {!periodExists && (
               <Text style={styles.calendarNoPeriodText}>
                 budjettijaksoa ei luotu tälle kuukaudelle
               </Text>
             )}
              <View style={styles.periodPickerWrapper}>
-              <Text style={styles.calendarMonthText}>{periodPickerMonth}</Text>
               <View style={styles.calendarHeader}>
                 <TouchableOpacity
                     onPress={() => changePeriod(1)}
@@ -1153,14 +1176,7 @@ const handleDeleteCategory = (categoryId: string) => {
                   />
                 </TouchableOpacity>
                 <Text style={styles.calendarHeaderText}>
-                  {periodPickerPeriod
-                    ? formatDateRange(
-                        periodPickerPeriod.startDate,
-                        periodPickerPeriod.endDate
-                      )
-                    : periodPickerDate.toLocaleDateString('fi-FI', {
-                        year: 'numeric',
-                      })}
+                   {periodPickerMonth}
                 </Text>
                 <TouchableOpacity
                   onPress={() => changePeriod(-1)}
@@ -1175,7 +1191,7 @@ const handleDeleteCategory = (categoryId: string) => {
               </View>
                 {renderCalendar()}
             </View>
-           <View style={styles.modalButtons}>
+             <View style={styles.modalButtons}>
               <TouchableOpacity
                 onPress={() => setShowPeriodModal(false)}
                 style={styles.modalButton}
@@ -1354,7 +1370,6 @@ const handleDeleteCategory = (categoryId: string) => {
                 budgetPeriod.startDate,
                 budgetPeriod.endDate
               )}`}
-              {readOnly && ' (arkisto)'}
             </Text>
             <TouchableOpacity onPress={() => setShowPeriodModal(true)} style={styles.iconButton}>
               <Ionicons name="calendar-outline" size={22} color={Colors.textSecondary} />
@@ -1962,11 +1977,12 @@ addSubCategoryRow: {
     marginBottom: 8,
     paddingHorizontal: 16,
   },
-  calendarMonthText: {
+ calendarRangeText: {
     fontSize: 16,
     fontWeight: '500',
     color: Colors.textPrimary,
-    marginBottom: 4,
+     alignSelf: 'center',
+    marginBottom: 80,
   },
   calendarHeaderText: {
     fontSize: 16,
@@ -2048,6 +2064,8 @@ addSubCategoryRow: {
   modalButtons: {
     flexDirection: 'row',
     justifyContent: 'flex-end',
+      marginBottom: 80,
+    
   },
   modalButton: {
     marginLeft: 12,
