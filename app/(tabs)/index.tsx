@@ -1554,8 +1554,9 @@ export default function BudjettiScreen() {
                   </View>
                 )
               )}
-              contentContainerStyle={styles.listContent}
+                contentContainerStyle={styles.incomeListContent}
             />
+
             <View style={styles.incomeTotalRow}>
               <Text style={styles.incomeTotalLabel}>Yhteensä:</Text>
               <Text style={styles.incomeTotalValue}>{formatCurrency(totalIncome)} €</Text>
@@ -1755,8 +1756,9 @@ const styles = StyleSheet.create({
     fontSize: 24,
     alignItems: 'center',
     justifyContent: 'flex-start',
-    padding: 16,
-    marginBottom: 16,
+    paddingHorizontal: 16,
+    paddingVertical: 8,
+    marginBottom: 8,
   },
   incomeTotalLabel: {
     marginRight: 8,
@@ -1776,6 +1778,10 @@ const styles = StyleSheet.create({
   },
 
   /* ── Kategoriakortin tyylit ── */
+   incomeListContent: {
+    paddingHorizontal: 16,
+    paddingBottom: 4,
+  },
   listContent: {
     paddingHorizontal: 16,
     paddingBottom: 24,
