@@ -1556,7 +1556,7 @@ const handleDeleteCategory = (categoryId: string) => {
             contentContainerStyle={styles.listContent}
           />
              <View style={styles.incomeTotalRow}>
-            <Text style={styles.subCategoryTotalTitle}>Saadut tulot yhteensä:</Text>
+            <Text style={styles.subCategoryTotalTitle}>Yhteensä:</Text>
             <Text style={styles.subCategoryTotalValue}>{formatCurrency(totalIncome)} €</Text>
           </View>
 
