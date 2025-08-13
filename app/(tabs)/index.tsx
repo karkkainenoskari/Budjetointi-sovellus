@@ -1723,6 +1723,7 @@ const styles = StyleSheet.create({
   mainCategoryTitle: {
     fontSize: 24, // aiemmin 20
     fontWeight: '700', // vahvempi korostus
+     color: Colors.textPrimary,
 
   },
   addMainCategoryButton: {

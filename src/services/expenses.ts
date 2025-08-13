@@ -9,6 +9,7 @@ import {
   orderBy,
    doc,
   updateDoc,
+   deleteDoc,
   serverTimestamp,
 } from 'firebase/firestore';
 import { firestore } from '../api/firebaseConfig';
@@ -108,3 +109,11 @@ export async function updateExpense(
   const docRef = doc(firestore, "budjetit", userId, "expenses", expenseId);
   await updateDoc(docRef, data);
 }
+
+export async function deleteExpense(
+  userId: string,
+  expenseId: string
+): Promise<void> {
+  const docRef = doc(firestore, 'budjetit', userId, 'expenses', expenseId);
+  await deleteDoc(docRef);
+  }

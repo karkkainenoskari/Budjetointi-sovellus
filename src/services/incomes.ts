@@ -3,6 +3,9 @@ import {
   collection,
   addDoc,
   getDocs,
+  query,
+  where,
+  orderBy,
   doc,
   updateDoc,
   deleteDoc,
@@ -27,6 +30,26 @@ export async function getIncomes(userId: string): Promise<Income[]> {
     results.push({ id: d.id, ...(d.data() as Omit<Income, 'id'>) })
   );
   return results.sort((a, b) => a.createdAt?.seconds - b.createdAt?.seconds);
+}
+
+export async function getIncomesByPeriod(
+  userId: string,
+  startDate: any,
+  endDate: any
+): Promise<Income[]> {
+  const colRef = collection(firestore, 'budjetit', userId, 'incomes');
+  const q = query(
+    colRef,
+    where('createdAt', '>=', startDate),
+    where('createdAt', '<=', endDate),
+    orderBy('createdAt', 'asc')
+  );
+  const snap = await getDocs(q);
+  const results: Income[] = [];
+  snap.forEach((d) =>
+    results.push({ id: d.id, ...(d.data() as Omit<Income, 'id'>) })
+  );
+  return results;
 }
 
 export async function addIncome(
