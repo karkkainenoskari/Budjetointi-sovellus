@@ -1555,8 +1555,8 @@ const handleDeleteCategory = (categoryId: string) => {
             )}
             contentContainerStyle={styles.listContent}
           />
-             <View style={styles.incomeTotalRow}>
-            <Text style={styles.subCategoryTotalTitle}>Yhteensä:</Text>
+            <View style={styles.incomeTotalRow}>
+            <Text style={[styles.subCategoryTotalTitle, styles.incomeTotalLabel]}>Yhteensä:</Text>
             <Text style={styles.subCategoryTotalValue}>{formatCurrency(totalIncome)} €</Text>
           </View>
 
@@ -1751,11 +1751,16 @@ const styles = StyleSheet.create({
   },
  incomeTotalRow: {
     flexDirection: 'row',
-    justifyContent: 'space-between',
+    fontSize: 24,
+   alignItems: 'center',
+ justifyContent: 'flex-start',
     padding: 16,
     marginBottom: 16,
   },
-
+incomeTotalLabel: {
+    marginRight: 8,
+    fontSize: 24,
+  },
 
   categoryHeaderButtons: {
     flexDirection: 'row',
