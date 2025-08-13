@@ -88,7 +88,7 @@ export default function BudjettiScreen() {
 
   // Kulut summattuna kategoriakohtaisesti
   const [expensesByCategory, setExpensesByCategory] = useState<Record<string, number>>({});
-    const [totalExpenses, setTotalExpenses] = useState<number>(0);
+  const [totalExpenses, setTotalExpenses] = useState<number>(0);
   const [loadingExpenses, setLoadingExpenses] = useState<boolean>(false);
 
   // Budjettijakso ja lataustila
@@ -105,7 +105,7 @@ export default function BudjettiScreen() {
   const [newPeriodEnd, setNewPeriodEnd] = useState<Date>(new Date());
   const [showStartPicker, setShowStartPicker] = useState<boolean>(false);
   const [showEndPicker, setShowEndPicker] = useState<boolean>(false);
-   const [copyPreviousPlanChecked, setCopyPreviousPlanChecked] =
+  const [copyPreviousPlanChecked, setCopyPreviousPlanChecked] =
     useState<boolean>(false);
 
   const formatCurrency = (value: number) =>
@@ -124,7 +124,7 @@ export default function BudjettiScreen() {
           if (d) setNewPeriodStart(d);
         },
         locale: 'fi-FI',
-       } as any);
+      } as any);
     } else {
       setShowStartPicker(true);
     }
@@ -140,7 +140,7 @@ export default function BudjettiScreen() {
           if (d) setNewPeriodEnd(d);
         },
         locale: 'fi-FI',
-       } as any);
+      } as any);
     } else {
       setShowEndPicker(true);
     }
@@ -150,14 +150,14 @@ export default function BudjettiScreen() {
   const [viewPeriodId, setViewPeriodId] = useState<string | null>(null);
   const [showPeriodModal, setShowPeriodModal] = useState<boolean>(false);
   const [currentPeriodId, setCurrentPeriodId] = useState<string>('');
- const [periodPickerIndex, setPeriodPickerIndex] = useState<number>(0);
+  const [periodPickerIndex, setPeriodPickerIndex] = useState<number>(0);
   const [periodPickerPeriod, setPeriodPickerPeriod] =
     useState<{
       id: string;
       startDate: Date;
       endDate: Date;
     } | null>(null);
-     const periodPickerFetch = useRef<{ current: boolean } | null>(null);
+  const periodPickerFetch = useRef<{ current: boolean } | null>(null);
 
 
   const getPeriodId = (d: Date) =>
@@ -165,7 +165,7 @@ export default function BudjettiScreen() {
 
   const periodExists = periodPickerPeriod !== null;
 
-    const changePeriod = (offset: number) => {
+  const changePeriod = (offset: number) => {
     setPeriodPickerIndex((prev) => {
       const next = prev + offset;
       if (next < 0 || next >= availablePeriods.length) return prev;
@@ -206,7 +206,7 @@ export default function BudjettiScreen() {
     } else {
       getBudgetPeriodFromHistory(userId, pid)
         .then((bp) => {
-            if (!controller.current) return;
+          if (!controller.current) return;
           if (bp) {
             setPeriodPickerPeriod({
               id: pid,
@@ -216,11 +216,11 @@ export default function BudjettiScreen() {
           }
         })
         .catch((e) => {
-           if (!controller.current) return;
+          if (!controller.current) return;
           console.error('getBudgetPeriodFromHistory virhe:', e);
         });
     }
-     return () => {
+    return () => {
       controller.current = false;
     };
   }, [
@@ -231,20 +231,20 @@ export default function BudjettiScreen() {
     budgetPeriod,
   ]);
 
-const periodPickerDate = useMemo(() => {
+  const periodPickerDate = useMemo(() => {
     if (periodPickerIndex >= 0 && periodPickerIndex < availablePeriods.length) {
       const [y, m] = availablePeriods[periodPickerIndex].split('-').map(Number);
       return new Date(y, m - 1, 1);
     }
     return new Date();
-}, [periodPickerIndex, availablePeriods]);
+  }, [periodPickerIndex, availablePeriods]);
 
   const periodPickerMonth = useMemo(() => {
     const m = periodPickerDate.toLocaleDateString('fi-FI', { month: 'long' });
     return m.charAt(0).toUpperCase() + m.slice(1);
   }, [periodPickerDate]);
 
-   const periodPickerRange = useMemo(() => {
+  const periodPickerRange = useMemo(() => {
     if (periodPickerPeriod) {
       return formatDateRange(
         periodPickerPeriod.startDate,
@@ -264,7 +264,7 @@ const periodPickerDate = useMemo(() => {
     return formatDateRange(start, end);
   }, [periodPickerPeriod, periodPickerDate]);
 
- const renderCalendar = () => {
+  const renderCalendar = () => {
     const year = periodPickerDate.getFullYear();
     const month = periodPickerDate.getMonth();
     const daysInMonth = new Date(year, month + 1, 0).getDate();
@@ -336,7 +336,7 @@ const periodPickerDate = useMemo(() => {
     }
   };
 
-     const loadIncomes = async () => {
+  const loadIncomes = async () => {
     if (!userId) return;
     let active = true;
     setLoadingIncomes(true);
@@ -353,7 +353,7 @@ const periodPickerDate = useMemo(() => {
     };
   };
 
-    const loadExpenses = async () => {
+  const loadExpenses = async () => {
     if (!userId || !budgetPeriod) {
       setTotalExpenses(0);
       return;
@@ -366,7 +366,7 @@ const periodPickerDate = useMemo(() => {
         budgetPeriod.endDate,
       );
       const sums: Record<string, number> = {};
-       let total = 0;
+      let total = 0;
       expenses.forEach((exp: Expense) => {
         const catId = exp.categoryId;
         sums[catId] = (sums[catId] || 0) + exp.amount;
@@ -376,7 +376,7 @@ const periodPickerDate = useMemo(() => {
       setTotalExpenses(total);
     } catch (e) {
       console.error('getExpensesByPeriod virhe:', e);
-       setTotalExpenses(0);
+      setTotalExpenses(0);
     } finally {
       setLoadingExpenses(false);
     }
@@ -389,18 +389,18 @@ const periodPickerDate = useMemo(() => {
     .filter((cat) => !cat.title.toLowerCase().includes('yhteensä'))
     .reduce((sum, cat) => sum + cat.allocated, 0);
 
-   const budgetedPercent = totalIncome > 0 ? totalAllocated / totalIncome : 0;
+  const budgetedPercent = totalIncome > 0 ? totalAllocated / totalIncome : 0;
 
-   const totalSpentAll = totalExpenses;
+  const totalSpentAll = totalExpenses;
 
   const budgetLeftOverall = totalIncome - totalExpenses;
-   const unallocatedBudget = totalIncome - totalAllocated;
+  const unallocatedBudget = totalIncome - totalAllocated;
 
-   const spentPercent = totalIncome > 0 ? totalSpentAll / totalIncome : 0;
+  const spentPercent = totalIncome > 0 ? totalSpentAll / totalIncome : 0;
 
-     const leftPercent = totalIncome > 0 ? budgetLeftOverall / totalIncome : 0;
+  const leftPercent = totalIncome > 0 ? budgetLeftOverall / totalIncome : 0;
 
- // progress bar removed for simplicity
+  // progress bar removed for simplicity
 
   const readOnly = viewPeriodId !== currentPeriodId;
   // ─── Fetch current budget period ────────────────────────────────────
@@ -408,7 +408,7 @@ const periodPickerDate = useMemo(() => {
     if (!userId) return;
 
     const active = { current: true };
-     currentPeriodFetch.current = active;
+    currentPeriodFetch.current = active;
 
     setLoadingPeriod(true);
 
@@ -424,7 +424,7 @@ const periodPickerDate = useMemo(() => {
     React.useCallback(() => {
       if (!userId) return;
       const active = { current: true };
-       currentPeriodFetch.current = active;
+      currentPeriodFetch.current = active;
       setLoadingPeriod(true);
       loadCurrentPeriod(active).finally(() => {
         if (active.current) setLoadingPeriod(false);
@@ -477,7 +477,7 @@ const periodPickerDate = useMemo(() => {
     }, [userId, budgetPeriod])
   );
 
-   // ─── Fetch incomes ─────────────────────────────────────────────────
+  // ─── Fetch incomes ─────────────────────────────────────────────────
   useEffect(() => {
     if (!userId) return;
     loadIncomes();
@@ -516,7 +516,7 @@ const periodPickerDate = useMemo(() => {
     );
   };
 
-    const toggleAddSubCategory = (parentId: string) => {
+  const toggleAddSubCategory = (parentId: string) => {
     if (addingSubFor === parentId) {
       setAddingSubFor(null);
       setNewSubTitle('');
@@ -528,7 +528,7 @@ const periodPickerDate = useMemo(() => {
     }
   };
 
- const handleAddSubCategory = async (parentId: string) => {
+  const handleAddSubCategory = async (parentId: string) => {
     if (!userId || !budgetPeriod) return;
     if (!newSubTitle.trim()) {
       Alert.alert('Virhe', 'Syötä nimi ja summa');
@@ -540,7 +540,7 @@ const periodPickerDate = useMemo(() => {
       return;
     }
 
-   const totalBudget = totalIncome;
+    const totalBudget = totalIncome;
     const sumOthers = categories
       .filter((c) => !c.title.toLowerCase().includes('yhteensä'))
       .reduce((sum, c) => sum + c.allocated, 0);
@@ -569,7 +569,7 @@ const periodPickerDate = useMemo(() => {
     }
   };
 
- const handleAddIncome = () => {
+  const handleAddIncome = () => {
     if (!userId) return;
     if (!newIncomeTitle.trim()) {
       Alert.alert('Virhe', 'Syötä tulo ja summa');
@@ -585,8 +585,8 @@ const periodPickerDate = useMemo(() => {
       .catch((e) => console.error('addIncome virhe:', e));
     setNewIncomeTitle('');
     setNewIncomeAmount('');
-     setShowAddIncome(false);
-};
+    setShowAddIncome(false);
+  };
 
   const handleEditIncome = (
     incomeId: string,
@@ -653,88 +653,88 @@ const periodPickerDate = useMemo(() => {
 
 
 
-   const handleEditCategory = (
-  categoryId: string,
-  oldTitle: string,
-  oldAllocated: number
-) => {
-  if (!userId || !budgetPeriod) return;
-  setEditingCategoryId(categoryId);
-  setEditCategoryTitle(oldTitle);
-  setEditCategoryAmount(String(oldAllocated));
-};
+  const handleEditCategory = (
+    categoryId: string,
+    oldTitle: string,
+    oldAllocated: number
+  ) => {
+    if (!userId || !budgetPeriod) return;
+    setEditingCategoryId(categoryId);
+    setEditCategoryTitle(oldTitle);
+    setEditCategoryAmount(String(oldAllocated));
+  };
 
- const saveCategoryEdit = async (categoryId: string) => {
-  if (!userId || !budgetPeriod) return;
-  const totalBudget = totalIncome;
-  if (!editCategoryTitle.trim()) {
-    Alert.alert('Virhe', 'Anna nimi');
-    return;
-  }
-  const newAlloc = parseFloat(editCategoryAmount.replace(',', '.'));
-  if (isNaN(newAlloc) || newAlloc < 0) {
-    Alert.alert('Virhe', 'Anna kelvollinen summa');
-    return;
-  }
-  const sumOthers = categories
-    .filter((c) => c.id !== categoryId && !c.title.toLowerCase().includes('yhteensä'))
-    .reduce((sum, c) => sum + c.allocated, 0);
-  if (sumOthers + newAlloc > totalBudget) {
-    Alert.alert(
-    'Virhe',
-      `Et voi varata enempää kuin budjetti. Jo varattuna: ${sumOthers} €. ` +
+  const saveCategoryEdit = async (categoryId: string) => {
+    if (!userId || !budgetPeriod) return;
+    const totalBudget = totalIncome;
+    if (!editCategoryTitle.trim()) {
+      Alert.alert('Virhe', 'Anna nimi');
+      return;
+    }
+    const newAlloc = parseFloat(editCategoryAmount.replace(',', '.'));
+    if (isNaN(newAlloc) || newAlloc < 0) {
+      Alert.alert('Virhe', 'Anna kelvollinen summa');
+      return;
+    }
+    const sumOthers = categories
+      .filter((c) => c.id !== categoryId && !c.title.toLowerCase().includes('yhteensä'))
+      .reduce((sum, c) => sum + c.allocated, 0);
+    if (sumOthers + newAlloc > totalBudget) {
+      Alert.alert(
+        'Virhe',
+        `Et voi varata enempää kuin budjetti. Jo varattuna: ${sumOthers} €. ` +
         `Yritit varata: ${newAlloc} €. Ylittää budjetin (${totalBudget} €).`
-    );
- return;
-  }
-  try {
-    await updateCategory(userId, categoryId, {
-      title: editCategoryTitle.trim(),
-      allocated: newAlloc,
-    });
-    const updatedCats = await getCategories(userId);
-    LayoutAnimation.configureNext(LayoutAnimation.Presets.easeInEaseOut);
-    setCategories(updatedCats);
-  } catch (e) {
-    console.error('updateCategory virhe:', e);
-  } finally {
+      );
+      return;
+    }
+    try {
+      await updateCategory(userId, categoryId, {
+        title: editCategoryTitle.trim(),
+        allocated: newAlloc,
+      });
+      const updatedCats = await getCategories(userId);
+      LayoutAnimation.configureNext(LayoutAnimation.Presets.easeInEaseOut);
+      setCategories(updatedCats);
+    } catch (e) {
+      console.error('updateCategory virhe:', e);
+    } finally {
+      setEditingCategoryId(null);
+      setEditCategoryTitle('');
+      setEditCategoryAmount('');
+    }
+  };
+
+  const cancelCategoryEdit = () => {
     setEditingCategoryId(null);
     setEditCategoryTitle('');
     setEditCategoryAmount('');
-  }
-};
+  };
 
-const cancelCategoryEdit = () => {
-  setEditingCategoryId(null);
-  setEditCategoryTitle('');
-  setEditCategoryAmount('');
-};
-
-const handleDeleteCategory = (categoryId: string) => {
-  if (!userId) return;
-  Alert.alert(
-    'Poista kategoria',
-    'Haluatko varmasti poistaa tämän kategorian?',
-    [
-      { text: 'Peruuta', style: 'cancel' },
-      {
-        text: 'Poista',
-        style: 'destructive',
-        onPress: async () => {
-          try {
-            await deleteCategory(userId, categoryId);
-            const updatedCats = await getCategories(userId);
-            LayoutAnimation.configureNext(LayoutAnimation.Presets.easeInEaseOut);
-            setCategories(updatedCats);
-          } catch (e) {
-            console.error('deleteCategory virhe:', e);
-          }
+  const handleDeleteCategory = (categoryId: string) => {
+    if (!userId) return;
+    Alert.alert(
+      'Poista kategoria',
+      'Haluatko varmasti poistaa tämän kategorian?',
+      [
+        { text: 'Peruuta', style: 'cancel' },
+        {
+          text: 'Poista',
+          style: 'destructive',
+          onPress: async () => {
+            try {
+              await deleteCategory(userId, categoryId);
+              const updatedCats = await getCategories(userId);
+              LayoutAnimation.configureNext(LayoutAnimation.Presets.easeInEaseOut);
+              setCategories(updatedCats);
+            } catch (e) {
+              console.error('deleteCategory virhe:', e);
+            }
+          },
         },
-      },
-    ],
-    { cancelable: true }
-  );
-};
+      ],
+      { cancelable: true }
+    );
+  };
 
   // ─── Add expense to category ────────────────────────────────────────
   const handleAddExpenseToCategory = (categoryId: string) => {
@@ -775,7 +775,7 @@ const handleDeleteCategory = (categoryId: string) => {
   };
 
   // ─── Edit budget period ─────────────────────────────────────────────
-  
+
 
   // ─── Start new budget period ───────────────────────────────────────
   const handleOpenNewPeriod = () => {
@@ -801,7 +801,7 @@ const handleDeleteCategory = (categoryId: string) => {
         endDate: newPeriodEnd,
         totalAmount: 0,
       });
-       if (copyPreviousPlanChecked) {
+      if (copyPreviousPlanChecked) {
         await copyPreviousMonthPlan(userId);
       }
       setBudgetPeriod({
@@ -809,7 +809,7 @@ const handleDeleteCategory = (categoryId: string) => {
         endDate: newPeriodEnd,
         totalAmount: 0,
       });
-       setIncomes([]);
+      setIncomes([]);
       setExpensesByCategory({});
       setTotalExpenses(0);
       let updatedCats = await getCategories(userId);
@@ -845,13 +845,13 @@ const handleDeleteCategory = (categoryId: string) => {
     setShowPeriodModal(false);
     setLoadingPeriod(true);
     if (pid === currentPeriodId) {
-       const active = { current: true };
+      const active = { current: true };
       currentPeriodFetch.current = active;
       await loadCurrentPeriod(active);
       if (active.current) setLoadingPeriod(false);
       return;
     }
-     try {
+    try {
       const hist = await getBudgetPeriodFromHistory(userId, pid);
       if (hist) {
         setBudgetPeriod({
@@ -962,7 +962,7 @@ const handleDeleteCategory = (categoryId: string) => {
               }
             }
 
-        const subRow = editingCategoryId === sub.id ? (
+            const subRow = editingCategoryId === sub.id ? (
               <View style={styles.addSubInlineRow}>
                 <TextInput
                   style={styles.expenseCategoryInput}
@@ -972,7 +972,7 @@ const handleDeleteCategory = (categoryId: string) => {
                   onChangeText={setEditCategoryTitle}
                 />
                 <TextInput
-                   style={styles.expenseAmountInput}
+                  style={styles.expenseAmountInput}
                   placeholder="Summa"
                   placeholderTextColor="#888"
                   keyboardType="numeric"
@@ -997,7 +997,7 @@ const handleDeleteCategory = (categoryId: string) => {
                   isTotalRow && styles.subCategoryTotalRow,
                 ]}
               >
-               {isTotalRow ? (
+                {isTotalRow ? (
                   <View style={styles.categoryField}>
                     <Text
                       style={[
@@ -1014,7 +1014,7 @@ const handleDeleteCategory = (categoryId: string) => {
                     onPress={() =>
                       handleEditCategory(sub.id, sub.title, sub.allocated)
                     }
-                     style={[
+                    style={[
                       styles.categoryField,
                       selectedTab === 'plan' && styles.editableField,
                     ]}
@@ -1039,7 +1039,7 @@ const handleDeleteCategory = (categoryId: string) => {
                         isTotalRow && styles.subCategoryTotalValue,
                       ]}
                     >
-                        {formatCurrency(displayValue)} €
+                      {formatCurrency(displayValue)} €
                     </Text>
                   </TouchableOpacity>
                   {!readOnly && !isTotalRow && selectedTab === 'plan' && (
@@ -1058,7 +1058,7 @@ const handleDeleteCategory = (categoryId: string) => {
               </View>
             );
 
-             if (isTotalRow) {
+            if (isTotalRow) {
               return (
                 <React.Fragment key={sub.id}>
                   {selectedTab === 'plan' && (
@@ -1155,18 +1155,18 @@ const handleDeleteCategory = (categoryId: string) => {
         <View style={styles.modalOverlay}>
           <View style={styles.modalContainer}>
             <Text style={styles.modalTitle}>Valitse jakso</Text>
-              <Text style={styles.calendarRangeText}>
+            <Text style={styles.calendarRangeText}>
               {`Budjettijakso: ${periodPickerRange}`}
             </Text>
-             {!periodExists && (
+            {!periodExists && (
               <Text style={styles.calendarNoPeriodText}>
                 budjettijaksoa ei luotu tälle kuukaudelle
               </Text>
             )}
-             <View style={styles.periodPickerWrapper}>
+            <View style={styles.periodPickerWrapper}>
               <View style={styles.calendarHeader}>
                 <TouchableOpacity
-                    onPress={() => changePeriod(1)}
+                  onPress={() => changePeriod(1)}
                   style={styles.calendarNavButton}
                 >
                   <Ionicons
@@ -1176,7 +1176,7 @@ const handleDeleteCategory = (categoryId: string) => {
                   />
                 </TouchableOpacity>
                 <Text style={styles.calendarHeaderText}>
-                   {periodPickerMonth}
+                  {periodPickerMonth}
                 </Text>
                 <TouchableOpacity
                   onPress={() => changePeriod(-1)}
@@ -1189,9 +1189,9 @@ const handleDeleteCategory = (categoryId: string) => {
                   />
                 </TouchableOpacity>
               </View>
-                {renderCalendar()}
+              {renderCalendar()}
             </View>
-           <View style={[styles.modalButtons, styles.periodPickerButtons]}>
+            <View style={[styles.modalButtons, styles.periodPickerButtons]}>
               <TouchableOpacity
                 onPress={() => setShowPeriodModal(false)}
                 style={styles.modalButton}
@@ -1377,7 +1377,7 @@ const handleDeleteCategory = (categoryId: string) => {
             <TouchableOpacity onPress={handleOpenNewPeriod} style={styles.iconButton}>
               <Ionicons name="add-circle-outline" size={22} color={Colors.moss} />
             </TouchableOpacity>
-            
+
           </View>
           {/* ─── Tilannevälilehdet ────────────────────────────────────────── */}
           <View style={styles.tabsContainer}>
@@ -1405,10 +1405,10 @@ const handleDeleteCategory = (categoryId: string) => {
           <View style={styles.unallocatedContainer}>
             <View style={styles.budgetSummaryContainer}>
               {selectedTab === 'plan' && (
-                  <Text
+                <Text
                   style={[
                     styles.unallocatedText,
-                     unallocatedBudget === 0 && styles.unallocatedZero,
+                    unallocatedBudget === 0 && styles.unallocatedZero,
                   ]}
                 >
                   Budjetoitavaa jäljellä:{' '}
@@ -1419,7 +1419,7 @@ const handleDeleteCategory = (categoryId: string) => {
                       unallocatedBudget === 0 && styles.unallocatedZero,
                     ]}
                   >
-                       {incomes.length > 0 || totalAllocated > 0
+                    {incomes.length > 0 || totalAllocated > 0
                       ? `${formatCurrency(unallocatedBudget)} €`
                       : '-'}
                   </Text>{' '}
@@ -1428,165 +1428,166 @@ const handleDeleteCategory = (categoryId: string) => {
               {selectedTab === 'spent' && (
                 <Text style={styles.unallocatedText}>
                   Käytetty yhteensä:{' '}
-                   <Text style={styles.unallocatedValue}>{formatCurrency(totalSpentAll)} €</Text>
+                  <Text style={styles.unallocatedValue}>{formatCurrency(totalSpentAll)} €</Text>
                 </Text>
               )}
               {selectedTab === 'left' && (
                 <Text style={styles.unallocatedText}>
-                    Jäljellä yhteensä:{' '}
-                    <Text style={styles.unallocatedValue}>{formatCurrency(budgetLeftOverall)} €</Text>
+                  Jäljellä yhteensä:{' '}
+                  <Text style={styles.unallocatedValue}>{formatCurrency(budgetLeftOverall)} €</Text>
                 </Text>
               )}
-             <View style={styles.separator} />
+              <View style={styles.separator} />
             </View>
           </View>
 
-           <ScrollView contentContainerStyle={{ paddingBottom: 24 }}>
+          <ScrollView contentContainerStyle={{ paddingBottom: 24 }}>
 
-          {/* ─── Tulot ─────────────────────────────────────────────────── */}
-          <View style={styles.incomeHeader}>
-            <Text style={styles.incomeTitle}>Tulot</Text>
-             {selectedTab === 'plan' ? (
-              <View style={styles.categoryHeaderButtons}>
-                <TouchableOpacity
-                  style={styles.addMainCategoryButton}
-                  onPress={() => setShowAddIncome(!showAddIncome)}
-                >
-                  <Ionicons name="add-circle-outline" size={20} color={Colors.moss} />
-                  <Text style={styles.addMainCategoryText}>Lisää tulo</Text>
-                </TouchableOpacity>
-              </View>
-            ) : (
-              <View style={styles.categoryHeaderButtons}>
-                <Text style={styles.addMainCategoryText}>Saadut tulot</Text>
-              </View>
-            )}
-          </View>
-
-          {selectedTab === 'plan' && showAddIncome && (
-           <View style={styles.addIncomeRow}>
-              <TextInput
-                style={styles.inlineInput}
-                placeholder="Tulo"
-                placeholderTextColor="#888"
-                value={newIncomeTitle}
-                onChangeText={setNewIncomeTitle}
-              />
-              <TextInput
-                style={styles.inlineInput}
-                placeholder="Summa"
-                placeholderTextColor="#888"
-                keyboardType="numeric"
-                value={newIncomeAmount}
-                onChangeText={setNewIncomeAmount}
-              />
-              <TouchableOpacity onPress={handleAddIncome} style={styles.iconButtonSmall}>
-                <Ionicons name="checkmark-circle-outline" size={20} color={Colors.moss} />
-              </TouchableOpacity>
-              <TouchableOpacity onPress={() => setShowAddIncome(false)} style={styles.iconButtonSmall}>
-                <Ionicons name="close-circle-outline" size={20} color={Colors.iconMuted} />
-              </TouchableOpacity>
-            </View>
-          )}
-
-          <FlatList
-            data={incomes}
-            keyExtractor={(item) => item.id}
-            scrollEnabled={false}
-            renderItem={({ item }) => (
-             editingIncomeId === item.id ? (
-                <View style={styles.categoryCard}>
-                  <TextInput
-                    style={styles.inlineInput}
-                    value={editIncomeTitle}
-                    onChangeText={setEditIncomeTitle}
-                    placeholder="Nimi"
-                    placeholderTextColor="#888"
-                  />
-                  <TextInput
-                    style={styles.inlineInput}
-                    value={editIncomeAmount}
-                    onChangeText={setEditIncomeAmount}
-                    placeholder="Summa"
-                    placeholderTextColor="#888"
-                    keyboardType="numeric"
-                  />
+            {/* ─── Tulot ─────────────────────────────────────────────────── */}
+            <View style={styles.incomeHeader}>
+              <Text style={styles.incomeTitle}>Tulot</Text>
+              {selectedTab === 'plan' ? (
+                <View style={styles.categoryHeaderButtons}>
                   <TouchableOpacity
-                    onPress={() => saveIncomeEdit(item.id)}
-                    style={styles.iconButtonSmall}
+                    style={styles.addMainCategoryButton}
+                    onPress={() => setShowAddIncome(!showAddIncome)}
                   >
-                    <Ionicons name="checkmark-circle-outline" size={20} color={Colors.moss} />
+                    <Ionicons name="add-circle-outline" size={20} color={Colors.moss} />
+                    <Text style={styles.addMainCategoryText}>Lisää tulo</Text>
                   </TouchableOpacity>
-                  <TouchableOpacity onPress={cancelIncomeEdit} style={styles.iconButtonSmall}>
-                    <Ionicons name="close-circle-outline" size={20} color={Colors.iconMuted} />
-                  </TouchableOpacity>
-                    </View>
-              ) : (
-                <View style={styles.categoryCard}>
-                   <Text style={[styles.categoryTitle]}>{item.title}</Text>
-                  <View style={styles.categoryRight}>
-                    <TouchableOpacity
-                       disabled={readOnly}
-                      onPress={() =>
-                        handleEditIncome(item.id, item.title, item.amount)
-                      }
-                       style={selectedTab === 'plan' ? styles.editableField : undefined}
-                    >
-                      <Text style={styles.categoryValue}>
-                        {formatCurrency(item.amount)} €
-                      </Text>
-                    </TouchableOpacity>
-  
-                    {!readOnly && selectedTab === 'plan' && (
-                      <TouchableOpacity
-                        onPress={() => handleDeleteIncome(item.id)}
-                        style={styles.iconButtonSmall}
-                      >
-                        <Ionicons
-                          name="trash-outline"
-                          size={14}
-                          color={Colors.iconMuted}
-                        />
-                      </TouchableOpacity>
-                    )}
-                  </View>
                 </View>
-                )
-            )}
-            contentContainerStyle={styles.listContent}
-          />
-            <View style={styles.incomeTotalRow}>
-            <Text style={[styles.subCategoryTotalTitle, styles.incomeTotalLabel]}>Yhteensä:</Text>
-            <Text style={styles.subCategoryTotalValue}>{formatCurrency(totalIncome)} €</Text>
-          </View>
+              ) : (
+                <View style={styles.categoryHeaderButtons}>
+                  <Text style={styles.addMainCategoryText}>Saadut tulot</Text>
+                </View>
+              )}
+            </View>
 
-          {/* ─── Menot ───────────────────────────────────────────────────── */}
-          <View style={styles.mainCategoryHeader}>
-            <Text style={styles.mainCategoryTitle}>Menot</Text>
-            {selectedTab === 'plan' ? (
-              <View style={styles.categoryHeaderButtons}>
-                <TouchableOpacity
-                  style={styles.addMainCategoryButton}
-                  onPress={handleAddMainCategory}
-                >
-                  <Ionicons name="add-circle-outline" size={20} color={Colors.moss} />
-                  <Text style={styles.addMainCategoryText}>Lisää kategoria</Text>
+            {selectedTab === 'plan' && showAddIncome && (
+              <View style={styles.addIncomeRow}>
+                <TextInput
+                  style={styles.inlineInput}
+                  placeholder="Tulo"
+                  placeholderTextColor="#888"
+                  value={newIncomeTitle}
+                  onChangeText={setNewIncomeTitle}
+                />
+                <TextInput
+                  style={styles.inlineInput}
+                  placeholder="Summa"
+                  placeholderTextColor="#888"
+                  keyboardType="numeric"
+                  value={newIncomeAmount}
+                  onChangeText={setNewIncomeAmount}
+                />
+                <TouchableOpacity onPress={handleAddIncome} style={styles.iconButtonSmall}>
+                  <Ionicons name="checkmark-circle-outline" size={20} color={Colors.moss} />
+                </TouchableOpacity>
+                <TouchableOpacity onPress={() => setShowAddIncome(false)} style={styles.iconButtonSmall}>
+                  <Ionicons name="close-circle-outline" size={20} color={Colors.iconMuted} />
                 </TouchableOpacity>
               </View>
-            ) : (
-              <View style={styles.categoryHeaderButtons} />
             )}
-          </View>
 
-          {/* ─── Kategoriat FlatListillä ─────────────────────────────────── */}
-          <FlatList
-            data={categories}
-            keyExtractor={(item) => item.id}
-            scrollEnabled={false}
-            renderItem={renderCategoryItem}
-            contentContainerStyle={styles.listContent}
-          />
-           </ScrollView>
+            <FlatList
+              data={incomes}
+              keyExtractor={(item) => item.id}
+              scrollEnabled={false}
+              renderItem={({ item }) => (
+                editingIncomeId === item.id ? (
+                  <View style={styles.categoryCard}>
+                    <TextInput
+                      style={styles.inlineInput}
+                      value={editIncomeTitle}
+                      onChangeText={setEditIncomeTitle}
+                      placeholder="Nimi"
+                      placeholderTextColor="#888"
+                    />
+                    <TextInput
+                      style={styles.inlineInput}
+                      value={editIncomeAmount}
+                      onChangeText={setEditIncomeAmount}
+                      placeholder="Summa"
+                      placeholderTextColor="#888"
+                      keyboardType="numeric"
+                    />
+                    <TouchableOpacity
+                      onPress={() => saveIncomeEdit(item.id)}
+                      style={styles.iconButtonSmall}
+                    >
+                      <Ionicons name="checkmark-circle-outline" size={20} color={Colors.moss} />
+                    </TouchableOpacity>
+                    <TouchableOpacity onPress={cancelIncomeEdit} style={styles.iconButtonSmall}>
+                      <Ionicons name="close-circle-outline" size={20} color={Colors.iconMuted} />
+                    </TouchableOpacity>
+                  </View>
+                ) : (
+                  <View style={styles.categoryCard}>
+                    <Text style={styles.subCategoryTitle}>{item.title}</Text>
+                    <View style={styles.categoryRight}>
+                      <TouchableOpacity
+                        disabled={readOnly}
+                        onPress={() =>
+                          handleEditIncome(item.id, item.title, item.amount)
+                        }
+                        style={selectedTab === 'plan' ? styles.editableField : undefined}
+                      >
+                        <Text style={styles.subCategoryValue}>
+                          {formatCurrency(item.amount)} €
+                        </Text>
+
+                      </TouchableOpacity>
+
+                      {!readOnly && selectedTab === 'plan' && (
+                        <TouchableOpacity
+                          onPress={() => handleDeleteIncome(item.id)}
+                          style={styles.iconButtonSmall}
+                        >
+                          <Ionicons
+                            name="trash-outline"
+                            size={14}
+                            color={Colors.iconMuted}
+                          />
+                        </TouchableOpacity>
+                      )}
+                    </View>
+                  </View>
+                )
+              )}
+              contentContainerStyle={styles.listContent}
+            />
+            <View style={styles.incomeTotalRow}>
+              <Text style={styles.incomeTotalLabel}>Yteensä:</Text>
+              <Text style={styles.incomeTotalValue}>{formatCurrency(totalIncome)} €</Text>
+            </View>
+
+            {/* ─── Menot ───────────────────────────────────────────────────── */}
+            <View style={styles.mainCategoryHeader}>
+              <Text style={styles.mainCategoryTitle}>Menot</Text>
+              {selectedTab === 'plan' ? (
+                <View style={styles.categoryHeaderButtons}>
+                  <TouchableOpacity
+                    style={styles.addMainCategoryButton}
+                    onPress={handleAddMainCategory}
+                  >
+                    <Ionicons name="add-circle-outline" size={20} color={Colors.moss} />
+                    <Text style={styles.addMainCategoryText}>Lisää kategoria</Text>
+                  </TouchableOpacity>
+                </View>
+              ) : (
+                <View style={styles.categoryHeaderButtons} />
+              )}
+            </View>
+
+            {/* ─── Kategoriat FlatListillä ─────────────────────────────────── */}
+            <FlatList
+              data={categories}
+              keyExtractor={(item) => item.id}
+              scrollEnabled={false}
+              renderItem={renderCategoryItem}
+              contentContainerStyle={styles.listContent}
+            />
+          </ScrollView>
         </>
       )}
     </SafeAreaView>
@@ -1647,12 +1648,12 @@ const styles = StyleSheet.create({
   unallocatedText: {
     fontSize: 20,
     color: Colors.textPrimary,
-    fontWeight: '500',
+    fontWeight: '600',
     marginBottom: 4,
     textAlign: 'center',
   },
   unallocatedValue: {
-    fontWeight: '700',
+    fontWeight: '600',
     fontSize: 18,
   },
   unallocatedNegative: {
@@ -1667,7 +1668,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 1,
     paddingVertical: 2,
   },
-   separator: {
+  separator: {
     height: 1,
     backgroundColor: Colors.border,
     marginTop: 8,
@@ -1722,8 +1723,8 @@ const styles = StyleSheet.create({
   },
   mainCategoryTitle: {
     fontSize: 24, // aiemmin 20
-    fontWeight: '700', // vahvempi korostus
-     color: Colors.textPrimary,
+    fontWeight: '600', // vahvempi korostus
+    color: Colors.textPrimary,
 
   },
   addMainCategoryButton: {
@@ -1736,7 +1737,7 @@ const styles = StyleSheet.create({
     color: Colors.moss,
     fontWeight: '600',
   },
-   incomeHeader: {
+  incomeHeader: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
@@ -1746,20 +1747,27 @@ const styles = StyleSheet.create({
   },
   incomeTitle: {
     fontSize: 24,
-    fontWeight: '700',
+    fontWeight: '600',
     color: Colors.textPrimary,
   },
- incomeTotalRow: {
+  incomeTotalRow: {
     flexDirection: 'row',
     fontSize: 24,
-   alignItems: 'center',
- justifyContent: 'flex-start',
+    alignItems: 'center',
+    justifyContent: 'flex-start',
     padding: 16,
     marginBottom: 16,
   },
-incomeTotalLabel: {
+  incomeTotalLabel: {
     marginRight: 8,
-    fontSize: 24,
+    fontSize: 20,
+    fontWeight: '600',
+    color: Colors.textPrimary,
+  },
+  incomeTotalValue: {
+    fontSize: 20,
+    fontWeight: '600',
+    color: Colors.textPrimary,
   },
 
   categoryHeaderButtons: {
@@ -1775,7 +1783,7 @@ incomeTotalLabel: {
   categoryCard: {
     flexDirection: 'row',
     justifyContent: 'space-between',
-      alignItems: 'center',
+    alignItems: 'center',
     backgroundColor: Colors.cardBackground,
     borderRadius: 12, // aiemmin 8
     padding: 16,      // aiemmin 12
@@ -1806,13 +1814,13 @@ incomeTotalLabel: {
     fontWeight: '500',
     color: Colors.textPrimary,
   },
- 
- iconButtonSmall: {
+
+  iconButtonSmall: {
     marginLeft: 12,
   },
-addSubCategoryRow: {
+  addSubCategoryRow: {
     justifyContent: 'flex-start',
-      marginTop: 10,
+    marginTop: 10,
   },
   addSubCategoryContent: {
     flexDirection: 'row',
@@ -1828,10 +1836,10 @@ addSubCategoryRow: {
     flexDirection: 'row',
     alignItems: 'center',
     marginTop: 6,
-      marginBottom: 6,
+    marginBottom: 6,
     paddingHorizontal: 16,
   },
-    addIncomeRow: {
+  addIncomeRow: {
     flexDirection: 'row',
     alignItems: 'center',
     marginTop: 8,
@@ -1849,7 +1857,7 @@ addSubCategoryRow: {
     backgroundColor: Colors.cardBackground,
     color: Colors.textPrimary,
   },
-    expenseCategoryInput: {
+  expenseCategoryInput: {
     flex: 1,
     height: 40,
     borderWidth: 1,
@@ -1868,7 +1876,7 @@ addSubCategoryRow: {
     borderRadius: 6,
     paddingHorizontal: 8,
     marginRight: 8,
-     backgroundColor: Colors.cardBackground,
+    backgroundColor: Colors.cardBackground,
     color: Colors.textPrimary,
     textAlign: 'right',
   },
@@ -1883,7 +1891,7 @@ addSubCategoryRow: {
   },
   categoryField: {
     flex: 1,
-     height: 40,
+    height: 40,
     justifyContent: 'center',
     marginRight: 8,
   },
@@ -1892,7 +1900,7 @@ addSubCategoryRow: {
     height: 40,
     justifyContent: 'center',
     alignItems: 'flex-end',
-     marginRight: 8,
+    marginRight: 8,
   },
   subCategoryRow: {
     flexDirection: 'row',
@@ -1901,7 +1909,7 @@ addSubCategoryRow: {
     paddingLeft: 12,
     marginTop: 4,
   },
-   firstSubCategoryRow: {
+  firstSubCategoryRow: {
     marginTop: 12,
   },
   subCategoryTotalRow: {
@@ -1915,7 +1923,7 @@ addSubCategoryRow: {
     alignItems: 'center',
   },
   subCategoryRight: {
-     flex: 1.2,
+    flex: 1.2,
     flexDirection: 'row',
     alignItems: 'center',
 
@@ -1926,25 +1934,25 @@ addSubCategoryRow: {
   },
   subCategoryTotalTitle: {
     fontSize: 18,
-    fontWeight: '700',
+    fontWeight: '600',
     color: Colors.textPrimary,
   },
   subCategoryValue: {
-    fontSize: 22,
+    fontSize: 16,
     color: Colors.textPrimary,
   },
   subCategoryTotalValue: {
-    fontSize: 22,
+    fontSize: 18,
     fontWeight: '600',
     color: Colors.textPrimary,
   },
   categoryRight: {
-      flexDirection: 'row',
+    flexDirection: 'row',
     alignItems: 'center',
   },
 
   categoryValue: {
-    fontSize: 20,
+    fontSize: 18,
     fontWeight: '600',
     color: Colors.textPrimary,
   },
@@ -1956,11 +1964,11 @@ addSubCategoryRow: {
     alignItems: 'center',
   },
   modalContainer: {
-     width: '95%',
+    width: '95%',
     maxWidth: 420,
     backgroundColor: Colors.background,
-       paddingHorizontal: 20,
-     paddingTop: 12,
+    paddingHorizontal: 20,
+    paddingTop: 12,
     paddingBottom: 4,
     borderRadius: 8,
     alignItems: 'center',
@@ -1985,27 +1993,27 @@ addSubCategoryRow: {
     marginBottom: 8,
     paddingHorizontal: 16,
   },
- calendarRangeText: {
+  calendarRangeText: {
     fontSize: 16,
-    fontWeight: '500',
+    fontWeight: '600',
     color: Colors.textPrimary,
-     alignSelf: 'center',
+    alignSelf: 'center',
     marginBottom: 20,
   },
   calendarHeaderText: {
     fontSize: 16,
-    fontWeight: '500',
+    fontWeight: '600',
     color: Colors.textPrimary,
   },
   calendarNavButton: {
     padding: 4,
   },
-    calendarNoPeriodText: {
+  calendarNoPeriodText: {
     color: Colors.danger,
-     marginBottom: 4,
+    marginBottom: 4,
     textAlign: 'center',
   },
-   calendar: {
+  calendar: {
     width: '100%',
   },
   weekRow: {
@@ -2018,7 +2026,7 @@ addSubCategoryRow: {
   weekDayText: {
     width: '14.2857%',
     textAlign: 'center',
-    fontWeight: '500',
+    fontWeight: '600',
     color: Colors.textPrimary,
   },
   calendarGrid: {
@@ -2044,10 +2052,10 @@ addSubCategoryRow: {
   calendarDayTextSelected: {
     color: Colors.buttonPrimaryText,
   },
-  
+
   label: {
     fontSize: 16,
-    fontWeight: '500',
+    fontWeight: '600',
     color: Colors.textPrimary,
     marginBottom: 6,
     alignSelf: 'flex-start',
@@ -2073,7 +2081,7 @@ addSubCategoryRow: {
     flexDirection: 'row',
     justifyContent: 'flex-end',
 
-    
+
   },
   periodPickerButtons: {
     marginTop: -55,
@@ -2113,7 +2121,7 @@ addSubCategoryRow: {
   },
   noPeriodText: {
     fontSize: 20,
-    fontWeight: '500',
+    fontWeight: '600',
     color: Colors.textPrimary,
     marginBottom: 16,
     textAlign: 'center',
@@ -2139,5 +2147,5 @@ addSubCategoryRow: {
     fontWeight: '600',
     textAlign: 'center',
   },
-  
+
 });
