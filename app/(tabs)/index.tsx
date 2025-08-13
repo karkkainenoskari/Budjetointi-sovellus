@@ -1557,7 +1557,7 @@ export default function BudjettiScreen() {
               contentContainerStyle={styles.listContent}
             />
             <View style={styles.incomeTotalRow}>
-              <Text style={styles.incomeTotalLabel}>Yteensä:</Text>
+              <Text style={styles.incomeTotalLabel}>Yhteensä:</Text>
               <Text style={styles.incomeTotalValue}>{formatCurrency(totalIncome)} €</Text>
             </View>
 
