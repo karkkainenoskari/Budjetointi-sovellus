@@ -10,21 +10,28 @@ import {
   Alert,
   ActivityIndicator,
   SafeAreaView,
+   Modal,
+  TextInput,
 } from 'react-native';
 import Colors from '../../constants/Colors';
 import { getGoals, addGoal, updateGoal, deleteGoal, Goal } from '../../src/services/goals';
 import { auth } from '../../src/api/firebaseConfig';
 import { Ionicons } from '@expo/vector-icons';
-import { useRouter } from 'expo-router';
 import DateTimePicker from '@react-native-community/datetimepicker';
 
 export default function TavoitteetScreen() {
   const user = auth.currentUser;
   const userId = user ? user.uid : null;
-  const router = useRouter();
+
 
   const [goals, setGoals] = useState<Goal[]>([]);
   const [loadingGoals, setLoadingGoals] = useState<boolean>(true);
+
+   const [addModalVisible, setAddModalVisible] = useState(false);
+  const [newGoalTitle, setNewGoalTitle] = useState('');
+  const [newGoalAmount, setNewGoalAmount] = useState('');
+  const [newGoalDate, setNewGoalDate] = useState(new Date());
+  const [showDatePicker, setShowDatePicker] = useState(false);
 
    const getProgressColor = (percent: number) => {
     if (percent < 25) return Colors.danger;
@@ -48,46 +55,32 @@ export default function TavoitteetScreen() {
 
   // Lisää tavoite
   const handleAddGoal = () => {
-    // Placeholder‐lomake: pyydetään otsikko, summa, deadline
-    Alert.prompt(
-      'Uusi tavoite',
-      'Syötä otsikko ja tavoitesumma muodossa “Otsikko, 1000”:',
-      [
-        { text: 'Peruuta', style: 'cancel' },
-        {
-          text: 'Seuraava',
-          onPress: (input) => {
-            if (!input || !userId) return;
-            const parts = input.split(',');
-            if (parts.length !== 2) {
-              Alert.alert('Virhe', 'Muoto: “Otsikko, 1000”');
-              return;
-            }
-            const title = parts[0].trim();
-            const target = parseFloat(parts[1].trim());
-            if (isNaN(target) || target <= 0) {
-              Alert.alert('Virhe', 'Anna kelvollinen summa');
-              return;
-            }
-            // Valitse deadline päivämääräpainikkeella
-            Alert.alert(
-              'Lisää deadline manuaalisesti koodiin', // placeholder
-              'Toteuta DatePicker UI kun haluat kovalla todennäköisyydellä hahmottaa parannuksia.',
-            );
-            // Oletetaan, että deadline = kuuden kuukauden päästä (demo)
-            const now = new Date();
-            const deadline = new Date(now.getFullYear(), now.getMonth() + 6, now.getDate());
-            addGoal(userId, { title, targetAmount: target, deadline })
-              .then(async () => {
-                const updated = await getGoals(userId);
-                setGoals(updated);
-              })
-              .catch((e) => console.error('addGoal virhe:', e));
-          },
-        },
-      ],
-      'plain-text'
-    );
+    setAddModalVisible(true);
+  };
+
+  const handleSaveNewGoal = async () => {
+    if (!userId) return;
+    const title = newGoalTitle.trim();
+    const target = parseFloat(newGoalAmount);
+    if (!title) {
+      Alert.alert('Virhe', 'Anna otsikko');
+      return;
+    }
+    if (isNaN(target) || target <= 0) {
+      Alert.alert('Virhe', 'Anna kelvollinen summa');
+      return;
+    }
+    try {
+      await addGoal(userId, { title, targetAmount: target, deadline: newGoalDate });
+      const updated = await getGoals(userId);
+      setGoals(updated);
+      setAddModalVisible(false);
+      setNewGoalTitle('');
+      setNewGoalAmount('');
+      setNewGoalDate(new Date());
+    } catch (e) {
+      console.error('addGoal virhe:', e);
+    }
   };
 
   // Muokkaa tavoitetta
@@ -169,25 +162,118 @@ export default function TavoitteetScreen() {
     );
   }
 
+   const totalGoals = goals.length;
+  const averageProgress =
+    totalGoals > 0
+      ? Math.round(
+          goals.reduce(
+            (sum, g) => sum + (g.currentSaved / g.targetAmount) * 100,
+            0
+          ) / totalGoals
+        )
+      : 0;
+
   return (
     <SafeAreaView style={styles.safeContainer}>
-      <View style={styles.headerRow}>
-        <Text style={styles.headerTitle}>Tavoitteet</Text>
-        <TouchableOpacity onPress={handleAddGoal} style={styles.iconButton}>
-          <Ionicons name="add-circle-outline" size={26} color={Colors.moss} />
-        </TouchableOpacity>
-      </View>
+     <Modal visible={addModalVisible} animationType="slide" transparent>
+        <View style={styles.modalOverlay}>
+          <View style={styles.modalContainer}>
+            <Text style={styles.modalTitle}>Uusi tavoite</Text>
+            <TextInput
+              style={styles.modalInput}
+              placeholder="Otsikko"
+              value={newGoalTitle}
+              onChangeText={setNewGoalTitle}
+            />
+            <TextInput
+              style={styles.modalInput}
+              placeholder="Tavoitesumma €"
+              value={newGoalAmount}
+              onChangeText={setNewGoalAmount}
+              keyboardType="numeric"
+            />
+            <TouchableOpacity
+              onPress={() => setShowDatePicker(true)}
+              style={styles.dateButton}
+            >
+              <Text style={styles.dateButtonText}>
+                Deadline: {newGoalDate.toLocaleDateString('fi-FI')}
+              </Text>
+            </TouchableOpacity>
+            {showDatePicker && (
+              <DateTimePicker
+                value={newGoalDate}
+                mode="date"
+                display="default"
+                locale="fi-FI"
+                onChange={(e, d) => {
+                  setShowDatePicker(false);
+                  if (d) setNewGoalDate(d);
+                }}
+              />
+            )}
+            <View style={styles.modalActions}>
+              <TouchableOpacity
+                onPress={() => setAddModalVisible(false)}
+                style={styles.modalCancelButton}
+              >
+                <Text style={styles.modalCancelText}>Peruuta</Text>
+              </TouchableOpacity>
+              <TouchableOpacity
+                onPress={handleSaveNewGoal}
+                style={styles.modalSaveButton}
+              >
+                <Text style={styles.modalSaveText}>Tallenna</Text>
+              </TouchableOpacity>
+            </View>
+          </View>
+        </View>
+      </Modal>
+      <View style={styles.pageContent}>
+        <View style={styles.headerRow}>
+          <Text style={styles.headerTitle}>Tavoitteet</Text>
+          <TouchableOpacity onPress={handleAddGoal} style={styles.iconButton}>
+            <Ionicons name="add-circle-outline" size={26} color={Colors.moss} />
+          </TouchableOpacity>
+        </View>
+        <View style={styles.summaryCard}>
+          <Text style={styles.summaryText}>
+            Sinulla on {totalGoals} tavoitetta, keskimäärin {averageProgress}% saavutettu.
+          </Text>
+        </View>
 
-      <FlatList
-        data={goals}
-        keyExtractor={(item) => item.id}
-        contentContainerStyle={styles.listContent}
-        renderItem={({ item }) => {
+       <FlatList
+          data={goals}
+          keyExtractor={(item) => item.id}
+          contentContainerStyle={styles.listContent}
+          renderItem={({ item }) => {
           const percent = Math.min((item.currentSaved / item.targetAmount) * 100, 100);
+          const deadlineDate =
+            item.deadline?.toDate ? item.deadline.toDate() : new Date(item.deadline);
+          const daysRemaining = Math.max(
+            0,
+            Math.ceil((deadlineDate.getTime() - Date.now()) / (1000 * 60 * 60 * 24))
+          );
+          const createdDate =
+            item.createdAt?.toDate ? item.createdAt.toDate() : new Date(item.createdAt);
+          const totalDuration = Math.max(1, deadlineDate.getTime() - createdDate.getTime());
+          const elapsed = Date.now() - createdDate.getTime();
+          const expectedPercent = Math.min((elapsed / totalDuration) * 100, 100);
+          const statusMessage =
+            percent >= expectedPercent ? 'Olet aikataulussa' : 'Pientä kiriä tarvitaan';
+
           return (
             <View style={styles.goalCard}>
               <View style={styles.goalRow}>
-                <Text style={styles.goalTitle}>{item.title}</Text>
+               <View style={styles.goalTitleRow}>
+                  <Ionicons
+                    name="flag-outline"
+                    size={20}
+                    color={Colors.moss}
+                    style={styles.goalIcon}
+                  />
+                  <Text style={styles.goalTitle}>{item.title}</Text>
+                </View>
                 <View style={styles.goalIcons}>
                   <TouchableOpacity
                     onPress={() => handleEditGoal(item)}
@@ -204,7 +290,7 @@ export default function TavoitteetScreen() {
                 </View>
               </View>
               <Text style={styles.goalAmount}>
-                {item.currentSaved}€ / {item.targetAmount}€
+                 {item.currentSaved}€ / {item.targetAmount}€ ({percent.toFixed(0)}%)
               </Text>
               <View style={styles.progressBarContainer}>
                 <View
@@ -214,10 +300,14 @@ export default function TavoitteetScreen() {
                   ]}
                 />
               </View>
+               <Text style={styles.daysRemaining}>
+                {daysRemaining} päivää jäljellä – {statusMessage}
+              </Text>
             </View>
           );
         }}
       />
+        </View>
     </SafeAreaView>
   );
 }
@@ -226,8 +316,8 @@ const styles = StyleSheet.create({
   safeContainer: {
     flex: 1,
     backgroundColor: Colors.background,
-     paddingHorizontal: 24,
-    paddingTop: 24,
+      alignItems: 'center',
+    paddingTop: 48,
     paddingBottom: 16,
   },
   loaderContainer: {
@@ -236,12 +326,18 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     backgroundColor: Colors.background,
   },
-  headerRow: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    marginBottom: 12,
+   pageContent: {
+    width: '100%',
+    maxWidth: 600,
+    paddingHorizontal: 24,
   },
+ headerRow: {
+  flexDirection: 'row',
+  justifyContent: 'space-between',
+  alignItems: 'center',
+  marginBottom: 12,
+  marginTop: 15, 
+},
   headerTitle: {
     fontSize: 24,
     fontWeight: '600',
@@ -249,6 +345,18 @@ const styles = StyleSheet.create({
   },
   iconButton: {
     marginLeft: 12,
+  },
+   summaryCard: {
+    backgroundColor: Colors.cardBackground,
+    borderRadius: 8,
+    padding: 12,
+    marginBottom: 16,
+    borderWidth: 1,
+    borderColor: Colors.border,
+  },
+  summaryText: {
+    fontSize: 16,
+    color: Colors.textPrimary,
   },
   listContent: {
     paddingBottom: 24,
@@ -265,6 +373,13 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
+  },
+  goalTitleRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  goalIcon: {
+    marginRight: 6,
   },
   goalTitle: {
     fontSize: 18,
@@ -292,5 +407,70 @@ const styles = StyleSheet.create({
   },
   progressBarFill: {
     height: '100%',
+  },
+  daysRemaining: {
+    marginTop: 4,
+    fontSize: 12,
+    color: Colors.textSecondary,
+  },
+   modalOverlay: {
+    flex: 1,
+    backgroundColor: 'rgba(0,0,0,0.3)',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  modalContainer: {
+    width: '90%',
+    backgroundColor: Colors.cardBackground,
+    borderRadius: 8,
+    padding: 16,
+  },
+  modalTitle: {
+    fontSize: 18,
+    fontWeight: '600',
+    color: Colors.textPrimary,
+    marginBottom: 12,
+    textAlign: 'center',
+  },
+  modalInput: {
+    borderWidth: 1,
+    borderColor: Colors.border,
+    borderRadius: 4,
+    padding: 8,
+    marginBottom: 12,
+    color: Colors.textPrimary,
+    backgroundColor: Colors.background,
+  },
+  dateButton: {
+    borderWidth: 1,
+    borderColor: Colors.border,
+    borderRadius: 4,
+    padding: 8,
+    marginBottom: 12,
+    backgroundColor: Colors.background,
+  },
+  dateButtonText: {
+    color: Colors.textPrimary,
+  },
+  modalActions: {
+    flexDirection: 'row',
+    justifyContent: 'flex-end',
+  },
+  modalCancelButton: {
+    paddingVertical: 8,
+    paddingHorizontal: 12,
+    marginRight: 8,
+  },
+  modalCancelText: {
+    color: Colors.textPrimary,
+  },
+  modalSaveButton: {
+    paddingVertical: 8,
+    paddingHorizontal: 12,
+    backgroundColor: Colors.buttonPrimary,
+    borderRadius: 4,
+  },
+  modalSaveText: {
+    color: Colors.buttonPrimaryText,
   },
 });
