@@ -1526,14 +1526,28 @@ export default function BudjettiScreen() {
                   </View>
                 ) : (
                   <View style={styles.categoryCard}>
-                    <Text style={styles.subCategoryTitle}>{item.title}</Text>
+                       <TouchableOpacity
+                      disabled={readOnly}
+                      onPress={() =>
+                        handleEditIncome(item.id, item.title, item.amount)
+                      }
+                      style={[
+                           styles.incomeTitleBox,
+                        selectedTab === 'plan' && styles.editableField,
+                      ]}
+                    >
+                      <Text style={styles.subCategoryTitle}>{item.title}</Text>
+                    </TouchableOpacity>
                     <View style={styles.categoryRight}>
                       <TouchableOpacity
                         disabled={readOnly}
                         onPress={() =>
                           handleEditIncome(item.id, item.title, item.amount)
                         }
-                        style={selectedTab === 'plan' ? styles.editableField : undefined}
+                        style={[
+                          styles.incomeAmountBox,
+                          selectedTab === 'plan' && styles.editableField,
+                        ]}
                       >
                         <Text style={styles.subCategoryValue}>
                           {formatCurrency(item.amount)} €
@@ -1910,6 +1924,19 @@ const styles = StyleSheet.create({
   },
   amountField: {
     flex: 1.2,
+    height: 40,
+    justifyContent: 'center',
+    alignItems: 'flex-end',
+    marginRight: 8,
+  },
+  incomeTitleBox: {
+    flex: 1,
+    minWidth: 0,
+    height: 40,
+    justifyContent: 'center',
+    marginRight: 8,
+  },
+  incomeAmountBox: {
     height: 40,
     justifyContent: 'center',
     alignItems: 'flex-end',
