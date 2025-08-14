@@ -1558,7 +1558,11 @@ export default function BudjettiScreen() {
             />
 
             <View style={styles.incomeTotalRow}>
-              <Text style={styles.incomeTotalLabel}>Yhteensä:</Text>
+              <Text style={styles.incomeTotalLabel}>
+                {selectedTab === 'plan'
+                  ? 'Yhteensä:'
+                  : 'Saadut tulot yhteensä:'}
+              </Text>
               <Text style={styles.incomeTotalValue}>{formatCurrency(totalIncome)} €</Text>
             </View>
 
