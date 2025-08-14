@@ -18,6 +18,7 @@ import { getGoals, addGoal, updateGoal, deleteGoal, Goal } from '../../src/servi
 import { auth } from '../../src/api/firebaseConfig';
 import { Ionicons } from '@expo/vector-icons';
 import DateTimePicker from '@react-native-community/datetimepicker';
+import { getCategories, addCategory, updateCategory } from '../../src/services/categories';
 
 export default function TavoitteetScreen() {
   const user = auth.currentUser;
@@ -27,11 +28,30 @@ export default function TavoitteetScreen() {
   const [goals, setGoals] = useState<Goal[]>([]);
   const [loadingGoals, setLoadingGoals] = useState<boolean>(true);
 
-   const [addModalVisible, setAddModalVisible] = useState(false);
+  const [addModalVisible, setAddModalVisible] = useState(false);
   const [newGoalTitle, setNewGoalTitle] = useState('');
   const [newGoalAmount, setNewGoalAmount] = useState('');
   const [newGoalDate, setNewGoalDate] = useState(new Date());
   const [showDatePicker, setShowDatePicker] = useState(false);
+   const [monthlyNeeded, setMonthlyNeeded] = useState(0);
+
+  useEffect(() => {
+    const target = parseFloat(newGoalAmount);
+    if (!isNaN(target)) {
+      const now = new Date();
+      const monthsRemaining =
+        (newGoalDate.getFullYear() - now.getFullYear()) * 12 +
+        (newGoalDate.getMonth() - now.getMonth()) +
+        1;
+      if (monthsRemaining > 0) {
+        setMonthlyNeeded(target / monthsRemaining);
+      } else {
+        setMonthlyNeeded(0);
+      }
+    } else {
+      setMonthlyNeeded(0);
+    }
+  }, [newGoalAmount, newGoalDate]);
 
    const getProgressColor = (percent: number) => {
     if (percent < 25) return Colors.danger;
@@ -70,8 +90,51 @@ export default function TavoitteetScreen() {
       Alert.alert('Virhe', 'Anna kelvollinen summa');
       return;
     }
+     const ensureSavingsCategory = async (
+      goalTitle: string,
+      monthlyAmount: number
+    ) => {
+      const categories = await getCategories(userId);
+      let savingsMain = categories.find(
+        (c) => c.parentId === null && c.title.toLowerCase() === 'säästäminen'
+      );
+      if (!savingsMain) {
+        const mainId = await addCategory(userId, {
+          title: 'Säästäminen',
+          allocated: 0,
+          parentId: null,
+          type: 'main',
+        });
+        savingsMain = {
+          id: mainId,
+          title: 'Säästäminen',
+          allocated: 0,
+          parentId: null,
+          type: 'main',
+          createdAt: null,
+        } as any;
+      }
+      const existing = categories.find(
+        (c) => c.parentId === savingsMain!.id && c.title.toLowerCase() === goalTitle.toLowerCase()
+      );
+      if (existing) {
+        await updateCategory(userId, existing.id, {
+          title: existing.title,
+          allocated: monthlyAmount,
+        });
+      } else {
+        await addCategory(userId, {
+          title: goalTitle,
+          allocated: monthlyAmount,
+          parentId: savingsMain!.id,
+          type: 'sub',
+        });
+      }
+    };
+
     try {
       await addGoal(userId, { title, targetAmount: target, deadline: newGoalDate });
+        await ensureSavingsCategory(title, monthlyNeeded);
       const updated = await getGoals(userId);
       setGoals(updated);
       setAddModalVisible(false);
@@ -200,6 +263,11 @@ export default function TavoitteetScreen() {
                 Deadline: {newGoalDate.toLocaleDateString('fi-FI')}
               </Text>
             </TouchableOpacity>
+             {monthlyNeeded > 0 && (
+              <Text style={styles.monthlyNeededText}>
+                Tarvittava säästö: {monthlyNeeded.toFixed(2)} €/kk
+              </Text>
+            )}
             {showDatePicker && (
               <DateTimePicker
                 value={newGoalDate}
@@ -292,6 +360,9 @@ export default function TavoitteetScreen() {
               <Text style={styles.goalAmount}>
                  {item.currentSaved}€ / {item.targetAmount}€ ({percent.toFixed(0)}%)
               </Text>
+              <Text style={styles.monthlyAmount}>
+                Säästä {item.monthlyAmount.toFixed(2)} €/kk
+              </Text>
               <View style={styles.progressBarContainer}>
                 <View
                   style={[
@@ -301,7 +372,7 @@ export default function TavoitteetScreen() {
                 />
               </View>
                <Text style={styles.daysRemaining}>
-                {daysRemaining} päivää jäljellä – {statusMessage}
+                {daysRemaining} päivää jäljellä. {statusMessage}
               </Text>
             </View>
           );
@@ -397,6 +468,11 @@ const styles = StyleSheet.create({
     fontSize: 14,
     color: Colors.textSecondary,
   },
+   monthlyAmount: {
+    marginTop: 2,
+    fontSize: 12,
+    color: Colors.textSecondary,
+  },
   progressBarContainer: {
     width: '100%',
     height: 8,
@@ -450,6 +526,10 @@ const styles = StyleSheet.create({
     backgroundColor: Colors.background,
   },
   dateButtonText: {
+    color: Colors.textPrimary,
+  },
+  monthlyNeededText: {
+    marginBottom: 12,
     color: Colors.textPrimary,
   },
   modalActions: {
