@@ -1155,8 +1155,8 @@ export default function BudjettiScreen() {
         animationType="slide"
         onRequestClose={() => setShowPeriodModal(false)}
       >
-        <View style={styles.modalOverlay}>
-          <View style={styles.modalContainer}>
+            <View style={styles.modalOverlay}>
+            <View style={styles.modalContainer}>
             <Text style={styles.modalTitle}>Valitse jakso</Text>
             <Text style={styles.calendarRangeText}>
               {`Budjettijakso: ${periodPickerRange}`}
@@ -1227,7 +1227,7 @@ export default function BudjettiScreen() {
         onRequestClose={() => setShowNewPeriodModal(false)}
       >
         <View style={styles.modalOverlay}>
-          <View style={styles.modalContainer}>
+                <View style={[styles.modalContainer, styles.newPeriodModalContainer]}>
             <Text style={styles.modalTitle}>Aloita uusi jakso</Text>
             <Text style={styles.label}>Alku</Text>
             <TouchableOpacity
@@ -1986,6 +1986,9 @@ const styles = StyleSheet.create({
     borderRadius: 8,
     alignItems: 'center',
   },
+    newPeriodModalContainer: {
+    paddingBottom: 24,
+  },
   modalTitle: {
     fontSize: 18,
     fontWeight: '600',
@@ -2092,16 +2095,16 @@ const styles = StyleSheet.create({
   },
   modalButtons: {
     flexDirection: 'row',
-    justifyContent: 'flex-end',
-
-
+    justifyContent: 'center',
   },
   periodPickerButtons: {
     marginTop: -55,
-    marginBottom: 10
+    marginBottom: 10,
+    justifyContent: 'flex-end',
+    marginRight: -12,
   },
   modalButton: {
-    marginLeft: 12,
+    marginHorizontal: 12,
   },
   modalButtonText: {
     fontSize: 16,
