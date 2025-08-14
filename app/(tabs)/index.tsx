@@ -801,15 +801,18 @@ export default function BudjettiScreen() {
         endDate: newPeriodEnd,
         totalAmount: 0,
       });
+
+        let newIncomes: Income[] = [];
       if (copyPreviousPlanChecked) {
         await copyPreviousMonthPlan(userId);
+         newIncomes = await getIncomes(userId);
       }
       setBudgetPeriod({
         startDate: newPeriodStart,
         endDate: newPeriodEnd,
         totalAmount: 0,
       });
-      setIncomes([]);
+      setIncomes(newIncomes);
       setExpensesByCategory({});
       setTotalExpenses(0);
       let updatedCats = await getCategories(userId);

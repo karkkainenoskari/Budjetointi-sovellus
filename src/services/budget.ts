@@ -154,6 +154,31 @@ export async function archiveCurrentCategories(
     await updateDoc(catRef, { allocated: 0 });
   }
 }
+export async function archiveCurrentIncomes(
+  userId: string,
+  periodId: string
+): Promise<void> {
+  if (!userId) return;
+  const incomesRef = collection(firestore, 'budjetit', userId, 'incomes');
+  const snap = await getDocs(incomesRef);
+  for (const inc of snap.docs) {
+    const data = inc.data();
+    const histRef = doc(
+      firestore,
+      'budjetit',
+      userId,
+      'history',
+      periodId,
+      'incomes',
+      inc.id
+    );
+    await setDoc(histRef, {
+      title: data.title,
+      amount: data.amount,
+      createdAt: data.createdAt || serverTimestamp(),
+    });
+  }
+}
 /**
  * Aloita uusi budjettijakso ja kopioi mukaan toistuvat menot
  * sekä edellisen kuukauden kategoriat.
@@ -173,6 +198,7 @@ export async function startNewBudgetPeriod(
       totalAmount: current.totalAmount,
     });
     await archiveCurrentCategories(userId, id);
+    await archiveCurrentIncomes(userId, id);
   }
   await setCurrentBudgetPeriod(userId, periodInfo);
   await clearIncomes(userId);

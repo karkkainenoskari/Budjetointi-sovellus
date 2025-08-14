@@ -62,6 +62,25 @@ const currStart = currSnap.data().startDate.toDate();
       { merge: true  }
     );
   }
+   // Kopioi edellisen kuukauden tulot nykyiseen jaksoon
+  const prevIncomesRef = collection(
+    firestore,
+    'budjetit',
+    userId,
+    'history',
+    prevId,
+    'incomes'
+  );
+  const prevIncomesSnap = await getDocs(prevIncomesRef);
+  for (const incDoc of prevIncomesSnap.docs) {
+    const data = incDoc.data();
+    const incRef = doc(firestore, 'budjetit', userId, 'incomes', incDoc.id);
+    await setDoc(incRef, {
+      title: data.title,
+      amount: data.amount,
+      createdAt: serverTimestamp(),
+    });
+  }
 }
 
 /**
