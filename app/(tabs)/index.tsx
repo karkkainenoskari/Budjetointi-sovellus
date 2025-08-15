@@ -483,6 +483,12 @@ export default function BudjettiScreen() {
     loadIncomes();
   }, [userId]);
 
+    useFocusEffect(
+    React.useCallback(() => {
+      loadIncomes();
+    }, [userId])
+  );
+
 
   // ─── Add main category ──────────────────────────────────────────────
   const handleAddMainCategory = () => {

@@ -234,7 +234,7 @@ const loadData = async () => {
         });
       }
       setAddModalVisible(false);
-      loadData();
+       await loadData();
     } catch (e) {
       console.error('save transaction error:', e);
     } finally {
