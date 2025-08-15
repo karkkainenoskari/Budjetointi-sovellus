@@ -54,10 +54,18 @@ export async function getIncomesByPeriod(
 
 export async function addIncome(
   userId: string,
-  { title, amount }: { title: string; amount: number }
+  {
+    title,
+    amount,
+    createdAt,
+  }: { title: string; amount: number; createdAt?: Date }
 ): Promise<void> {
   const colRef = collection(firestore, 'budjetit', userId, 'incomes');
-  await addDoc(colRef, { title, amount, createdAt: serverTimestamp() });
+await addDoc(colRef, {
+    title,
+    amount,
+    createdAt: createdAt ? createdAt : serverTimestamp(),
+  });
 }
 
 export async function updateIncome(

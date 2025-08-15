@@ -8,6 +8,9 @@ import {
   TouchableOpacity,
   ActivityIndicator,
   Alert,
+   Modal,
+  TextInput,
+  Platform,
 } from 'react-native';
 import { useFocusEffect } from '@react-navigation/native';
 import { useRouter } from 'expo-router';
@@ -21,12 +24,16 @@ import {
   getExpensesByPeriod,
   deleteExpense,
   Expense,
+   addExpense,
 } from '../../src/services/expenses';
 import {
   getIncomesByPeriod,
   deleteIncome,
   Income,
+  addIncome,
 } from '../../src/services/incomes';
+import { Picker } from '@react-native-picker/picker';
+import DateTimePicker from '@react-native-community/datetimepicker';
 
 interface Transaction {
   id: string;
@@ -45,6 +52,16 @@ export default function TilitapahtumatScreen() {
 
   const [transactions, setTransactions] = useState<Transaction[]>([]);
  const [loading, setLoading] = useState(true);
+ const [categories, setCategories] = useState<Category[]>([]);
+  const [addModalVisible, setAddModalVisible] = useState(false);
+  const [newType, setNewType] = useState<'expense' | 'income'>('expense');
+  const [amount, setAmount] = useState('');
+  const [description, setDescription] = useState('');
+  const [selectedCategory, setSelectedCategory] = useState('');
+  const [date, setDate] = useState(new Date());
+  const [showDatePicker, setShowDatePicker] = useState(false);
+  const [notes, setNotes] = useState('');
+  const [saving, setSaving] = useState(false);
 
 const loadData = async () => {
     if (!userId) return;
@@ -58,6 +75,10 @@ const loadData = async () => {
       cats.forEach((c: Category) => {
         map[c.id] = c.title;
       });
+        setCategories(cats);
+      if (cats.length > 0 && !selectedCategory) {
+        setSelectedCategory(cats[0].id);
+      }
       if (period) {
         const [exp, inc] = await Promise.all([
          getExpensesByPeriod(userId, period.startDate, period.endDate),
@@ -112,7 +133,15 @@ const loadData = async () => {
   );
 
    const handleAdd = () => {
-    router.push('/addExpense');
+    if (categories.length > 0) {
+      setSelectedCategory(categories[0].id);
+    }
+    setNewType('expense');
+    setAmount('');
+    setDescription('');
+    setNotes('');
+    setDate(new Date());
+    setAddModalVisible(true);
   };
 
   const handlePress = (item: Transaction) => {
@@ -160,6 +189,52 @@ const loadData = async () => {
     }
   };
 
+   const onChangeDate = (event: any, selected: Date | undefined) => {
+    setShowDatePicker(false);
+    if (selected) {
+      setDate(selected);
+    }
+  };
+
+  const handleSave = async () => {
+    if (!userId) return;
+    const amt = parseFloat(amount.replace(',', '.'));
+    if (isNaN(amt) || amt <= 0) {
+      Alert.alert('Virhe', 'Syötä kelvollinen summa.');
+      return;
+    }
+    setSaving(true);
+    try {
+      if (newType === 'expense') {
+        if (!selectedCategory) {
+          Alert.alert('Virhe', 'Valitse kategoria.');
+          setSaving(false);
+          return;
+        }
+        await addExpense(userId, {
+          categoryId: selectedCategory,
+          amount: amt,
+          date,
+          description:
+            description.trim() + (notes.trim() ? ` - ${notes.trim()}` : ''),
+        });
+      } else {
+        await addIncome(userId, {
+          title: description.trim() || 'Tulo',
+          amount: amt,
+          createdAt: date,
+        });
+      }
+      setAddModalVisible(false);
+      loadData();
+    } catch (e) {
+      console.error('save transaction error:', e);
+    } finally {
+      setSaving(false);
+    }
+  };
+
+
 
   const renderTransaction = ({ item }: { item: Transaction }) => (
      <TouchableOpacity
@@ -203,6 +278,124 @@ const loadData = async () => {
 
   return (
      <SafeAreaView style={styles.safeContainer}>
+       <Modal
+        visible={addModalVisible}
+        animationType="slide"
+        transparent
+        onRequestClose={() => setAddModalVisible(false)}
+      >
+        <View style={styles.modalOverlay}>
+          <View style={styles.modalContainer}>
+            <View style={styles.modalHeader}>
+              <Text style={styles.modalTitle}>Lisää uusi tapahtuma</Text>
+              <TouchableOpacity onPress={() => setAddModalVisible(false)}>
+                <Ionicons name="close" size={24} color={Colors.textPrimary} />
+              </TouchableOpacity>
+            </View>
+            <View style={styles.typeRow}>
+              <TouchableOpacity
+                style={[styles.typeOption, newType === 'expense' && styles.typeSelected]}
+                onPress={() => setNewType('expense')}
+              >
+                <Ionicons
+                  name="trending-down-outline"
+                  size={20}
+                  color={Colors.danger}
+                />
+                <Text style={styles.typeLabel}>Meno</Text>
+              </TouchableOpacity>
+              <TouchableOpacity
+                style={[styles.typeOption, newType === 'income' && styles.typeSelected]}
+                onPress={() => setNewType('income')}
+              >
+                <Ionicons
+                  name="trending-up-outline"
+                  size={20}
+                  color={Colors.moss}
+                />
+                <Text style={styles.typeLabel}>Tulo</Text>
+              </TouchableOpacity>
+            </View>
+            <Text style={styles.label}>Summa (€)</Text>
+            <TextInput
+              style={styles.input}
+              keyboardType="decimal-pad"
+              value={amount}
+              onChangeText={setAmount}
+              placeholder="0.00"
+            />
+            <Text style={styles.label}>Kuvaus</Text>
+            <TextInput
+              style={styles.input}
+              value={description}
+              onChangeText={setDescription}
+              placeholder="Esim. Ruokakauppa"
+            />
+            {newType === 'expense' && (
+              <>
+                <Text style={styles.label}>Kategoria</Text>
+                <View style={styles.pickerContainer}>
+                  <Picker
+                    selectedValue={selectedCategory}
+                    onValueChange={(v) => setSelectedCategory(v)}
+                    style={styles.picker}
+                  >
+                    {categories.map((cat) => (
+                      <Picker.Item key={cat.id} label={cat.title} value={cat.id} />
+                    ))}
+                  </Picker>
+                </View>
+              </>
+            )}
+            <Text style={styles.label}>Päivämäärä</Text>
+            <TouchableOpacity
+              style={styles.dateButton}
+              onPress={() => setShowDatePicker(true)}
+            >
+              <Ionicons
+                name="calendar-outline"
+                size={20}
+                color={Colors.textPrimary}
+              />
+              <Text style={styles.dateButtonText}>
+                {date.toLocaleDateString('fi-FI')}
+              </Text>
+            </TouchableOpacity>
+            {showDatePicker && (
+              <DateTimePicker
+                value={date}
+                mode="date"
+                display={Platform.OS === 'ios' ? 'spinner' : 'default'}
+                onChange={onChangeDate}
+              />
+            )}
+            <Text style={styles.label}>Lisätiedot (valinnainen)</Text>
+            <TextInput
+              style={[styles.input, styles.textArea]}
+              multiline
+              numberOfLines={3}
+              value={notes}
+              onChangeText={setNotes}
+              placeholder="Lisää tarvittaessa lisätietoja"
+            />
+            <View style={styles.modalActions}>
+              <TouchableOpacity
+                style={styles.modalCancelButton}
+                onPress={() => setAddModalVisible(false)}
+              >
+                <Text style={styles.modalCancelText}>Peruuta</Text>
+              </TouchableOpacity>
+              <TouchableOpacity
+                style={[styles.modalSaveButton, saving && { opacity: 0.6 }]}
+                onPress={handleSave}
+                disabled={saving}
+              >
+                <Text style={styles.modalSaveText}>Lisää</Text>
+              </TouchableOpacity>
+            </View>
+          </View>
+        </View>
+      </Modal>
       <FlatList
          data={transactions}
         keyExtractor={(item) => `${item.type}-${item.id}`}
@@ -343,5 +536,124 @@ title: {
   },
   expense: {
     color: Colors.danger,
+  },
+  modalOverlay: {
+    flex: 1,
+    backgroundColor: 'rgba(0,0,0,0.5)',
+    justifyContent: 'center',
+    alignItems: 'center',
+    padding: 16,
+  },
+  modalContainer: {
+    width: '100%',
+    backgroundColor: Colors.cardBackground,
+    borderRadius: 8,
+    padding: 16,
+  },
+  modalHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: 12,
+  },
+  modalTitle: {
+    fontSize: 18,
+    fontWeight: '600',
+    color: Colors.textPrimary,
+  },
+  typeRow: {
+    flexDirection: 'row',
+    justifyContent: 'flex-start',
+    marginBottom: 12,
+  },
+  typeOption: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginRight: 16,
+    paddingVertical: 6,
+    paddingHorizontal: 8,
+    borderRadius: 6,
+    borderWidth: 1,
+    borderColor: Colors.border,
+  },
+  typeSelected: {
+    backgroundColor: Colors.background,
+    borderColor: Colors.moss,
+  },
+  typeLabel: {
+    marginLeft: 6,
+    color: Colors.textPrimary,
+    fontWeight: '500',
+  },
+  label: {
+    fontSize: 14,
+    fontWeight: '500',
+    color: Colors.textPrimary,
+    marginBottom: 4,
+  },
+  input: {
+    borderWidth: 1,
+    borderColor: Colors.border,
+    borderRadius: 6,
+    paddingHorizontal: 12,
+    paddingVertical: 8,
+    marginBottom: 12,
+    color: Colors.textPrimary,
+    backgroundColor: Colors.background,
+  },
+  pickerContainer: {
+    borderWidth: 1,
+    borderColor: Colors.border,
+    borderRadius: 6,
+    marginBottom: 12,
+    overflow: 'hidden',
+  },
+  picker: {
+    width: '100%',
+  },
+  dateButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    borderWidth: 1,
+    borderColor: Colors.border,
+    borderRadius: 6,
+    paddingHorizontal: 12,
+    paddingVertical: 8,
+    marginBottom: 12,
+  },
+  dateButtonText: {
+    marginLeft: 8,
+    color: Colors.textPrimary,
+  },
+  textArea: {
+    height: 80,
+    textAlignVertical: 'top',
+  },
+  modalActions: {
+    flexDirection: 'row',
+    justifyContent: 'flex-end',
+    marginTop: 8,
+  },
+  modalCancelButton: {
+    paddingVertical: 10,
+    paddingHorizontal: 16,
+    borderRadius: 6,
+    borderWidth: 1,
+    borderColor: Colors.border,
+    marginRight: 8,
+  },
+  modalCancelText: {
+    color: Colors.textPrimary,
+    fontWeight: '500',
+  },
+  modalSaveButton: {
+    paddingVertical: 10,
+    paddingHorizontal: 16,
+    borderRadius: 6,
+    backgroundColor: Colors.moss,
+  },
+  modalSaveText: {
+    color: Colors.buttonPrimaryText,
+    fontWeight: '600',
   },
   });
