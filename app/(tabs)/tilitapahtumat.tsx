@@ -22,12 +22,14 @@ import { getCategories, Category } from '../../src/services/categories';
 
 import {
   getExpensesByPeriod,
+    getExpenses,
   deleteExpense,
   Expense,
    addExpense,
 } from '../../src/services/expenses';
 import {
   getIncomesByPeriod,
+   getIncomes,
   deleteIncome,
   Income,
   addIncome,
@@ -79,45 +81,48 @@ const loadData = async () => {
       if (cats.length > 0 && !selectedCategory) {
         setSelectedCategory(cats[0].id);
       }
+      let exp: Expense[] = [];
+      let inc: Income[] = [];
       if (period) {
-        const [exp, inc] = await Promise.all([
+          [exp, inc] = await Promise.all([
          getExpensesByPeriod(userId, period.startDate, period.endDate),
           getIncomesByPeriod(userId, period.startDate, period.endDate),
-        ]);
-        const txs: Transaction[] = [];
-         exp.forEach((e: Expense) => {
-          const date = e.date?.toDate ? e.date.toDate() : new Date(e.date);
-          txs.push({
-            id: e.id,
-            type: 'expense',
-            date,
-            category: map[e.categoryId] || '',
-            categoryId: e.categoryId,
-            description: e.description,
-            amount: e.amount,
-          });
-        
-        });
-        inc.forEach((i: Income) => {
-          const date = i.createdAt?.toDate
-            ? i.createdAt.toDate()
-            : new Date(i.createdAt)
-          txs.push({
-            id: i.id,
-            type: 'income',
-            date,
-            category: 'Tulo',
-            categoryId: 'income',
-            description: i.title,
-            amount: i.amount,
-          });
-        });
-        txs.sort((a, b) => b.date.getTime() - a.date.getTime());
-        setTransactions(txs);
-       
+        ]);   
       } else {
-        setTransactions([]);
+      [exp, inc] = await Promise.all([
+          getExpenses(userId),
+          getIncomes(userId),
+        ]);
       }
+       const txs: Transaction[] = [];
+      exp.forEach((e: Expense) => {
+        const date = e.date?.toDate ? e.date.toDate() : new Date(e.date);
+        txs.push({
+          id: e.id,
+          type: 'expense',
+          date,
+          category: map[e.categoryId] || '',
+          categoryId: e.categoryId,
+          description: e.description,
+          amount: e.amount,
+        });
+      });
+      inc.forEach((i: Income) => {
+        const date = i.createdAt?.toDate
+          ? i.createdAt.toDate()
+          : new Date(i.createdAt);
+        txs.push({
+          id: i.id,
+          type: 'income',
+          date,
+          category: 'Tulo',
+          categoryId: 'income',
+          description: i.title,
+          amount: i.amount,
+        });
+      });
+      txs.sort((a, b) => b.date.getTime() - a.date.getTime());
+      setTransactions(txs);
     } catch (e) {
        console.error('loadData error:', e);
       setTransactions([]);
