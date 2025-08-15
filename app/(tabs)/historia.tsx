@@ -15,7 +15,7 @@ import { Picker } from '@react-native-picker/picker';
 import { Ionicons } from '@expo/vector-icons';
 import { useFocusEffect } from '@react-navigation/native';
 import { auth, firestore } from '../../src/api/firebaseConfig';
-import { collection, onSnapshot, query, where } from 'firebase/firestore';
+import { collection, onSnapshot, query, where, getDocs } from 'firebase/firestore';
 import {
   getHistoryMonths,
   getHistoryCategories,
@@ -212,64 +212,122 @@ export default function HistoriaScreen() {
     const start = new Date(year, month - 1, 1);
     const end = new Date(year, month, 0);
 
-    const expRef = collection(firestore, 'budjetit', userId, 'expenses');
-    const expQuery = query(
-      expRef,
-      where('date', '>=', start),
-      where('date', '<=', end)
-    );
-    const unsubExpenses = onSnapshot(expQuery, (snapshot) => {
-      const sums: Record<string, number> = {};
-      snapshot.forEach((doc) => {
-        const data = doc.data() as any;
-        sums[data.categoryId] = (sums[data.categoryId] || 0) + data.amount;
+     if (selectedMonth === currentPeriodId) {
+      const expRef = collection(firestore, 'budjetit', userId, 'expenses');
+      const expQuery = query(
+        expRef,
+        where('date', '>=', start),
+        where('date', '<=', end)
+      );
+      const unsubExpenses = onSnapshot(expQuery, (snapshot) => {
+        const sums: Record<string, number> = {};
+        snapshot.forEach((doc) => {
+          const data = doc.data() as any;
+          sums[data.categoryId] = (sums[data.categoryId] || 0) + data.amount;
+        });
+        setMonthData((prev) => ({
+          ...prev,
+          [selectedMonth]: {
+            ...(prev[selectedMonth] || {
+              loading: false,
+              categories: [],
+              incomes: [],
+              expenses: {},
+              period: null,
+            }),
+            expenses: sums,
+          },
+        }));
       });
-      setMonthData((prev) => ({
-        ...prev,
-        [selectedMonth]: {
-         ...(prev[selectedMonth] || {
-            loading: false,
-            categories: [],
-            incomes: [],
-            expenses: {},
-            period: null,
-          }),
-          expenses: sums,
-        },
-      }));
-    });
+      
 
     const incRef = collection(firestore, 'budjetit', userId, 'incomes');
-    const incQuery = query(
-      incRef,
-      where('createdAt', '>=', start),
-      where('createdAt', '<=', end)
-    );
-    const unsubIncomes = onSnapshot(incQuery, (snapshot) => {
-      const incomes: Income[] = snapshot.docs.map((doc) => ({
-        id: doc.id,
-        ...(doc.data() as any),
-      }));
-      setMonthData((prev) => ({
-        ...prev,
-        [selectedMonth]: {
-         ...(prev[selectedMonth] || {
-            loading: false,
-            categories: [],
-            expenses: {},
-            incomes: [],
-            period: null,
-          }),
-          incomes,
-        },
-      }));
-    });
+      const incQuery = query(
+        incRef,
+        where('createdAt', '>=', start),
+        where('createdAt', '<=', end)
+      );
+      const unsubIncomes = onSnapshot(incQuery, (snapshot) => {
+        const incomes: Income[] = snapshot.docs.map((doc) => ({
+          id: doc.id,
+          ...(doc.data() as any),
+        }));
+        setMonthData((prev) => ({
+          ...prev,
+          [selectedMonth]: {
+            ...(prev[selectedMonth] || {
+              loading: false,
+              categories: [],
+              expenses: {},
+              incomes: [],
+              period: null,
+            }),
+            incomes,
+          },
+        }));
+      });
 
-    return () => {
-      unsubExpenses();
-      unsubIncomes();
-    };
-  }, [userId, selectedMonth]);
+   return () => {
+        unsubExpenses();
+        unsubIncomes();
+      };
+    } else {
+      const expRef = collection(firestore, 'budjetit', userId, 'expenses');
+      const expQuery = query(
+        expRef,
+        where('date', '>=', start),
+        where('date', '<=', end)
+      );
+      getDocs(expQuery).then((snapshot) => {
+        const sums: Record<string, number> = {};
+        snapshot.forEach((doc) => {
+          const data = doc.data() as any;
+          sums[data.categoryId] = (sums[data.categoryId] || 0) + data.amount;
+        });
+        setMonthData((prev) => ({
+          ...prev,
+          [selectedMonth]: {
+            ...(prev[selectedMonth] || {
+              loading: false,
+              categories: [],
+              incomes: [],
+              expenses: {},
+              period: null,
+            }),
+            expenses: sums,
+          },
+        }));
+      });
+
+      const incRef = collection(
+        firestore,
+        'budjetit',
+        userId,
+        'history',
+        selectedMonth,
+        'incomes'
+      );
+      getDocs(incRef).then((snapshot) => {
+        const incomes: Income[] = snapshot.docs.map((doc) => ({
+          id: doc.id,
+          ...(doc.data() as any),
+        }));
+        setMonthData((prev) => ({
+          ...prev,
+          [selectedMonth]: {
+            ...(prev[selectedMonth] || {
+              loading: false,
+              categories: [],
+              expenses: {},
+              incomes: [],
+              period: null,
+            }),
+            incomes,
+          },
+        }));
+      });
+    }
+  }, [userId, selectedMonth, currentPeriodId]);
   
   useEffect(() => {
     if (!selectedMonth || !monthData[selectedMonth]) return;
