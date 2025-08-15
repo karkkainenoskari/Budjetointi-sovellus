@@ -62,7 +62,9 @@ export default function TilitapahtumatScreen() {
   const [selectedCategory, setSelectedCategory] = useState('');
   const [date, setDate] = useState(new Date());
   const [showDatePicker, setShowDatePicker] = useState(false);
-  const [notes, setNotes] = useState('');
+ const [showAmountField, setShowAmountField] = useState(true);
+  const [showDescriptionField, setShowDescriptionField] = useState(true);
+  const [showCategoryPicker, setShowCategoryPicker] = useState(true);
   const [saving, setSaving] = useState(false);
 
 const loadData = async () => {
@@ -144,8 +146,10 @@ const loadData = async () => {
     setNewType('expense');
     setAmount('');
     setDescription('');
-    setNotes('');
     setDate(new Date());
+     setShowAmountField(true);
+    setShowDescriptionField(true);
+    setShowCategoryPicker(true);
     setAddModalVisible(true);
   };
 
@@ -220,8 +224,7 @@ const loadData = async () => {
           categoryId: selectedCategory,
           amount: amt,
           date,
-          description:
-            description.trim() + (notes.trim() ? ` - ${notes.trim()}` : ''),
+       description: description.trim() || 'Meno',
         });
       } else {
         await addIncome(userId, {
@@ -300,7 +303,10 @@ const loadData = async () => {
             <View style={styles.typeRow}>
               <TouchableOpacity
                 style={[styles.typeOption, newType === 'expense' && styles.typeSelected]}
-                onPress={() => setNewType('expense')}
+                 onPress={() => {
+                  setNewType('expense');
+                  setShowCategoryPicker(true);
+                }}
               >
                 <Ionicons
                   name="trending-down-outline"
@@ -311,7 +317,9 @@ const loadData = async () => {
               </TouchableOpacity>
               <TouchableOpacity
                 style={[styles.typeOption, newType === 'income' && styles.typeSelected]}
-                onPress={() => setNewType('income')}
+              onPress={() => {
+                  setNewType('income');
+                }}
               >
                 <Ionicons
                   name="trending-up-outline"
@@ -321,36 +329,87 @@ const loadData = async () => {
                 <Text style={styles.typeLabel}>Tulo</Text>
               </TouchableOpacity>
             </View>
-            <Text style={styles.label}>Summa (€)</Text>
-            <TextInput
-              style={styles.input}
-              keyboardType="decimal-pad"
-              value={amount}
-              onChangeText={setAmount}
-              placeholder="0.00"
-            />
-            <Text style={styles.label}>Kuvaus</Text>
-            <TextInput
-              style={styles.input}
-              value={description}
-              onChangeText={setDescription}
-              placeholder="Esim. Ruokakauppa"
-            />
-            {newType === 'expense' && (
+            {showAmountField ? (
               <>
-                <Text style={styles.label}>Kategoria</Text>
-                <View style={styles.pickerContainer}>
-                  <Picker
-                    selectedValue={selectedCategory}
-                    onValueChange={(v) => setSelectedCategory(v)}
-                    style={styles.picker}
-                  >
-                    {categories.map((cat) => (
-                      <Picker.Item key={cat.id} label={cat.title} value={cat.id} />
-                    ))}
-                  </Picker>
-                </View>
+                 <Text style={styles.label}>Summa (€)</Text>
+                <TextInput
+                  style={styles.input}
+                  keyboardType="decimal-pad"
+                  value={amount}
+                  onChangeText={setAmount}
+                  placeholder="0.00"
+                  onBlur={() => amount.trim() && setShowAmountField(false)}
+                  returnKeyType="done"
+                  onSubmitEditing={() => amount.trim() && setShowAmountField(false)}
+                />
               </>
+            ) : (
+              <TouchableOpacity onPress={() => setShowAmountField(true)}>
+                <Text style={styles.label}>Summa (€)</Text>
+                <View style={styles.valueContainer}>
+                  <Text style={styles.valueText}>{amount || '0.00'}</Text>
+                </View>
+                 </TouchableOpacity>
+            )}
+
+            {showDescriptionField ? (
+              <>
+                <Text style={styles.label}>Kuvaus</Text>
+                <TextInput
+                  style={styles.input}
+                  value={description}
+                  onChangeText={setDescription}
+                  placeholder="Esim. Ruokakauppa"
+                  onBlur={() =>
+                    description.trim() && setShowDescriptionField(false)
+                  }
+                  returnKeyType="done"
+                  onSubmitEditing={() =>
+                    description.trim() && setShowDescriptionField(false)
+                  }
+                />
+              </>
+               ) : (
+              <TouchableOpacity onPress={() => setShowDescriptionField(true)}>
+                <Text style={styles.label}>Kuvaus</Text>
+                <View style={styles.valueContainer}>
+                  <Text style={styles.valueText}>{description || '-'}</Text>
+                </View>
+              </TouchableOpacity>
+            )}
+
+            {newType === 'expense' && (
+              showCategoryPicker ? (
+                <>
+                  <Text style={styles.label}>Kategoria</Text>
+                  <View style={styles.pickerContainer}>
+                    <Picker
+                      selectedValue={selectedCategory}
+                      onValueChange={(v) => {
+                        setSelectedCategory(v);
+                        setShowCategoryPicker(false);
+                      }}
+                      style={styles.picker}
+                    >
+                      {categories.map((cat) => (
+                        <Picker.Item key={cat.id} label={cat.title} value={cat.id} />
+                      ))}
+                    </Picker>
+                  </View>
+                </>
+              ) : (
+                <TouchableOpacity onPress={() => setShowCategoryPicker(true)}>
+                  <Text style={styles.label}>Kategoria</Text>
+                  <View style={styles.valueContainer}>
+                    <Text style={styles.valueText}>
+                      {
+                        categories.find((cat) => cat.id === selectedCategory)?.title ||
+                        ''
+                      }
+                    </Text>
+                  </View>
+                </TouchableOpacity>
+              )
             )}
             <Text style={styles.label}>Päivämäärä</Text>
             <TouchableOpacity
@@ -374,15 +433,6 @@ const loadData = async () => {
                 onChange={onChangeDate}
               />
             )}
-            <Text style={styles.label}>Lisätiedot (valinnainen)</Text>
-            <TextInput
-              style={[styles.input, styles.textArea]}
-              multiline
-              numberOfLines={3}
-              value={notes}
-              onChangeText={setNotes}
-              placeholder="Lisää tarvittaessa lisätietoja"
-            />
             <View style={styles.modalActions}>
               <TouchableOpacity
                 style={styles.modalCancelButton}
@@ -606,6 +656,18 @@ title: {
     color: Colors.textPrimary,
     backgroundColor: Colors.background,
   },
+    valueContainer: {
+    borderWidth: 1,
+    borderColor: Colors.border,
+    borderRadius: 6,
+    paddingHorizontal: 12,
+    paddingVertical: 8,
+    marginBottom: 12,
+    backgroundColor: Colors.background,
+  },
+  valueText: {
+    color: Colors.textPrimary,
+  },
   pickerContainer: {
     borderWidth: 1,
     borderColor: Colors.border,
@@ -630,10 +692,7 @@ title: {
     marginLeft: 8,
     color: Colors.textPrimary,
   },
-  textArea: {
-    height: 80,
-    textAlignVertical: 'top',
-  },
+
   modalActions: {
     flexDirection: 'row',
     justifyContent: 'flex-end',
