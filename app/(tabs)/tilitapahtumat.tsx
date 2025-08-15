@@ -11,6 +11,7 @@ import {
    Modal,
   TextInput,
   Platform,
+    ScrollView,
 } from 'react-native';
 import { useFocusEffect } from '@react-navigation/native';
 import { useRouter } from 'expo-router';
@@ -34,7 +35,6 @@ import {
   Income,
   addIncome,
 } from '../../src/services/incomes';
-import { Picker } from '@react-native-picker/picker';
 import DateTimePicker from '@react-native-community/datetimepicker';
 
 interface Transaction {
@@ -64,7 +64,7 @@ export default function TilitapahtumatScreen() {
   const [showDatePicker, setShowDatePicker] = useState(false);
  const [showAmountField, setShowAmountField] = useState(true);
   const [showDescriptionField, setShowDescriptionField] = useState(true);
-  const [showCategoryPicker, setShowCategoryPicker] = useState(true);
+const [showCategoryDropdown, setShowCategoryDropdown] = useState(true);
   const [saving, setSaving] = useState(false);
 
 const loadData = async () => {
@@ -149,7 +149,7 @@ const loadData = async () => {
     setDate(new Date());
      setShowAmountField(true);
     setShowDescriptionField(true);
-    setShowCategoryPicker(true);
+   setShowCategoryDropdown(true);
     setAddModalVisible(true);
   };
 
@@ -288,166 +288,182 @@ const loadData = async () => {
      <SafeAreaView style={styles.safeContainer}>
        <Modal
         visible={addModalVisible}
-        animationType="slide"
+         animationType="fade"
         transparent
         onRequestClose={() => setAddModalVisible(false)}
       >
         <View style={styles.modalOverlay}>
           <View style={styles.modalContainer}>
-            <View style={styles.modalHeader}>
-              <Text style={styles.modalTitle}>Lisää uusi tapahtuma</Text>
-              <TouchableOpacity onPress={() => setAddModalVisible(false)}>
-                <Ionicons name="close" size={24} color={Colors.textPrimary} />
-              </TouchableOpacity>
-            </View>
-            <View style={styles.typeRow}>
-              <TouchableOpacity
-                style={[styles.typeOption, newType === 'expense' && styles.typeSelected]}
-                 onPress={() => {
-                  setNewType('expense');
-                  setShowCategoryPicker(true);
-                }}
-              >
-                <Ionicons
-                  name="trending-down-outline"
-                  size={20}
-                  color={Colors.danger}
-                />
-                <Text style={styles.typeLabel}>Meno</Text>
-              </TouchableOpacity>
-              <TouchableOpacity
-                style={[styles.typeOption, newType === 'income' && styles.typeSelected]}
-              onPress={() => {
-                  setNewType('income');
-                }}
-              >
-                <Ionicons
-                  name="trending-up-outline"
-                  size={20}
-                  color={Colors.moss}
-                />
-                <Text style={styles.typeLabel}>Tulo</Text>
-              </TouchableOpacity>
-            </View>
-            {showAmountField ? (
-              <>
-                 <Text style={styles.label}>Summa (€)</Text>
-                <TextInput
-                  style={styles.input}
-                  keyboardType="decimal-pad"
-                  value={amount}
-                  onChangeText={setAmount}
-                  placeholder="0.00"
-                  onBlur={() => amount.trim() && setShowAmountField(false)}
-                  returnKeyType="done"
-                  onSubmitEditing={() => amount.trim() && setShowAmountField(false)}
-                />
-              </>
-            ) : (
-              <TouchableOpacity onPress={() => setShowAmountField(true)}>
-                <Text style={styles.label}>Summa (€)</Text>
-                <View style={styles.valueContainer}>
-                  <Text style={styles.valueText}>{amount || '0.00'}</Text>
-                </View>
-                 </TouchableOpacity>
-            )}
-
-            {showDescriptionField ? (
-              <>
-                <Text style={styles.label}>Kuvaus</Text>
-                <TextInput
-                  style={styles.input}
-                  value={description}
-                  onChangeText={setDescription}
-                  placeholder="Esim. Ruokakauppa"
-                  onBlur={() =>
-                    description.trim() && setShowDescriptionField(false)
-                  }
-                  returnKeyType="done"
-                  onSubmitEditing={() =>
-                    description.trim() && setShowDescriptionField(false)
-                  }
-                />
-              </>
-               ) : (
-              <TouchableOpacity onPress={() => setShowDescriptionField(true)}>
-                <Text style={styles.label}>Kuvaus</Text>
-                <View style={styles.valueContainer}>
-                  <Text style={styles.valueText}>{description || '-'}</Text>
-                </View>
-              </TouchableOpacity>
-            )}
-
-            {newType === 'expense' && (
-              showCategoryPicker ? (
+            <ScrollView
+              keyboardShouldPersistTaps="handled"
+              showsVerticalScrollIndicator={false}
+            >
+              <View style={styles.modalHeader}>
+                <Text style={styles.modalTitle}>Lisää uusi tapahtuma</Text>
+                <TouchableOpacity onPress={() => setAddModalVisible(false)}>
+                  <Ionicons name="close" size={24} color={Colors.textPrimary} />
+                </TouchableOpacity>
+              </View>
+              <View style={styles.typeRow}>
+                <TouchableOpacity
+                  style={[styles.typeOption, newType === 'expense' && styles.typeSelected]}
+                  onPress={() => {
+                    setNewType('expense');
+                    setShowCategoryDropdown(true);
+                  }}
+                >
+                  <Ionicons
+                    name="trending-down-outline"
+                    size={20}
+                    color={Colors.danger}
+                  />
+                  <Text style={styles.typeLabel}>Meno</Text>
+                </TouchableOpacity>
+                <TouchableOpacity
+                  style={[styles.typeOption, newType === 'income' && styles.typeSelected]}
+                  onPress={() => {
+                    setNewType('income');
+                  }}
+                >
+                  <Ionicons
+                    name="trending-up-outline"
+                    size={20}
+                    color={Colors.moss}
+                  />
+                  <Text style={styles.typeLabel}>Tulo</Text>
+                </TouchableOpacity>
+              </View>
+              {showAmountField ? (
                 <>
-                  <Text style={styles.label}>Kategoria</Text>
-                  <View style={styles.pickerContainer}>
-                    <Picker
-                      selectedValue={selectedCategory}
-                      onValueChange={(v) => {
-                        setSelectedCategory(v);
-                        setShowCategoryPicker(false);
-                      }}
-                      style={styles.picker}
-                    >
-                      {categories.map((cat) => (
-                        <Picker.Item key={cat.id} label={cat.title} value={cat.id} />
-                      ))}
-                    </Picker>
-                  </View>
+                  <Text style={styles.label}>Summa (€)</Text>
+                  <TextInput
+                    style={styles.input}
+                    keyboardType="decimal-pad"
+                    value={amount}
+                    onChangeText={setAmount}
+                    placeholder="0.00"
+                    onBlur={() => amount.trim() && setShowAmountField(false)}
+                    returnKeyType="done"
+                    onSubmitEditing={() => amount.trim() && setShowAmountField(false)}
+                  />
                 </>
               ) : (
-                <TouchableOpacity onPress={() => setShowCategoryPicker(true)}>
-                  <Text style={styles.label}>Kategoria</Text>
+                <TouchableOpacity onPress={() => setShowAmountField(true)}>
+                  <Text style={styles.label}>Summa (€)</Text>
                   <View style={styles.valueContainer}>
-                    <Text style={styles.valueText}>
-                      {
-                        categories.find((cat) => cat.id === selectedCategory)?.title ||
-                        ''
-                      }
-                    </Text>
+                    <Text style={styles.valueText}>{amount || '0.00'}</Text>
                   </View>
                 </TouchableOpacity>
-              )
-            )}
-            <Text style={styles.label}>Päivämäärä</Text>
+              )}
+
+              {showDescriptionField ? (
+                <>
+                  <Text style={styles.label}>Kuvaus</Text>
+                  <TextInput
+                    style={styles.input}
+                    value={description}
+                    onChangeText={setDescription}
+                    placeholder="Esim. Ruokakauppa"
+                    onBlur={() =>
+                      description.trim() && setShowDescriptionField(false)
+                    }
+                    returnKeyType="done"
+                    onSubmitEditing={() =>
+                      description.trim() && setShowDescriptionField(false)
+                    }
+                  />
+                </>
+              ) : (
+                <TouchableOpacity onPress={() => setShowDescriptionField(true)}>
+                  <Text style={styles.label}>Kuvaus</Text>
+                  <View style={styles.valueContainer}>
+                    <Text style={styles.valueText}>{description || '-'}</Text>
+                  </View>
+                </TouchableOpacity>
+              )}
+
+              {newType === 'expense' && (
+                <>
+                  <Text style={styles.label}>Kategoria</Text>
+                  <TouchableOpacity
+                    style={styles.dropdownToggle}
+                    onPress={() =>
+                      setShowCategoryDropdown((prev) => !prev)
+                    }
+                  >
+                    <Text style={styles.dropdownToggleText}>
+                      {
+                        categories.find((cat) => cat.id === selectedCategory)?.title ||
+                        'Valitse kategoria'
+                      }
+                    </Text>
+                    <Ionicons
+                      name={
+                        showCategoryDropdown
+                          ? 'chevron-up-outline'
+                          : 'chevron-down-outline'
+                      }
+                      size={16}
+                      color={Colors.textPrimary}
+                    />
+                  </TouchableOpacity>
+                  {showCategoryDropdown && (
+                    <View style={styles.dropdown}>
+                      <ScrollView nestedScrollEnabled>
+                        {categories.map((cat) => (
+                          <TouchableOpacity
+                            key={cat.id}
+                            style={styles.dropdownItem}
+                            onPress={() => {
+                              setSelectedCategory(cat.id);
+                              setShowCategoryDropdown(false);
+                            }}
+                          >
+                            <Text style={styles.dropdownItemText}>{cat.title}</Text>
+                          </TouchableOpacity>
+                        ))}
+                      </ScrollView>
+                    </View>
+                  )}
+                </>
+              )}
+              <TouchableOpacity
+                 style={styles.dateButton}
+                onPress={() => setShowDatePicker(true)}
+              >
+                <Ionicons
+                  name="calendar-outline"
+                  size={20}
+                   color={Colors.textPrimary}
+                />
+                                <Text style={styles.dateButtonText}>
+                  {date.toLocaleDateString('fi-FI')}
+                </Text>
+                 </TouchableOpacity>
+             {showDatePicker && (
+                <DateTimePicker
+                  value={date}
+                  mode="date"
+                  display={Platform.OS === 'ios' ? 'spinner' : 'default'}
+                  onChange={onChangeDate}
+                />
+               )}
+              <View style={styles.modalActions}>
+                <TouchableOpacity
+                  style={styles.modalCancelButton}
+                  onPress={() => setAddModalVisible(false)}
+                >
+                  <Text style={styles.modalCancelText}>Peruuta</Text>
+                </TouchableOpacity>
             <TouchableOpacity
-              style={styles.dateButton}
-              onPress={() => setShowDatePicker(true)}
-            >
-              <Ionicons
-                name="calendar-outline"
-                size={20}
-                color={Colors.textPrimary}
-              />
-              <Text style={styles.dateButtonText}>
-                {date.toLocaleDateString('fi-FI')}
-              </Text>
-            </TouchableOpacity>
-            {showDatePicker && (
-              <DateTimePicker
-                value={date}
-                mode="date"
-                display={Platform.OS === 'ios' ? 'spinner' : 'default'}
-                onChange={onChangeDate}
-              />
-            )}
-            <View style={styles.modalActions}>
-              <TouchableOpacity
-                style={styles.modalCancelButton}
-                onPress={() => setAddModalVisible(false)}
-              >
-                <Text style={styles.modalCancelText}>Peruuta</Text>
-              </TouchableOpacity>
-              <TouchableOpacity
-                style={[styles.modalSaveButton, saving && { opacity: 0.6 }]}
-                onPress={handleSave}
-                disabled={saving}
-              >
-                <Text style={styles.modalSaveText}>Lisää</Text>
-              </TouchableOpacity>
-            </View>
+                  style={[styles.modalSaveButton, saving && { opacity: 0.6 }]}
+                  onPress={handleSave}
+                  disabled={saving}
+                >
+                  <Text style={styles.modalSaveText}>Lisää</Text>
+                </TouchableOpacity>
+              </View>
+            </ScrollView>
           </View>
         </View>
       </Modal>
@@ -601,8 +617,9 @@ title: {
   },
   modalContainer: {
     width: '100%',
+     maxHeight: '80%',
     backgroundColor: Colors.cardBackground,
-    borderRadius: 8,
+borderRadius: 12,
     padding: 16,
   },
   modalHeader: {
@@ -668,15 +685,36 @@ title: {
   valueText: {
     color: Colors.textPrimary,
   },
-  pickerContainer: {
+ dropdownToggle: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    borderWidth: 1,
+    borderColor: Colors.border,
+    borderRadius: 6,
+     paddingHorizontal: 12,
+    paddingVertical: 8,
+    marginBottom: 12,
+ backgroundColor: Colors.background
+  },
+ dropdownToggleText: {
+    color: Colors.textPrimary,
+  },
+  dropdown: {
     borderWidth: 1,
     borderColor: Colors.border,
     borderRadius: 6,
     marginBottom: 12,
-    overflow: 'hidden',
+    backgroundColor: Colors.background,
+    maxHeight: 150,
+     overflow: 'hidden',
   },
-  picker: {
-    width: '100%',
+  dropdownItem: {
+    paddingHorizontal: 12,
+    paddingVertical: 8,
+  },
+  dropdownItemText: {
+    color: Colors.textPrimary,
   },
   dateButton: {
     flexDirection: 'row',
