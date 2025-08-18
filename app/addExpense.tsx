@@ -30,7 +30,6 @@ export default function AddExpenseScreen() {
   const userId = user ? user.uid : null;
 
   const [amount, setAmount] = useState('');
-  const [description, setDescription] = useState('');
   const [selectedCategory, setSelectedCategory] = useState('');
   const [categories, setCategories] = useState<Category[]>([]);
   const [loadingCategories, setLoadingCategories] = useState(true);
@@ -84,7 +83,7 @@ export default function AddExpenseScreen() {
     const newExpense = {
       amount: amt,
       categoryId: selectedCategory,
-      description: description.trim(),
+       description: '',
       date: date,
     } as any;
 
@@ -132,14 +131,6 @@ export default function AddExpenseScreen() {
             placeholder="Esim. 29.90"
             value={amount}
             onChangeText={setAmount}
-          />
-
-          <Text style={styles.label}>Kuvaus (valinnainen)</Text>
-          <TextInput
-            style={styles.input}
-            placeholder="Esim. Lounaskulu"
-            value={description}
-            onChangeText={setDescription}
           />
 
           <Text style={styles.label}>Kategoria</Text>

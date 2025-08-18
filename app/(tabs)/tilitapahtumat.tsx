@@ -63,7 +63,7 @@ export default function TilitapahtumatScreen() {
   const [date, setDate] = useState(new Date());
   const [showDatePicker, setShowDatePicker] = useState(false);
  const [showAmountField, setShowAmountField] = useState(true);
-  const [showDescriptionField, setShowDescriptionField] = useState(true);
+ const [showDescriptionField, setShowDescriptionField] = useState(false);
 const [showCategoryDropdown, setShowCategoryDropdown] = useState(true);
   const [saving, setSaving] = useState(false);
 
@@ -148,8 +148,8 @@ const loadData = async () => {
     setDescription('');
     setDate(new Date());
      setShowAmountField(true);
-    setShowDescriptionField(true);
-   setShowCategoryDropdown(true);
+    setShowDescriptionField(false);
+    setShowCategoryDropdown(true);
     setAddModalVisible(true);
   };
 
@@ -224,7 +224,7 @@ const loadData = async () => {
           categoryId: selectedCategory,
           amount: amt,
           date,
-       description: description.trim() || 'Meno',
+        description: '',
         });
       } else {
         await addIncome(userId, {
@@ -250,8 +250,14 @@ const loadData = async () => {
       onPress={() => handlePress(item)}
     >
       <View>
-        <Text style={styles.transactionDesc}>{item.description || '-'}</Text>
-        <Text style={styles.transactionMeta}>{item.category}</Text>
+        {item.type === 'income' ? (
+          <>
+            <Text style={styles.transactionDesc}>{item.description || '-'}</Text>
+            <Text style={styles.transactionMeta}>{item.category}</Text>
+          </>
+        ) : (
+          <Text style={styles.transactionDesc}>{item.category}</Text>
+        )}
         <Text style={styles.transactionDate}>
           {item.date.toLocaleDateString('fi-FI')}
         </Text>
@@ -310,6 +316,8 @@ const loadData = async () => {
                   onPress={() => {
                     setNewType('expense');
                     setShowCategoryDropdown(true);
+                    setShowDescriptionField(false);
+                    setDescription('');
                   }}
                 >
                   <Ionicons
@@ -323,6 +331,7 @@ const loadData = async () => {
                   style={[styles.typeOption, newType === 'income' && styles.typeSelected]}
                   onPress={() => {
                     setNewType('income');
+                     setShowDescriptionField(true);
                   }}
                 >
                   <Ionicons
@@ -356,30 +365,32 @@ const loadData = async () => {
                 </TouchableOpacity>
               )}
 
-              {showDescriptionField ? (
-                <>
-                  <Text style={styles.label}>Kuvaus</Text>
-                  <TextInput
-                    style={styles.input}
-                    value={description}
-                    onChangeText={setDescription}
-                    placeholder="Esim. Ruokakauppa"
-                    onBlur={() =>
-                      description.trim() && setShowDescriptionField(false)
-                    }
-                    returnKeyType="done"
-                    onSubmitEditing={() =>
-                      description.trim() && setShowDescriptionField(false)
-                    }
-                  />
-                </>
-              ) : (
-                <TouchableOpacity onPress={() => setShowDescriptionField(true)}>
-                  <Text style={styles.label}>Kuvaus</Text>
-                  <View style={styles.valueContainer}>
-                    <Text style={styles.valueText}>{description || '-'}</Text>
-                  </View>
-                </TouchableOpacity>
+             {newType === 'income' && (
+                showDescriptionField ? (
+                  <>
+                    <Text style={styles.label}>Tulon tyyppi</Text>
+                    <TextInput
+                      style={styles.input}
+                      value={description}
+                      onChangeText={setDescription}
+                      placeholder="Esim. Palkka"
+                      onBlur={() =>
+                        description.trim() && setShowDescriptionField(false)
+                      }
+                      returnKeyType="done"
+                      onSubmitEditing={() =>
+                        description.trim() && setShowDescriptionField(false)
+                      }
+                    />
+                  </>
+                ) : (
+                  <TouchableOpacity onPress={() => setShowDescriptionField(true)}>
+                    <Text style={styles.label}>Kuvaus</Text>
+                    <View style={styles.valueContainer}>
+                      <Text style={styles.valueText}>{description || '-'}</Text>
+                    </View>
+                  </TouchableOpacity>
+                )
               )}
 
               {newType === 'expense' && (
