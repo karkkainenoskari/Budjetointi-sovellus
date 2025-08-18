@@ -451,19 +451,14 @@ export default function HistoriaScreen() {
                       ))}
                   </Picker>
                 )}
-                 {chartData.pieData.some((p) => p.amount > 0) ? (
                   <DonutChart
-                    data={chartData.pieData.map((p) => ({
-                      label: p.name,
-                      value: p.amount,
-                      color: p.color,
-                    }))}
-                    width={screenWidth}
-                    
-                  />
-                ) : (
-                    <Text style={styles.noData}>Ei kuluja valitulle kategorialle</Text>
-                )}
+                  data={chartData.pieData.map((p) => ({
+                    label: p.name,
+                    value: p.amount,
+                    color: p.color,
+                  }))}
+                  width={screenWidth}
+                />
            </View>
             </ScrollView>
           )
@@ -539,10 +534,6 @@ const styles = StyleSheet.create({
     fontWeight: '600',
     color: Colors.textPrimary,
     marginVertical: 12,
-    textAlign: 'center',
-  },
-  noData: {
-    color: Colors.textPrimary,
     textAlign: 'center',
   },
   noPeriodContainer: {

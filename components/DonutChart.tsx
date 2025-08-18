@@ -11,21 +11,28 @@ export default function DonutChart({
   centerLabel = 'Yhteensä',
 }: { data: Item[]; width: number; height?: number; centerLabel?: string }) {
   const total = data.reduce((s, d) => s + d.value, 0);
+  const hasData = total > 0;
+  const pieData = hasData
+    ? data.map((d) => ({ x: d.label, y: d.value }))
+    : [{ x: '', y: 1 }];
+  const colors = hasData
+    ? data.map((d) => d.color)
+    : [Colors.border];
     const fmt = (v: number) =>
     v.toLocaleString('fi-FI', { maximumFractionDigits: 0 });
   return (
     <View style={{ width, alignSelf: 'center' }}>
       <View style={{ height, justifyContent: 'center' }}>
         <VictoryPie
-         data={data.map((d) => ({ x: d.label, y: d.value }))}
+          data={pieData}
           width={width}
           height={height}
           innerRadius={70}
           padAngle={2}
           cornerRadius={10}
-          colorScale={data.map((d) => d.color)}
+            colorScale={colors}
           labels={({ datum }) =>
-            datum.y > 0 ? `${fmt(datum.y)} €` : ''
+             hasData && datum.y > 0 ? `${fmt(datum.y)} €` : ''
           }
           labelRadius={Math.min(width, height) / 2 - 30}
           style={{
