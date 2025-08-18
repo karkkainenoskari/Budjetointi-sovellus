@@ -299,7 +299,7 @@ const loadData = async () => {
               showsVerticalScrollIndicator={false}
             >
               <View style={styles.modalHeader}>
-                <Text style={styles.modalTitle}>Lisää uusi tapahtuma</Text>
+                <Text style={styles.modalTitle}>Lisää uusi tapahtuma: </Text>
                 <TouchableOpacity onPress={() => setAddModalVisible(false)}>
                   <Ionicons name="close" size={24} color={Colors.textPrimary} />
                 </TouchableOpacity>
@@ -476,7 +476,10 @@ const loadData = async () => {
             <Text style={styles.title}>Tilitapahtumat</Text>
             <Text style={styles.subtitle}>Lisää ja seuraa kuluja</Text>
             <View style={styles.addCard}>
-              <View style={styles.addCardHeader}>
+                 <TouchableOpacity
+                style={styles.addCardHeader}
+                onPress={handleAdd}
+              >
                 <View style={styles.cardIcon}>
                   <Ionicons
                     name="card-outline"
@@ -484,14 +487,10 @@ const loadData = async () => {
                     color={Colors.moss}
                   />
                 </View>
-                <Text style={styles.addCardTitle}>Lisää tapahtuma</Text>
-              </View>
-              <TouchableOpacity style={styles.addButton} onPress={handleAdd}>
-                <Ionicons name="add" size={20} color={Colors.background} />
-                <Text style={styles.addButtonText}>Lisää uusi tapahtuma</Text>
+           <Text style={styles.addCardTitle}> + Lisää uusi tapahtuma </Text>
               </TouchableOpacity>
             </View>
-          <Text style={styles.sectionTitle}>Viimeisimmät tapahtumat</Text>
+          <Text style={styles.sectionTitle}>Viimeisimmät tapahtumat:</Text>
           </View>
         }
         contentContainerStyle={styles.listContent}
@@ -537,7 +536,7 @@ title: {
    addCardHeader: {
     flexDirection: 'row',
     alignItems: 'center',
-    marginBottom: 12,
+    justifyContent: 'center',
   },
  cardIcon: {
     width: 32,
@@ -554,20 +553,6 @@ title: {
     fontSize: 16,
     fontWeight: '600',
     color: Colors.textPrimary,
-  },
-  addButton: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: Colors.moss,
-    paddingHorizontal: 12,
-    paddingVertical: 8,
-    borderRadius: 6,
-    alignSelf: 'flex-start',
-  },
-    addButtonText: {
-    color: Colors.buttonPrimaryText,
-    marginLeft: 4,
-    fontWeight: '500',
   },
  sectionTitle: {
     fontSize: 18,
