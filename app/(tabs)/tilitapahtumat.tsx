@@ -42,6 +42,8 @@ interface Transaction {
   type: 'expense' | 'income';
   date: Date;
   category: string;
+   /** Optional parent category for expenses */
+  mainCategory?: string;
   categoryId: string;
   description: string;
   amount: number;
@@ -78,8 +80,10 @@ const loadData = async () => {
         getCategories(userId),
       ]);
       const map: Record<string, string> = {};
+      const catMap: Record<string, Category> = {};
       cats.forEach((c: Category) => {
         map[c.id] = c.title;
+         catMap[c.id] = c;
       });
         setCategories(cats);
       const mains = cats.filter((c) => c.type === 'main');
@@ -109,13 +113,16 @@ const loadData = async () => {
        const txs: Transaction[] = [];
       exp.forEach((e: Expense) => {
         const date = e.date?.toDate ? e.date.toDate() : new Date(e.date);
+        const catObj = catMap[e.categoryId];
+        const mainCat = catObj?.parentId ? map[catObj.parentId] || '' : '';
         txs.push({
           id: e.id,
           type: 'expense',
           date,
           category: map[e.categoryId] || '',
+            mainCategory: mainCat,
           categoryId: e.categoryId,
-          description: e.description,
+           description: e.description || '',
           amount: e.amount,
         });
       });
@@ -268,18 +275,28 @@ const loadData = async () => {
       style={styles.transactionCard}
       onPress={() => handlePress(item)}
     >
-      <View>
-        {item.type === 'income' ? (
-          <>
-            <Text style={styles.transactionDesc}>{item.description || '-'}</Text>
-            <Text style={styles.transactionMeta}>{item.category}</Text>
-          </>
-        ) : (
-          <Text style={styles.transactionDesc}>{item.category}</Text>
-        )}
-        <Text style={styles.transactionDate}>
-          {item.date.toLocaleDateString('fi-FI')}
-        </Text>
+       <View style={styles.transactionLeft}>
+        <Ionicons
+          name={
+            item.type === 'income'
+              ? 'trending-up-outline'
+              : 'trending-down-outline'
+          }
+          size={20}
+          color={item.type === 'income' ? Colors.moss : Colors.danger}
+          style={styles.transactionIcon}
+        />
+        <View>
+          <Text style={styles.transactionDesc}>
+            {item.type === 'income' ? item.description || '-' : item.category}
+          </Text>
+          <Text style={styles.transactionMeta}>
+            {item.type === 'income' ? item.category : item.mainCategory}
+          </Text>
+          <Text style={styles.transactionDate}>
+            {item.date.toLocaleDateString('fi-FI')}
+          </Text>
+        </View>
       </View>
       <Text
         style={[
@@ -655,6 +672,13 @@ title: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
+  },
+   transactionLeft: {
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  transactionIcon: {
+    marginRight: 8,
   },
   transactionDesc: {
     fontSize: 16,
