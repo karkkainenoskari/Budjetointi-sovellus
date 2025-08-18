@@ -40,12 +40,6 @@ export default function HistoriaScreen() {
   const user = auth.currentUser;
   const userId = user ? user.uid : null;
 
-    const formatCurrency = (value: number) =>
-    value.toLocaleString('fi-FI', {
-      minimumFractionDigits: 2,
-      maximumFractionDigits: 2,
-    });
-
   const [months, setMonths] = useState<string[]>([]);
   const [loadingMonths, setLoadingMonths] = useState<boolean>(true);
   const [selectedMonth, setSelectedMonth] = useState<string | null>(null);
@@ -64,13 +58,7 @@ export default function HistoriaScreen() {
   const [chartData, setChartData] = useState<{ pieData: any[]; totals: { income: number; expense: number } } | null>(null);
   const [currentPeriodId, setCurrentPeriodId] = useState<string | null>(null);
   const [monthHasPeriod, setMonthHasPeriod] = useState<Record<string, boolean>>({});
-  const [openCats, setOpenCats] = useState<Record<string, boolean>>({});
-     const [openIncomes, setOpenIncomes] = useState<boolean>(false);
-  const [openExpenses, setOpenExpenses] = useState<boolean>(false);
-   const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
-
-  const toggleCat = (id: string) =>
-    setOpenCats((prev) => ({ ...prev, [id]: !prev[id] }));
+ const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
 
    const loadMonths = React.useCallback(
     async (active: { current: boolean }) => {
@@ -439,124 +427,48 @@ export default function HistoriaScreen() {
 
 
               <View style={styles.monthCard}>
-                 <Text style={styles.header}>Menot</Text>
-                   {monthData[selectedMonth]?.categories.filter(
-                     (c) => c.parentId === null && c.type === 'main'
-                  ).length > 0 && (
+                 <Text style={styles.header}>Tulot vs. Menot</Text>
+                <ComparisonBars
+                  income={chartData.totals.income}
+                  expense={chartData.totals.expense}
+                  width={screenWidth}
+                />
+
+                <Text style={[styles.header, { marginTop: 20 }]}>Menot</Text>
+                {monthData[selectedMonth]?.categories.filter(
+                  (c) => c.parentId === null && c.type === 'main'
+                ).length > 0 && (
                   <Picker
                     selectedValue={selectedCategory}
                     onValueChange={(v) => setSelectedCategory(v)}
                     style={styles.picker}
                   >
-                      {monthData[selectedMonth]?.categories
-                       .filter((c) => c.parentId === null && c.type === 'main')
-                        .map((c) => (
-                          <Picker.Item key={c.id} label={c.title} value={c.id} />
-                        ))}
+                       {monthData[selectedMonth]?.categories
+                      .filter((c) => c.parentId === null && c.type === 'main')
+                      .map((c) => (
+                        <Picker.Item key={c.id} label={c.title} value={c.id} />
+                      ))}
                   </Picker>
                 )}
                 {chartData.pieData.length > 0 ? (
                <DonutChart
-                    data={chartData.pieData.map(p => ({ label: p.name, value: p.amount, color: p.color }))}
+                    data={chartData.pieData.map((p) => ({
+                      label: p.name,
+                      value: p.amount,
+                      color: p.color,
+                    }))}
                     width={screenWidth}
                     
                   />
                 ) : (
                     <Text style={styles.noData}>Ei kuluja valitulle kategorialle</Text>
                 )}
-
-                <Text style={[styles.header, { marginTop: 20 }]}>Tulot vs. Menot</Text>
-               < ComparisonBars
-                  income={chartData.totals.income}
-                  expense={chartData.totals.expense}
-                  width={screenWidth}
-                />
-             
-
-               <TouchableOpacity
-                onPress={() => setOpenIncomes((o) => !o)}
-                style={styles.summaryHeader}
-              >
-                <Text style={styles.catTitle}>Tulot yhteensä</Text>
-                <Text style={styles.catAmount}>
-                  {formatCurrency(chartData.totals.income)} €
-                </Text>
-              </TouchableOpacity>
-              {openIncomes && (
-                <View style={styles.monthContent}>
-                  {monthData[selectedMonth]?.incomes.map((inc) => (
-                    <View key={inc.id} style={styles.subRow}>
-                      <Text style={styles.subTitle}>{inc.title}</Text>
-                      <Text style={styles.subAmount}>{formatCurrency(inc.amount)} €</Text>
-                    </View>
-                  ))}
-                </View>
-              )}
-
-              <TouchableOpacity
-                onPress={() => setOpenExpenses((o) => !o)}
-                style={[styles.summaryHeader, { marginTop: 16 }]}
-              >
-                <Text style={styles.catTitle}>Menot yhteensä</Text>
-                <Text style={styles.catAmount}>
-                  {formatCurrency(chartData.totals.expense)} €
-                </Text>
-              </TouchableOpacity>
-              {openExpenses && (
-                <View style={styles.monthContent}>
-                  {monthData[selectedMonth]?.categories
-                      .filter((c) => c.parentId === null && c.type === 'main')
-                    .map((main) => {
-                      const subs = monthData[selectedMonth]?.categories.filter(
-                       (c) => c.parentId === main.id && c.type === 'sub'
-                      );
-                      const totalRow = subs.find((s) =>
-                        s.title.toLowerCase().includes('yhteensä')
-                      );
-                      let totalExpense = totalRow
-                        ? monthData[selectedMonth]?.expenses[totalRow.id] || 0
-                        : monthData[selectedMonth]?.expenses[main.id] || 0;
-                      if (!totalRow) {
-                        subs.forEach((s) => {
-                          totalExpense +=
-                            monthData[selectedMonth]?.expenses[s.id] || 0;
-                        });
-                      }
-                      return (
-                        <View key={main.id} style={styles.catRow}>
-                          <TouchableOpacity
-                            onPress={() => toggleCat(main.id)}
-                            style={styles.catHeader}
-                          >
-                            <Text style={styles.catTitle}>{`${main.title} yhteensä`}</Text>
-                            <Text style={styles.catAmount}>
-                              {formatCurrency(totalExpense)} €
-                            </Text>
-                          </TouchableOpacity>
-                          {openCats[main.id] &&
-                            subs
-                              .filter((s) => !s.title.toLowerCase().includes('yhteensä'))
-                              .map((sub) => (
-                                <View key={sub.id} style={styles.subRow}>
-                                  <Text style={styles.subTitle}>{sub.title}</Text>
-                                  <Text style={styles.subAmount}>
-                                    {formatCurrency(
-                                      monthData[selectedMonth]?.expenses[sub.id] || 0
-                                    )} €
-                                  </Text>
-                                </View>
-                              ))}
-                        </View>
-                      );
-                    })}
-                </View>
-              )}
-          </View>
-        </ScrollView>
-      )
-    )}
-  </SafeAreaView>
-);
+           </View>
+            </ScrollView>
+          )
+        )}
+      </SafeAreaView>
+    );
 
 }
 const styles = StyleSheet.create({
@@ -620,54 +532,7 @@ const styles = StyleSheet.create({
     color: Colors.textPrimary,
     marginBottom: 8,
   },
-  monthContent: {
-    marginTop: 8,
-  },
-  catRow: {
-     backgroundColor: Colors.cardBackground,
-    borderRadius: 12,
-    padding: 16,
-    marginBottom: 12,
-    borderWidth: 1,
-    borderColor: Colors.border,
-    shadowColor: '#000',
-    shadowOpacity: 0.05,
-    shadowOffset: { width: 0, height: 2 },
-    shadowRadius: 4,
-    elevation: 2,
-  },
-  catHeader: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-  },
-  summaryHeader: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    paddingVertical: 12,
-  },
-  subRow: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    paddingTop: 8,
-  },
-  subTitle: {
-    fontSize: 15,
-    color: Colors.textPrimary,
-  },
-  subAmount: {
-    fontSize: 15,
-    color: Colors.textSecondary,
-     },
-  catTitle: {
-    fontSize: 16,
-    color: Colors.textPrimary,
-  },
-  catAmount: {
-    fontSize: 16,
-    color: Colors.textSecondary,
-  },
+  
   header: {
     fontSize: 20,
     fontWeight: '600',
