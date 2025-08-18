@@ -436,6 +436,14 @@ export default function HistoriaScreen() {
                 />
 
                 <Text style={[styles.header, { marginTop: 20 }]}>Menot</Text>
+                 <DonutChart
+                  data={chartData.pieData.map((p) => ({
+                    label: p.name,
+                    value: p.amount,
+                    color: p.color,
+                  }))}
+                  width={screenWidth}
+                />
                 {monthData[selectedMonth]?.categories.filter(
                   (c) => c.parentId === null && c.type === 'main'
                 ).length > 0 && (
@@ -451,14 +459,6 @@ export default function HistoriaScreen() {
                       ))}
                   </Picker>
                 )}
-                  <DonutChart
-                  data={chartData.pieData.map((p) => ({
-                    label: p.name,
-                    value: p.amount,
-                    color: p.color,
-                  }))}
-                  width={screenWidth}
-                />
            </View>
             </ScrollView>
           )
