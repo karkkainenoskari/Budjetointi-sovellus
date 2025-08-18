@@ -53,18 +53,20 @@ export default function TilitapahtumatScreen() {
   const userId = user ? user.uid : null;
 
   const [transactions, setTransactions] = useState<Transaction[]>([]);
- const [loading, setLoading] = useState(true);
- const [categories, setCategories] = useState<Category[]>([]);
+const [loading, setLoading] = useState(true);
+  const [categories, setCategories] = useState<Category[]>([]);
   const [addModalVisible, setAddModalVisible] = useState(false);
   const [newType, setNewType] = useState<'expense' | 'income'>('expense');
   const [amount, setAmount] = useState('');
   const [description, setDescription] = useState('');
+  const [selectedMainCategory, setSelectedMainCategory] = useState('');
   const [selectedCategory, setSelectedCategory] = useState('');
   const [date, setDate] = useState(new Date());
   const [showDatePicker, setShowDatePicker] = useState(false);
  const [showAmountField, setShowAmountField] = useState(true);
  const [showDescriptionField, setShowDescriptionField] = useState(false);
-const [showCategoryDropdown, setShowCategoryDropdown] = useState(true);
+const [showMainCategoryDropdown, setShowMainCategoryDropdown] = useState(false);
+  const [showSubCategoryDropdown, setShowSubCategoryDropdown] = useState(false);
   const [saving, setSaving] = useState(false);
 
 const loadData = async () => {
@@ -80,8 +82,16 @@ const loadData = async () => {
         map[c.id] = c.title;
       });
         setCategories(cats);
-      if (cats.length > 0 && !selectedCategory) {
-        setSelectedCategory(cats[0].id);
+      const mains = cats.filter((c) => c.type === 'main');
+      if (mains.length > 0 && !selectedMainCategory) {
+        const firstMain = mains[0].id;
+        setSelectedMainCategory(firstMain);
+    const subs = cats.filter(
+          (c) => c.parentId === firstMain && !c.title.toLowerCase().includes('yhteensä')
+        );
+        if (subs.length > 0) {
+          setSelectedCategory(subs[0].id);
+        };
       }
       let exp: Expense[] = [];
       let inc: Income[] = [];
@@ -141,7 +151,15 @@ const loadData = async () => {
 
    const handleAdd = () => {
     if (categories.length > 0) {
-      setSelectedCategory(categories[0].id);
+       const mains = categories.filter((c) => c.type === 'main');
+      if (mains.length > 0) {
+        const firstMain = mains[0].id;
+        setSelectedMainCategory(firstMain);
+       const subs = categories.filter(
+          (c) => c.parentId === firstMain && !c.title.toLowerCase().includes('yhteensä')
+        );
+        setSelectedCategory(subs[0]?.id || '');
+      }
     }
     setNewType('expense');
     setAmount('');
@@ -149,7 +167,8 @@ const loadData = async () => {
     setDate(new Date());
      setShowAmountField(true);
     setShowDescriptionField(false);
-    setShowCategoryDropdown(true);
+   setShowMainCategoryDropdown(false);
+    setShowSubCategoryDropdown(false);
     setAddModalVisible(true);
   };
 
@@ -315,7 +334,8 @@ const loadData = async () => {
                   style={[styles.typeOption, newType === 'expense' && styles.typeSelected]}
                   onPress={() => {
                     setNewType('expense');
-                    setShowCategoryDropdown(true);
+                   setShowMainCategoryDropdown(false);
+                    setShowSubCategoryDropdown(false);
                     setShowDescriptionField(false);
                     setDescription('');
                   }}
@@ -399,18 +419,18 @@ const loadData = async () => {
                   <TouchableOpacity
                     style={styles.dropdownToggle}
                     onPress={() =>
-                      setShowCategoryDropdown((prev) => !prev)
+                       setShowMainCategoryDropdown((prev) => !prev)
                     }
                   >
                     <Text style={styles.dropdownToggleText}>
                       {
-                        categories.find((cat) => cat.id === selectedCategory)?.title ||
+                        categories.find((cat) => cat.id === selectedMainCategory)?.title ||
                         'Valitse kategoria'
                       }
                     </Text>
                     <Ionicons
                       name={
-                        showCategoryDropdown
+                         showMainCategoryDropdown
                           ? 'chevron-up-outline'
                           : 'chevron-down-outline'
                       }
@@ -418,21 +438,77 @@ const loadData = async () => {
                       color={Colors.textPrimary}
                     />
                   </TouchableOpacity>
-                  {showCategoryDropdown && (
+                  {showMainCategoryDropdown && (
                     <View style={styles.dropdown}>
                       <ScrollView nestedScrollEnabled>
-                        {categories.map((cat) => (
-                          <TouchableOpacity
-                            key={cat.id}
-                            style={styles.dropdownItem}
-                            onPress={() => {
-                              setSelectedCategory(cat.id);
-                              setShowCategoryDropdown(false);
-                            }}
-                          >
-                            <Text style={styles.dropdownItemText}>{cat.title}</Text>
-                          </TouchableOpacity>
-                        ))}
+                        {categories
+                          .filter((cat) => cat.type === 'main')
+                          .map((cat) => (
+                            <TouchableOpacity
+                              key={cat.id}
+                              style={styles.dropdownItem}
+                              onPress={() => {
+                                setSelectedMainCategory(cat.id);
+                                setShowMainCategoryDropdown(false);
+                                const subs = categories.filter(
+                                   (c) =>
+                                    c.parentId === cat.id &&
+                                    !c.title.toLowerCase().includes('yhteensä')
+                                );
+                                setSelectedCategory(subs[0]?.id || '');
+                              }}
+                            >
+                              <Text style={styles.dropdownItemText}>{cat.title}</Text>
+                            </TouchableOpacity>
+                          ))}
+                      </ScrollView>
+                    </View>
+                  )}
+
+                  <Text style={styles.label}>Alakategoria</Text>
+                  <TouchableOpacity
+                    style={styles.dropdownToggle}
+                    onPress={() =>
+                      setShowSubCategoryDropdown((prev) => !prev)
+                    }
+                  >
+                    <Text style={styles.dropdownToggleText}>
+                      {
+                        categories.find((cat) => cat.id === selectedCategory)?.title ||
+                        'Valitse alakategoria'
+                      }
+                    </Text>
+                    <Ionicons
+                      name={
+                        showSubCategoryDropdown
+                          ? 'chevron-up-outline'
+                          : 'chevron-down-outline'
+                      }
+                      size={16}
+                      color={Colors.textPrimary}
+                    />
+                  </TouchableOpacity>
+                  {showSubCategoryDropdown && (
+                    <View style={styles.dropdown}>
+                      <ScrollView nestedScrollEnabled>
+                      {categories
+                          .filter(
+                            (cat) =>
+                              cat.parentId === selectedMainCategory &&
+                              !cat.title.toLowerCase().includes('yhteensä')
+                          )
+                          .map((cat) => (
+                            <TouchableOpacity
+                              key={cat.id}
+                              style={styles.dropdownItem}
+                              onPress={() => {
+                                setSelectedCategory(cat.id);
+                                setShowSubCategoryDropdown(false);
+                              }}
+                            >
+                              <Text style={styles.dropdownItemText}>{cat.title}</Text>
+                            </TouchableOpacity>
+                          ))}
                       </ScrollView>
                     </View>
                   )}

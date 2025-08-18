@@ -30,7 +30,8 @@ export default function AddExpenseScreen() {
   const userId = user ? user.uid : null;
 
   const [amount, setAmount] = useState('');
-  const [selectedCategory, setSelectedCategory] = useState('');
+  const [selectedMainCategory, setSelectedMainCategory] = useState('');
+  const [selectedSubCategory, setSelectedSubCategory] = useState('');
   const [categories, setCategories] = useState<Category[]>([]);
   const [loadingCategories, setLoadingCategories] = useState(true);
 
@@ -46,8 +47,16 @@ export default function AddExpenseScreen() {
     getCategories(userId)
       .then((cats) => {
         setCategories(cats);
-        if (cats.length > 0) {
-          setSelectedCategory(cats[0].id);
+         const mains = cats.filter((c) => c.type === 'main');
+        if (mains.length > 0) {
+          const firstMain = mains[0].id;
+          setSelectedMainCategory(firstMain);
+          const subs = cats.filter(
+            (c) => c.parentId === firstMain && !c.title.toLowerCase().includes('yhteensä')
+          );
+          if (subs.length > 0) {
+            setSelectedSubCategory(subs[0].id);
+          }
         }
       })
       .catch((e) => console.error('getCategories-virhe:', e))
@@ -73,8 +82,8 @@ export default function AddExpenseScreen() {
       return;
     }
 
-    if (!selectedCategory) {
-      Alert.alert('Virhe', 'Valitse kategoria.');
+    if (!selectedSubCategory) {
+      Alert.alert('Virhe', 'Valitse alakategoria.');
       return;
     }
 
@@ -82,7 +91,7 @@ export default function AddExpenseScreen() {
 
     const newExpense = {
       amount: amt,
-      categoryId: selectedCategory,
+     categoryId: selectedSubCategory,
        description: '',
       date: date,
     } as any;
@@ -136,14 +145,42 @@ export default function AddExpenseScreen() {
           <Text style={styles.label}>Kategoria</Text>
           <View style={styles.pickerContainer}>
             <Picker
-              selectedValue={selectedCategory}
-              onValueChange={(itemValue) => setSelectedCategory(itemValue)}
+             selectedValue={selectedMainCategory}
+              onValueChange={(itemValue) => {
+                setSelectedMainCategory(itemValue);
+                const subs = categories.filter(
+                  (c) => c.parentId === itemValue && !c.title.toLowerCase().includes('yhteensä')
+                );
+                setSelectedSubCategory(subs[0]?.id || '');
+              }}
               style={styles.picker}
               mode="dropdown"
             >
-              {categories.map((cat) => (
-                <Picker.Item key={cat.id} label={cat.title} value={cat.id} />
-              ))}
+              {categories
+                .filter((cat) => cat.type === 'main')
+                .map((cat) => (
+                  <Picker.Item key={cat.id} label={cat.title} value={cat.id} />
+                ))}
+            </Picker>
+          </View>
+
+          <Text style={styles.label}>Alakategoria</Text>
+          <View style={styles.pickerContainer}>
+            <Picker
+              selectedValue={selectedSubCategory}
+              onValueChange={(itemValue) => setSelectedSubCategory(itemValue)}
+              style={styles.picker}
+              mode="dropdown"
+            >
+              {categories
+               .filter(
+                  (cat) =>
+                    cat.parentId === selectedMainCategory &&
+                    !cat.title.toLowerCase().includes('yhteensä')
+                )
+                .map((cat) => (
+                  <Picker.Item key={cat.id} label={cat.title} value={cat.id} />
+                ))}
             </Picker>
           </View>
 
