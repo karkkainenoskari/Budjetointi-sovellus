@@ -5,11 +5,10 @@ import {
   VictoryAxis,
   VictoryLabel
 } from 'victory-native';
-import { Defs, LinearGradient, Stop } from 'react-native-svg';
 import Colors from '../constants/Colors';
 
 const INCOME_COLOR = Colors.moss;
-const EXPENSE_COLOR = '#E71D36'; // sama sävy kuin nykyisessä paletissa
+const EXPENSE_COLOR = Colors.danger;
 
 export default function ComparisonBars({
 income,
@@ -42,16 +41,6 @@ income,
       animate={{ duration: 600, easing: 'exp' }}
       style={{ background: { fill: Colors.cardBackground } }}
     >
-      <Defs>
-        <LinearGradient id="incomeGradient" x1="0" y1="0" x2="0" y2="1">
-          <Stop offset="0%" stopColor={INCOME_COLOR} stopOpacity={0.8} />
-          <Stop offset="100%" stopColor={INCOME_COLOR} />
-        </LinearGradient>
-        <LinearGradient id="expenseGradient" x1="0" y1="0" x2="0" y2="1">
-          <Stop offset="0%" stopColor={EXPENSE_COLOR} stopOpacity={0.8} />
-          <Stop offset="100%" stopColor={EXPENSE_COLOR} />
-        </LinearGradient>
-      </Defs>
       <VictoryAxis
         style={{
           axis: { stroke: 'transparent' },
@@ -77,7 +66,7 @@ income,
         labels={({ datum }) => `${fmt(datum.y)} €`}
          labelComponent={
           <VictoryLabel
-            dy={-8}
+             dy={({ datum }) => (datum.y === 0 ? 16 : -8)}
             style={{
               fill: Colors.textPrimary,
               fontSize: 12,
@@ -88,9 +77,7 @@ income,
         style={{
          data: {
             fill: ({ datum }) =>
-              datum.type === 'income'
-                ? 'url(#incomeGradient)'
-                : 'url(#expenseGradient)',
+              datum.type === 'income' ? INCOME_COLOR : EXPENSE_COLOR,
             width: 36,
             borderRadius: 8
           }

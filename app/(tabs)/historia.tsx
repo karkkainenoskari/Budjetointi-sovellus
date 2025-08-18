@@ -343,19 +343,20 @@ export default function HistoriaScreen() {
           c.type === 'sub' &&
           !c.title.toLowerCase().includes('yhteensä')
       );
-      pie = subs
-        .filter((s) => data.expenses[s.id])
-        .map((s) => {
-          const color = colors[colorIndex % colors.length];
-          colorIndex += 1;
-          return {
-            name: s.title,
-            amount: data.expenses[s.id],
-            color,
-            legendFontColor: Colors.textPrimary,
-            legendFontSize: 12,
-          };
-        });
+      pie = subs.map((s) => {
+        const amount = data.expenses[s.id] || 0;
+        const color =
+          amount > 0
+            ? colors[colorIndex++ % colors.length]
+            : Colors.sageHint;
+        return {
+          name: s.title,
+          amount,
+          color,
+          legendFontColor: Colors.textPrimary,
+          legendFontSize: 12,
+        };
+      });
          
     }
     setChartData({ pieData: pie, totals: { income: totalIncome, expense: totalExpense } });
@@ -450,8 +451,8 @@ export default function HistoriaScreen() {
                       ))}
                   </Picker>
                 )}
-                {chartData.pieData.length > 0 ? (
-               <DonutChart
+                 {chartData.pieData.some((p) => p.amount > 0) ? (
+                  <DonutChart
                     data={chartData.pieData.map((p) => ({
                       label: p.name,
                       value: p.amount,
