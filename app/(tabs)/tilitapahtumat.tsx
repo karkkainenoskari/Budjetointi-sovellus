@@ -240,27 +240,57 @@ const loadData = async () => {
     }
     setSaving(true);
     try {
+       let newTx: Transaction | null = null;
       if (newType === 'expense') {
         if (!selectedCategory) {
           Alert.alert('Virhe', 'Valitse kategoria.');
           setSaving(false);
           return;
         }
-        await addExpense(userId, {
+         const id = await addExpense(userId, {
           categoryId: selectedCategory,
           amount: amt,
           date,
         description: '',
         });
+         const catObj = categories.find((c) => c.id === selectedCategory);
+        const mainCatTitle = catObj?.parentId
+          ? categories.find((c) => c.id === catObj.parentId)?.title || ''
+          : '';
+        newTx = {
+          id,
+          type: 'expense',
+          date,
+          category: catObj?.title || '',
+          mainCategory: mainCatTitle,
+          categoryId: selectedCategory,
+          description: '',
+          amount: amt,
+        };
       } else {
-        await addIncome(userId, {
+         const id = await addIncome(userId, {
           title: description.trim() || 'Tulo',
           amount: amt,
           createdAt: date,
         });
+         newTx = {
+          id,
+          type: 'income',
+          date,
+          category: 'Tulo',
+          categoryId: 'income',
+          description: description.trim() || 'Tulo',
+          amount: amt,
+        };
+      }
+      if (newTx) {
+        setTransactions((prev) => {
+          const updated = [newTx as Transaction, ...prev];
+          updated.sort((a, b) => b.date.getTime() - a.date.getTime());
+          return updated;
+        });
       }
       setAddModalVisible(false);
-       await loadData();
     } catch (e) {
       console.error('save transaction error:', e);
     } finally {

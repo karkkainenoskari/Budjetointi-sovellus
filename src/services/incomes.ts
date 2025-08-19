@@ -59,13 +59,14 @@ export async function addIncome(
     amount,
     createdAt,
   }: { title: string; amount: number; createdAt?: Date }
-): Promise<void> {
+): Promise<string> {
   const colRef = collection(firestore, 'budjetit', userId, 'incomes');
-await addDoc(colRef, {
+  const docRef = await addDoc(colRef, {
     title,
     amount,
     createdAt: createdAt ? createdAt : serverTimestamp(),
   });
+   return docRef.id;
 }
 
 export async function updateIncome(

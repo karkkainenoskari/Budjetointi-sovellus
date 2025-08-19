@@ -47,15 +47,16 @@ export async function getExpenses(userId: string): Promise<Expense[]> {
 export async function addExpense(
   userId: string,
   { categoryId, amount, date, description }: { categoryId: string; amount: number; date: any; description: string }
-): Promise<void> {
+): Promise<string> {
   const expensesRef = collection(firestore, 'budjetit', userId, 'expenses');
-  await addDoc(expensesRef, {
+  const docRef = await addDoc(expensesRef, {
     categoryId,
     amount,
     date,
     description,
     createdAt: serverTimestamp(),
   });
+   return docRef.id;
 }
 
 /**
