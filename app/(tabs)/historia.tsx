@@ -390,7 +390,9 @@ export default function HistoriaScreen() {
     );
   }
 
-  const screenWidth = Dimensions.get('window').width - 32;
+  const cardWidth = Dimensions.get('window').width - 25;
+  const contentWidth = cardWidth - 20;
+
 
   return (
     <SafeAreaView style={styles.safeContainer}>
@@ -427,12 +429,12 @@ export default function HistoriaScreen() {
            <ScrollView contentContainerStyle={styles.listContent}>
 
 
-              <View style={styles.monthCard}>
+              <View style={[styles.monthCard, { width: cardWidth, alignSelf: 'center' }] }>
                  <Text style={styles.header}>Tulot vs. Menot</Text>
                 <ComparisonBars
                   income={chartData.totals.income}
                   expense={chartData.totals.expense}
-                  width={screenWidth}
+                    width={contentWidth}
                 />
 
                 <Text style={[styles.header, { marginTop: 20 }]}>Menot</Text>
@@ -442,7 +444,7 @@ export default function HistoriaScreen() {
                     value: p.amount,
                     color: p.color,
                   }))}
-                  width={screenWidth}
+                    width={contentWidth}
                 />
                 {monthData[selectedMonth]?.categories.filter(
                   (c) => c.parentId === null && c.type === 'main'
