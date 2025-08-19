@@ -260,7 +260,15 @@ const [showMainCategoryDropdown, setShowMainCategoryDropdown] = useState(false);
       } else {
         await deleteIncome(userId, item.id);
       }
-      loadData();
+       setTransactions((prev) => {
+        const updated = prev.filter(
+          (t) => !(t.id === item.id && t.type === item.type)
+        );
+        if (storageKey) {
+          AsyncStorage.setItem(storageKey, JSON.stringify(updated));
+        }
+        return updated;
+      });
     } catch (e) {
       console.error('delete transaction error:', e);
     }
