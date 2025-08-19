@@ -34,7 +34,7 @@ import {
   Category,
 } from '../../src/services/categories';
 import {
-  getExpensesByPeriod,
+  getExpenses,
   addExpense,
   Expense,
 } from '../../src/services/expenses';
@@ -354,17 +354,14 @@ export default function BudjettiScreen() {
   };
 
   const loadExpenses = async () => {
-    if (!userId || !budgetPeriod) {
+  if (!userId) {
+     setExpensesByCategory({});
       setTotalExpenses(0);
       return;
     }
     setLoadingExpenses(true);
     try {
-      const expenses = await getExpensesByPeriod(
-        userId,
-        budgetPeriod.startDate,
-        budgetPeriod.endDate,
-      );
+       const expenses = await getExpenses(userId);
       const sums: Record<string, number> = {};
       let total = 0;
       expenses.forEach((exp: Expense) => {
@@ -375,7 +372,8 @@ export default function BudjettiScreen() {
       setExpensesByCategory(sums);
       setTotalExpenses(total);
     } catch (e) {
-      console.error('getExpensesByPeriod virhe:', e);
+     console.error('getExpenses virhe:', e);
+      setExpensesByCategory({});
       setTotalExpenses(0);
     } finally {
       setLoadingExpenses(false);
