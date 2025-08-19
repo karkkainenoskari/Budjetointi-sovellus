@@ -36,6 +36,7 @@ import {
   addIncome,
 } from '../../src/services/incomes';
 import DateTimePicker from '@react-native-community/datetimepicker';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
 interface Transaction {
   id: string;
@@ -53,6 +54,7 @@ export default function TilitapahtumatScreen() {
   const router = useRouter();
   const user = auth.currentUser;
   const userId = user ? user.uid : null;
+    const storageKey = userId ? `transactions_${userId}` : null;
 
   const [transactions, setTransactions] = useState<Transaction[]>([]);
 const [loading, setLoading] = useState(true);
@@ -71,7 +73,23 @@ const [showMainCategoryDropdown, setShowMainCategoryDropdown] = useState(false);
   const [showSubCategoryDropdown, setShowSubCategoryDropdown] = useState(false);
   const [saving, setSaving] = useState(false);
 
-const loadData = async () => {
+ const loadStoredTransactions = async () => {
+    if (!storageKey) return;
+    try {
+      const raw = await AsyncStorage.getItem(storageKey);
+      if (raw) {
+        const parsed: Transaction[] = JSON.parse(raw).map((t: any) => ({
+          ...t,
+          date: new Date(t.date),
+        }));
+        setTransactions(parsed);
+      }
+    } catch (e) {
+      console.error('load stored transactions error:', e);
+    }
+  };
+
+  const loadData = async () => {
     if (!userId) return;
     setLoading(true);
     try {
@@ -95,7 +113,7 @@ const loadData = async () => {
         );
         if (subs.length > 0) {
           setSelectedCategory(subs[0].id);
-        };
+        }
       }
       let exp: Expense[] = [];
       let inc: Income[] = [];
@@ -141,10 +159,30 @@ const loadData = async () => {
         });
       });
       txs.sort((a, b) => b.date.getTime() - a.date.getTime());
-      setTransactions(txs);
+        // Merge with locally stored transactions so newly added ones are not lost
+      let stored: Transaction[] = [];
+       if (storageKey) {
+         const raw = await AsyncStorage.getItem(storageKey);
+        if (raw) {
+          stored = JSON.parse(raw).map((t: any) => ({
+            ...t,
+            date: new Date(t.date),
+          }));
+        }
+      }
+
+      const mapMerged = new Map<string, Transaction>();
+      [...stored, ...txs].forEach((t) => mapMerged.set(t.id, t));
+      const merged = Array.from(mapMerged.values()).sort(
+        (a, b) => b.date.getTime() - a.date.getTime()
+      );
+
+      setTransactions(merged);
+      if (storageKey) {
+        await AsyncStorage.setItem(storageKey, JSON.stringify(merged));
+      }
     } catch (e) {
        console.error('loadData error:', e);
-      setTransactions([]);
     } finally {
       setLoading(false);
     }
@@ -152,7 +190,11 @@ const loadData = async () => {
 
   useFocusEffect(
     useCallback(() => {
-       loadData();
+        const load = async () => {
+        await loadStoredTransactions();
+        await loadData();
+      };
+      load();
     }, [userId])
   );
 
@@ -284,11 +326,12 @@ const loadData = async () => {
         };
       }
       if (newTx) {
-        setTransactions((prev) => {
-          const updated = [newTx as Transaction, ...prev];
-          updated.sort((a, b) => b.date.getTime() - a.date.getTime());
-          return updated;
-        });
+         const updated = [newTx as Transaction, ...transactions];
+        updated.sort((a, b) => b.date.getTime() - a.date.getTime());
+        setTransactions(updated);
+        if (storageKey) {
+          await AsyncStorage.setItem(storageKey, JSON.stringify(updated));
+        }
       }
       setAddModalVisible(false);
     } catch (e) {
