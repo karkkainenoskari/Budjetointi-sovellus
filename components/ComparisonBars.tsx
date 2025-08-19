@@ -54,7 +54,7 @@ income,
       <VictoryAxis
         dependentAxis
         tickValues={ticks}
-        tickFormat={(t) => fmt(t)}
+        tickFormat={(t) => `${fmt(t)} €`}
         style={{
           grid: { stroke: Colors.sageHint },
           axis: { stroke: 'transparent' },
