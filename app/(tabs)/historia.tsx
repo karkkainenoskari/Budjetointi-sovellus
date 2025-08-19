@@ -435,6 +435,7 @@ export default function HistoriaScreen() {
                   income={chartData.totals.income}
                   expense={chartData.totals.expense}
                     width={contentWidth}
+                     height={260}
                 />
 
                 <Text style={[styles.header, { marginTop: 20 }]}>Menot</Text>
@@ -445,6 +446,7 @@ export default function HistoriaScreen() {
                     color: p.color,
                   }))}
                     width={contentWidth}
+                     height={280}
                 />
                 {monthData[selectedMonth]?.categories.filter(
                   (c) => c.parentId === null && c.type === 'main'
