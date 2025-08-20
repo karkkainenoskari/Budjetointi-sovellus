@@ -9,9 +9,9 @@ import {
   ScrollView,
   Dimensions,
 } from 'react-native';
+import { Picker } from '@react-native-picker/picker';
 import DonutChart from '../../components/DonutChart';
 import ComparisonBars from '../../components/ComparisonBars';
-import { Picker } from '@react-native-picker/picker';
 import { Ionicons } from '@expo/vector-icons';
 import { useFocusEffect } from '@react-navigation/native';
 import { auth, firestore } from '../../src/api/firebaseConfig';
@@ -392,6 +392,12 @@ export default function HistoriaScreen() {
 
   const cardWidth = Dimensions.get('window').width - 25;
   const contentWidth = cardWidth - 20;
+   const mainCategories =
+    selectedMonth
+      ? monthData[selectedMonth]?.categories.filter(
+          (c) => c.parentId === null && c.type === 'main'
+        ) || []
+      : [];
 
 
   return (
@@ -439,7 +445,21 @@ export default function HistoriaScreen() {
                 />
 
                 <Text style={[styles.header, { marginTop: 20 }]}>Menot</Text>
-                 <DonutChart
+                  {mainCategories.length > 0 && (
+                <View style={styles.categoryPickerContainer}>
+                    <Picker
+                      selectedValue={selectedCategory}
+                      onValueChange={(v) => setSelectedCategory(v)}
+                      style={styles.categoryPicker}
+                      itemStyle={styles.categoryPickerItem}
+                    >
+                      {mainCategories.map((c) => (
+                        <Picker.Item label={c.title} value={c.id} key={c.id} />
+                      ))}
+                    </Picker>
+                  </View>
+                )}
+                <DonutChart
                   data={chartData.pieData.map((p) => ({
                     label: p.name,
                     value: p.amount,
@@ -448,21 +468,6 @@ export default function HistoriaScreen() {
                     width={contentWidth}
                      height={280}
                 />
-                {monthData[selectedMonth]?.categories.filter(
-                  (c) => c.parentId === null && c.type === 'main'
-                ).length > 0 && (
-                  <Picker
-                    selectedValue={selectedCategory}
-                    onValueChange={(v) => setSelectedCategory(v)}
-                    style={styles.picker}
-                  >
-                       {monthData[selectedMonth]?.categories
-                      .filter((c) => c.parentId === null && c.type === 'main')
-                      .map((c) => (
-                        <Picker.Item key={c.id} label={c.title} value={c.id} />
-                      ))}
-                  </Picker>
-                )}
            </View>
             </ScrollView>
           )
@@ -528,11 +533,23 @@ const styles = StyleSheet.create({
     shadowRadius: 4,
     elevation: 2,
   },
-   picker: {
-    color: Colors.textPrimary,
-    marginBottom: 8,
+     categoryPickerContainer: {
+    marginBottom: 12,
+    borderWidth: 1,
+    borderColor: Colors.border,
+      borderRadius: 12,
+    backgroundColor: Colors.cardBackground,
+   overflow: 'hidden',
   },
-  
+ categoryPicker: {
+    height: 150,
+    width: '100%',
+    color: Colors.textPrimary,
+  },
+categoryPickerItem: {
+    color: Colors.textPrimary,
+    fontSize: 20,
+  },
   header: {
     fontSize: 20,
     fontWeight: '600',
