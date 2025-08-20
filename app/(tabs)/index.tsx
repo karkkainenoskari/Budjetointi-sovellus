@@ -1473,14 +1473,14 @@ export default function BudjettiScreen() {
             {selectedTab === 'plan' && showAddIncome && (
               <View style={styles.addIncomeRow}>
                 <TextInput
-                  style={styles.inlineInput}
+                    style={styles.incomeCategoryInput}
                   placeholder="Tulo"
                   placeholderTextColor="#888"
                   value={newIncomeTitle}
                   onChangeText={setNewIncomeTitle}
                 />
                 <TextInput
-                  style={styles.inlineInput}
+                  style={styles.incomeAmountInput}
                   placeholder="Summa"
                   placeholderTextColor="#888"
                   keyboardType="numeric"
@@ -1504,14 +1504,14 @@ export default function BudjettiScreen() {
                 editingIncomeId === item.id ? (
                   <View style={styles.categoryCard}>
                     <TextInput
-                      style={styles.inlineInput}
+                      style={styles.incomeCategoryInput}
                       value={editIncomeTitle}
                       onChangeText={setEditIncomeTitle}
                       placeholder="Nimi"
                       placeholderTextColor="#888"
                     />
                     <TextInput
-                      style={styles.inlineInput}
+                      style={styles.incomeAmountInput}
                       value={editIncomeAmount}
                       onChangeText={setEditIncomeAmount}
                       placeholder="Summa"
@@ -1877,9 +1877,9 @@ const styles = StyleSheet.create({
     marginBottom: 8,
     paddingHorizontal: 16,
   },
-  inlineInput: {
+  incomeCategoryInput: {
     flex: 1,
-    height: 36,
+     height: 40,
     borderWidth: 1,
     borderColor: Colors.border,
     borderRadius: 6,
@@ -1887,6 +1887,18 @@ const styles = StyleSheet.create({
     marginRight: 8,
     backgroundColor: Colors.cardBackground,
     color: Colors.textPrimary,
+  },
+  incomeAmountInput: {
+    flex: 1.2,
+    height: 40,
+    borderWidth: 1,
+    borderColor: Colors.border,
+    borderRadius: 6,
+    paddingHorizontal: 8,
+    marginRight: 8,
+    backgroundColor: Colors.cardBackground,
+    color: Colors.textPrimary,
+    textAlign: 'right',
   },
   expenseCategoryInput: {
     flex: 1,
@@ -1941,6 +1953,7 @@ const styles = StyleSheet.create({
     marginRight: 8,
   },
   incomeAmountBox: {
+     flex: 1.2,
     height: 40,
     justifyContent: 'center',
     alignItems: 'flex-end',
@@ -1991,6 +2004,7 @@ const styles = StyleSheet.create({
     color: Colors.textPrimary,
   },
   categoryRight: {
+     flex: 1.2,
     flexDirection: 'row',
     alignItems: 'center',
   },
