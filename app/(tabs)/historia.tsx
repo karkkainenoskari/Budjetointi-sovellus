@@ -9,7 +9,6 @@ import {
   ScrollView,
   Dimensions,
 } from 'react-native';
-import { Picker } from '@react-native-picker/picker';
 import DonutChart from '../../components/DonutChart';
 import ComparisonBars from '../../components/ComparisonBars';
 import { Ionicons } from '@expo/vector-icons';
@@ -55,7 +54,13 @@ export default function HistoriaScreen() {
       }
     >
   >({});
-  const [chartData, setChartData] = useState<{ pieData: any[]; totals: { income: number; expense: number } } | null>(null);
+  const [chartData, setChartData] = useState<
+    | {
+        pieData: { id?: string; label: string; value: number; color: string }[];
+        totals: { income: number; expense: number };
+      }
+    | null
+  >(null);
   const [currentPeriodId, setCurrentPeriodId] = useState<string | null>(null);
   const [monthHasPeriod, setMonthHasPeriod] = useState<Record<string, boolean>>({});
  const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
@@ -153,10 +158,7 @@ export default function HistoriaScreen() {
           },
         }));
         if (selectedMonth === m) {
-          const mainCats = cats.filter((c) => c.parentId === null && c.type === 'main');
-        setSelectedCategory((prev) =>
-            prev && mainCats.some((c) => c.id === prev) ? prev : mainCats[0]?.id || null
-          );
+          setSelectedCategory(null);
         }
       } catch (e) {
         console.error('loadMonthData error:', e);
@@ -194,138 +196,145 @@ export default function HistoriaScreen() {
     }, [selectedMonth, loadMonthData])
   );
 
-   useEffect(() => {
-    if (!userId || !selectedMonth) return;
-    const [year, month] = selectedMonth.split('-').map((x) => parseInt(x, 10));
-    const start = new Date(year, month - 1, 1);
-    const end = new Date(year, month, 0);
+  useFocusEffect(
+    React.useCallback(() => {
+      if (!userId || !selectedMonth) return;
+      const [year, month] = selectedMonth.split('-').map((x) => parseInt(x, 10));
+      const start = new Date(year, month - 1, 1);
+      const end = new Date(year, month, 0);
 
-     if (selectedMonth === currentPeriodId) {
-      const expRef = collection(firestore, 'budjetit', userId, 'expenses');
-      const expQuery = query(
-        expRef,
-        where('date', '>=', start),
-        where('date', '<=', end)
-      );
-      const unsubExpenses = onSnapshot(expQuery, (snapshot) => {
-        const sums: Record<string, number> = {};
-        snapshot.forEach((doc) => {
-          const data = doc.data() as any;
-          sums[data.categoryId] = (sums[data.categoryId] || 0) + data.amount;
+      if (selectedMonth === currentPeriodId) {
+        const expRef = collection(firestore, 'budjetit', userId, 'expenses');
+        const expQuery = query(
+          expRef,
+          where('date', '>=', start),
+          where('date', '<=', end)
+        );
+        const unsubExpenses = onSnapshot(expQuery, (snapshot) => {
+          const sums: Record<string, number> = {};
+          snapshot.forEach((doc) => {
+            const data = doc.data() as any;
+            sums[data.categoryId] = (sums[data.categoryId] || 0) + data.amount;
+          });
+          setMonthData((prev) => ({
+            ...prev,
+            [selectedMonth]: {
+              ...(prev[selectedMonth] || {
+                loading: false,
+                categories: [],
+                incomes: [],
+                expenses: {},
+                period: null,
+              }),
+              expenses: sums,
+            },
+          }));
         });
-        setMonthData((prev) => ({
-          ...prev,
-          [selectedMonth]: {
-            ...(prev[selectedMonth] || {
-              loading: false,
-              categories: [],
-              incomes: [],
-              expenses: {},
-              period: null,
-            }),
-            expenses: sums,
-          },
-        }));
-      });
+      
       
 
-    const incRef = collection(firestore, 'budjetit', userId, 'incomes');
-      const incQuery = query(
-        incRef,
-        where('createdAt', '>=', start),
-        where('createdAt', '<=', end)
-      );
-      const unsubIncomes = onSnapshot(incQuery, (snapshot) => {
-        const incomes: Income[] = snapshot.docs.map((doc) => ({
-          id: doc.id,
-          ...(doc.data() as any),
-        }));
-        setMonthData((prev) => ({
-          ...prev,
-          [selectedMonth]: {
-            ...(prev[selectedMonth] || {
-              loading: false,
-              categories: [],
-              expenses: {},
-              incomes: [],
-              period: null,
-            }),
-            incomes,
-          },
-        }));
-      });
-
-   return () => {
-        unsubExpenses();
-        unsubIncomes();
-      };
-    } else {
-      const expRef = collection(firestore, 'budjetit', userId, 'expenses');
-      const expQuery = query(
-        expRef,
-        where('date', '>=', start),
-        where('date', '<=', end)
-      );
-      getDocs(expQuery).then((snapshot) => {
-        const sums: Record<string, number> = {};
-        snapshot.forEach((doc) => {
-          const data = doc.data() as any;
-          sums[data.categoryId] = (sums[data.categoryId] || 0) + data.amount;
+     const incRef = collection(firestore, 'budjetit', userId, 'incomes');
+        const incQuery = query(
+          incRef,
+          where('createdAt', '>=', start),
+          where('createdAt', '<=', end)
+        );
+        const unsubIncomes = onSnapshot(incQuery, (snapshot) => {
+          const incomes: Income[] = snapshot.docs.map((doc) => ({
+            id: doc.id,
+            ...(doc.data() as any),
+          }));
+          setMonthData((prev) => ({
+            ...prev,
+            [selectedMonth]: {
+              ...(prev[selectedMonth] || {
+                loading: false,
+                categories: [],
+                expenses: {},
+                incomes: [],
+                period: null,
+              }),
+              incomes,
+            },
+          }));
         });
-        setMonthData((prev) => ({
-          ...prev,
-          [selectedMonth]: {
-            ...(prev[selectedMonth] || {
-              loading: false,
-              categories: [],
-              incomes: [],
-              expenses: {},
-              period: null,
-            }),
-            expenses: sums,
-          },
-        }));
-      });
+    return () => {
+          unsubExpenses();
+          unsubIncomes();
+        };
+      } else {
+        let active = true;
+        const expRef = collection(firestore, 'budjetit', userId, 'expenses');
+        const expQuery = query(
+          expRef,
+          where('date', '>=', start),
+          where('date', '<=', end)
+        );
+        getDocs(expQuery).then((snapshot) => {
+          if (!active) return;
+          const sums: Record<string, number> = {};
+          snapshot.forEach((doc) => {
+            const data = doc.data() as any;
+            sums[data.categoryId] = (sums[data.categoryId] || 0) + data.amount;
+          });
+          setMonthData((prev) => ({
+            ...prev,
+            [selectedMonth]: {
+              ...(prev[selectedMonth] || {
+                loading: false,
+                categories: [],
+                incomes: [],
+                expenses: {},
+                period: null,
+              }),
+              expenses: sums,
+            },
+          }));
+        });
+     
 
-      const incRef = collection(
-        firestore,
-        'budjetit',
-        userId,
-        'history',
-        selectedMonth,
-        'incomes'
-      );
-      getDocs(incRef).then((snapshot) => {
-        const incomes: Income[] = snapshot.docs.map((doc) => ({
-          id: doc.id,
-          ...(doc.data() as any),
-        }));
-        setMonthData((prev) => ({
-          ...prev,
-          [selectedMonth]: {
-            ...(prev[selectedMonth] || {
-              loading: false,
-              categories: [],
-              expenses: {},
-              incomes: [],
-              period: null,
-            }),
-            incomes,
-          },
-        }));
-      });
-    }
-  }, [userId, selectedMonth, currentPeriodId]);
+     const incRef = collection(
+          firestore,
+          'budjetit',
+          userId,
+          'history',
+          selectedMonth,
+          'incomes'
+        );
+        getDocs(incRef).then((snapshot) => {
+          if (!active) return;
+          const incomes: Income[] = snapshot.docs.map((doc) => ({
+            id: doc.id,
+            ...(doc.data() as any),
+          }));
+          setMonthData((prev) => ({
+            ...prev,
+            [selectedMonth]: {
+              ...(prev[selectedMonth] || {
+                loading: false,
+                categories: [],
+                expenses: {},
+                incomes: [],
+                period: null,
+              }),
+              incomes,
+            },
+          }));
+        });
+
+        return () => {
+          active = false;
+        };
+      }
+    }, [userId, selectedMonth, currentPeriodId])
+  );
   
   useEffect(() => {
     if (!selectedMonth || !monthData[selectedMonth]) return;
     const data = monthData[selectedMonth];
     if (data.loading) return;
     const totalIncome = data.incomes.reduce((sum, i) => sum + i.amount, 0);
-    const totalExpense = Object.values(data.expenses).reduce(
-      (sum, v) => sum + v,
-      0
-    );
+       let totalExpense = 0;
     const colors = [
       Colors.evergreen,
       Colors.moss,
@@ -340,21 +349,40 @@ export default function HistoriaScreen() {
       const subs = data.categories.filter(
          (c) =>
           c.parentId === selectedCategory &&
-          c.type === 'sub' &&
           !c.title.toLowerCase().includes('yhteensä')
       );
       pie = subs.map((s) => {
         const amount = data.expenses[s.id] || 0;
+          totalExpense += amount;
         const color =
           amount > 0
             ? colors[colorIndex++ % colors.length]
             : Colors.sageHint;
         return {
-          name: s.title,
-          amount,
+           id: s.id,
+          label: s.title,
+          value: amount,
           color,
-          legendFontColor: Colors.textPrimary,
-          legendFontSize: 12,
+        };
+      });
+    } else {
+      const mains = data.categories.filter(
+        (c) => c.parentId === null && c.type === 'main'
+      );
+      pie = mains.map((m) => {
+        const amount = data.categories
+          .filter((c) => c.parentId === m.id)
+          .reduce((sum, sub) => sum + (data.expenses[sub.id] || 0), 0);
+           totalExpense += amount;
+        const color =
+          amount > 0
+            ? colors[colorIndex++ % colors.length]
+            : Colors.sageHint;
+        return {
+          id: m.id,
+          label: m.title,
+          value: amount,
+          color,
         };
       });
          
@@ -374,6 +402,13 @@ export default function HistoriaScreen() {
     }
   };
 
+  const handleSlicePress = (item: { id?: string }) => {
+    if (!selectedCategory && item.id) {
+      setSelectedCategory(item.id);
+    }
+  };
+
+
   if (!userId) {
     return (
       <View style={styles.loaderContainer}>
@@ -392,13 +427,6 @@ export default function HistoriaScreen() {
 
   const cardWidth = Dimensions.get('window').width - 25;
   const contentWidth = cardWidth - 20;
-   const mainCategories =
-    selectedMonth
-      ? monthData[selectedMonth]?.categories.filter(
-          (c) => c.parentId === null && c.type === 'main'
-        ) || []
-      : [];
-
 
   return (
     <SafeAreaView style={styles.safeContainer}>
@@ -445,28 +473,22 @@ export default function HistoriaScreen() {
                 />
 
                 <Text style={[styles.header, { marginTop: 20 }]}>Menot</Text>
-                  {mainCategories.length > 0 && (
-                <View style={styles.categoryPickerContainer}>
-                    <Picker
-                      selectedValue={selectedCategory}
-                      onValueChange={(v) => setSelectedCategory(v)}
-                      style={styles.categoryPicker}
-                      itemStyle={styles.categoryPickerItem}
-                    >
-                      {mainCategories.map((c) => (
-                        <Picker.Item label={c.title} value={c.id} key={c.id} />
-                      ))}
-                    </Picker>
-                  </View>
-                )}
+                 
                 <DonutChart
-                  data={chartData.pieData.map((p) => ({
-                    label: p.name,
-                    value: p.amount,
-                    color: p.color,
-                  }))}
-                    width={contentWidth}
-                     height={280}
+                   data={chartData.pieData}
+                  width={contentWidth}
+                  height={280}
+                   centerLabel={
+                    selectedCategory
+                      ? monthData[selectedMonth]?.categories.find(
+                          (c) => c.id === selectedCategory
+                        )?.title || 'Yhteensä'
+                      : 'Yhteensä'
+                  }
+                  onSlicePress={handleSlicePress}
+                   onCenterPress={
+                    selectedCategory ? () => setSelectedCategory(null) : undefined
+                  }
                 />
            </View>
             </ScrollView>
@@ -532,23 +554,6 @@ const styles = StyleSheet.create({
     shadowOffset: { width: 0, height: 2 },
     shadowRadius: 4,
     elevation: 2,
-  },
-     categoryPickerContainer: {
-    marginBottom: 12,
-    borderWidth: 1,
-    borderColor: Colors.border,
-      borderRadius: 12,
-    backgroundColor: Colors.cardBackground,
-   overflow: 'hidden',
-  },
- categoryPicker: {
-    height: 150,
-    width: '100%',
-    color: Colors.textPrimary,
-  },
-categoryPickerItem: {
-    color: Colors.textPrimary,
-    fontSize: 20,
   },
   header: {
     fontSize: 20,
