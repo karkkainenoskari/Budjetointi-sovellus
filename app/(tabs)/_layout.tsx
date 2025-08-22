@@ -19,7 +19,6 @@ export default function TabsLayout() {
           flex: 1,
           alignItems: 'center',
         },
-        // Hide the "tilastot" tab by returning null for its button
         tabBarButton: route.name === 'tilastot'
           ? () => null
           : (props) => <AnimatedTabButton {...props} />,

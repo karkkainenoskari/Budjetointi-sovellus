@@ -1,5 +1,3 @@
-// src/services/categories.ts
-
 import {
   collection,
   addDoc,
@@ -15,23 +13,17 @@ import {
 } from 'firebase/firestore';
 import { firestore } from '../api/firebaseConfig';
 
-// Tyyppimäärittely, käytettäväksi myös UI:ssa
 export interface Category {
   id: string;
   title: string;
   allocated: number;
   parentId: string | null;
   type: 'main' | 'sub';
-  createdAt: any; // Timestamp, mutta UI voi käsitellä sitä kuten haluaa
+  createdAt: any; 
 }
 
-/**
- * Hakee kaikki kategoriat tietyltä käyttäjältä.
- * Palautuu taulukko Category‐olioita.
- */
 export async function getCategories(userId: string): Promise<Category[]> {
   const categoriesRef = collection(firestore, 'budjetit', userId, 'categories');
-  // Järjestä luomisajan mukaan (vanhimmasta uusimpaan) tai haluamallasi järjestyksellä
   const q = query(categoriesRef, orderBy('createdAt', 'asc'));
   const snapshot = await getDocs(q);
   const categories: Category[] = [];
@@ -48,10 +40,6 @@ export async function getCategories(userId: string): Promise<Category[]> {
   return categories;
 }
 
-/**
- * Lisää uuden pää- tai alakategorian.
- * parentId = null jos pää, muuten pääkategorian id.
- */
 export async function addCategory(
   userId: string,
   {
@@ -72,10 +60,6 @@ export async function addCategory(
   return docRef.id;
 }
 
-/**
- * Päivittää olemassa olevaa kategoriaa (title ja/tai allocated).
- * parentId ja type eivät yleensä muutu muokkauksessa, mutta voit lisätä nekin parametrina, jos haluat.
- */
 export async function updateCategory(
   userId: string,
   categoryId: string,
@@ -85,14 +69,9 @@ export async function updateCategory(
   await updateDoc(categoryDocRef, {
     title,
     allocated,
-    // createdAt ei yleensä päivitetä, joten sitä ei kosketa
   });
 }
 
-/**
- * Poistaa kategorian (ja kaikki sen alikategoriat, jos parentId‐rakennetta ei muuten käsitellä).
- * HUOM: jos haluat varmistaa, että alakategoriat usein poistuvat oikein, kutsu ensin getSubcategories ja poista ne ennen tätä.
- */
 export async function deleteCategory(
   userId: string,
   categoryId: string
@@ -100,7 +79,6 @@ export async function deleteCategory(
   const categoryDocRef = doc(firestore, 'budjetit', userId, 'categories', categoryId);
   await deleteDoc(categoryDocRef);
   
-  // (Optionaali: poista myös alakategoriat, jos olet jo implementoinut parentId‐loogikan)
   const subCatsQuery = query(
     collection(firestore, 'budjetit', userId, 'categories'),
     where('parentId', '==', categoryId)
@@ -112,9 +90,6 @@ export async function deleteCategory(
     );
   }
 }
-// ──────────────────────────────────────────────────────────────────────────────
-// Default categories
-// ──────────────────────────────────────────────────────────────────────────────
 
 export interface DefaultCategory {
   title: string;
@@ -179,10 +154,6 @@ export const DEFAULT_CATEGORIES: DefaultCategory[] = [
   },
 ];
 
-/**
- * Luo käyttäjälle oletuskategoriat. Kutsutaan esim. rekisteröitymisen
- * jälkeen, jotta budjetointi voi alkaa heti valmiilla pohjalla.
- */
 export async function seedDefaultCategories(userId: string): Promise<void> {
   for (const cat of DEFAULT_CATEGORIES) {
     const mainId = await addCategory(userId, {

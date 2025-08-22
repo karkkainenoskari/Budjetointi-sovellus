@@ -1,5 +1,3 @@
-// src/services/history.ts
-
 import {
   collection,
   getDocs,
@@ -11,10 +9,6 @@ import {
 import { firestore } from '../api/firebaseConfig';
 import { Category } from './categories';
 
-/**
- * Kopioi edellisen kuukauden kategoriat history-kokoelmaan,
- * ja aseta ne myös currentBudget/categories‐kokoelmaan.
- */
 export async function copyPreviousMonthPlan(userId: string): Promise<void> {
   if (!userId) return;
 
@@ -83,9 +77,6 @@ const currStart = currSnap.data().startDate.toDate();
   }
 }
 
-/**
- * Palauta tallennettujen budjettikuukausien id:t (YYYY-MM).
- */
 export async function getHistoryMonths(userId: string): Promise<string[]> {
   const historyRef = collection(firestore, 'budjetit', userId, 'history');
   const snapshot = await getDocs(historyRef);
@@ -94,9 +85,6 @@ export async function getHistoryMonths(userId: string): Promise<string[]> {
   return months;
 }
 
-/**
- * Hae tietyn kuukauden kategoriat history-kokoelmasta.
- */
 export async function getHistoryCategories(
   userId: string,
   periodId: string

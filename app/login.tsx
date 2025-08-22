@@ -1,5 +1,3 @@
-// app/login.tsx
-
 import React, { useState } from 'react';
 import {
   View,
@@ -21,12 +19,10 @@ import Colors from '../constants/Colors';
 export default function LoginScreen() {
   const router = useRouter();
 
-  // ─── State‐muuttujat ─────────────────────────────────────────────────────────────
   const [email, setEmail] = useState<string>('');
   const [password, setPassword] = useState<string>('');
   const [loading, setLoading] = useState<boolean>(false);
 
-  // ─── Handler: Kirjaudu sisään ‒painike ───────────────────────────────────────────
   const handleLogin = async () => {
     if (!email.trim() || !password) {
       Alert.alert('Virhe', 'Täytä sähköpostiosoite ja salasana.');
@@ -36,11 +32,9 @@ export default function LoginScreen() {
     setLoading(true);
     try {
       await signInWithEmailAndPassword(auth, email.trim(), password);
-      // Onnistunut kirjautuminen ohjaa sovelluksen pääsivulle (esim. "/")
       router.replace('/');
     } catch (error: any) {
       console.error('signInWithEmailAndPassword-virhe:', error);
-      // Tarkistetaan virhekoodi ja näytetään käyttäjälle sopiva ilmoitus
       let message = 'Väärä salasana, yritä uudelleen.';
 
       switch (error.code) {
@@ -57,8 +51,6 @@ export default function LoginScreen() {
           message = 'Väärä salasana, yritä uudelleen.';
           break;
         default:
-          // Jos haluat, voit näyttää suoraan Firebase‐virheilmoituksen:
-          // message = error.message;
           break;
       }
 

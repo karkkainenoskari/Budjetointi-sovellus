@@ -92,7 +92,6 @@ export default function DonutChart({
         </View>
       </View>
 
-      {/* legenda */}
       <View style={styles.legend}>
         {data.map((d) => (
           <TouchableOpacity

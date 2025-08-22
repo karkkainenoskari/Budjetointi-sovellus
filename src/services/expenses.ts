@@ -1,5 +1,3 @@
-// src/services/expenses.ts
-
 import {
   collection,
   addDoc,
@@ -14,17 +12,15 @@ import {
 } from 'firebase/firestore';
 import { firestore } from '../api/firebaseConfig';
 
-// Expense‐tyyppi
+
 export interface Expense {
   id: string;
   categoryId: string;
   amount: number;
-  date: any; // Firestore Timestamp
+  date: any; 
   description: string;
 }
-/**
- * Hakee kaikki kulut käyttäjältä.
- */
+
 export async function getExpenses(userId: string): Promise<Expense[]> {
   const expensesRef = collection(firestore, 'budjetit', userId, 'expenses');
   const snapshot = await getDocs(expensesRef);
@@ -41,9 +37,6 @@ export async function getExpenses(userId: string): Promise<Expense[]> {
   return expenses.sort((a, b) => a.date?.seconds - b.date?.seconds);
 }
 
-/**
- * Lisää uuden kulun.
- */
 export async function addExpense(
   userId: string,
   { categoryId, amount, date, description }: { categoryId: string; amount: number; date: any; description: string }
@@ -59,10 +52,6 @@ export async function addExpense(
    return docRef.id;
 }
 
-/**
- * Hakee kulut tietylle käyttäjälle ajanjaksolla (startDate <= date <= endDate).
- * Palauttaa taulukon Expense‐olioita.
- */
 export async function getExpensesByPeriod(
   userId: string,
   startDate: any,
@@ -89,10 +78,6 @@ export async function getExpensesByPeriod(
   return expenses;
 }
 
-/**
- * Hakee kaikki kulut tietylle kategoriolle ajanjaksolla.
- * Tätä voi tarpeen mukaan käyttää kulut yhteenlaskemiseen kategoriaa kohden.
- */
 export async function getExpensesByCategoryAndPeriod(
   userId: string,
   categoryId: string,

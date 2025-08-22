@@ -1,5 +1,3 @@
-// babel.config.js
-
 module.exports = function(api) {
   api.cache(true);
   return {
@@ -10,11 +8,9 @@ module.exports = function(api) {
         {
           root: ['./'],
           alias: {
-            // '@': './' tarkoittaa, että "@/foo" → "project-root/foo"
+
             '@': './'
-            // Jos haluat tiukemman aliaksen esim. "@components" → "./components",
-            // voit lisätä sen vaikka näin:
-            // '@components': './components'
+          
           },
           extensions: ['.js', '.jsx', '.ts', '.tsx', '.json']
         }

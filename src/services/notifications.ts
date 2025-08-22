@@ -1,4 +1,3 @@
-// src/services/notifications.ts
 import * as Notifications from 'expo-notifications';
 import { getPayday, getNotificationSettings } from './userSettings';
 import type { CalendarTriggerInput } from 'expo-notifications';

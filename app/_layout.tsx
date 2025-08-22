@@ -1,5 +1,3 @@
-// app/_layout.tsx
-
 import React, { useState, useEffect } from 'react';
 import { ActivityIndicator, View, StyleSheet, Alert } from 'react-native';
 import { Slot, useRouter, usePathname } from 'expo-router';
@@ -16,9 +14,6 @@ export default function RootLayout() {
   const pathname = usePathname();
   const [initializing, setInitializing] = useState(true);
 
-  // ───────────────────────────────────────────────────────────────────────────────
-  // Auth‐kuuntelija: ohjaa /login ja /register välillä sen mukaan, onko user sisään
-  // ───────────────────────────────────────────────────────────────────────────────
   useEffect(() => {
     const unsubscribe = auth.onAuthStateChanged((user) => {
       if (initializing) {
@@ -26,7 +21,7 @@ export default function RootLayout() {
       }
 
       if (user) {
-        // Jos kirjautunut, ohjataan pois login/register/forgot-password sivuilta
+  
         if (
           pathname === '/login' ||
           pathname === '/register' ||
@@ -35,7 +30,6 @@ export default function RootLayout() {
           router.replace('/');
         }
       } else {
-        // Jos ei kirjautunut, ohjataan aina login‐sivulle
        if (
           pathname !== '/login' &&
           pathname !== '/register' &&
@@ -48,18 +42,14 @@ export default function RootLayout() {
     return unsubscribe;
   }, [initializing, pathname]);
 
-  // ───────────────────────────────────────────────────────────────────────────────
-  // Ilmoitusoikeus + Expo Push Token + kuuntelija + kuukausimuistutus
-  // ───────────────────────────────────────────────────────────────────────────────
   useEffect(() => {
     const user = auth.currentUser;
     if (!user) return;
 
-    // 1) Pyydetään permission ja haetaan Expo Push Token
     registerForPushNotificationsAsync()
       .then((expoPushToken) => {
         if (expoPushToken) {
-          // Tallennetaan token Firestoreen kohtaan users/{userId}
+
           const userDocRef = doc(firestore, 'users', user.uid);
           setDoc(
             userDocRef,
@@ -72,15 +62,12 @@ export default function RootLayout() {
       })
       .catch((e) => console.error('registerForPushNotificationsAsync-virhe:', e));
 
-    // 2) Kuunnellaan saapuvia ilmoituksia (sovellus auki)
     const subscription = Notifications.addNotificationReceivedListener(
       (notification) => {
         console.log('Ilmoitus vastaanotettu:', notification);
-        // Tässä voit halutessasi käsitellä notification.request.content.data:tä
       }
     );
 
- // 3) Asetetaan käyttäjän palkkapäivämuistutus
     registerPaydayReminder(user.uid);
 
     return () => {
@@ -88,22 +75,16 @@ export default function RootLayout() {
     };
   }, []);
 
-  // ───────────────────────────────────────────────────────────────────────────────
-  // registerForPushNotificationsAsync: pyytää lupaa ja hakee Expo Push Tokenin
-  // ───────────────────────────────────────────────────────────────────────────────
   async function registerForPushNotificationsAsync(): Promise<string | null> {
     try {
-      // 1) Tarkistetaan nykyinen lupatila
       const { status: existingStatus } = await Notifications.getPermissionsAsync();
       let finalStatus = existingStatus;
 
-      // 2) Jos lupaa ei annettu, pyydetään uudelleen
       if (existingStatus !== 'granted') {
         const { status } = await Notifications.requestPermissionsAsync();
         finalStatus = status;
       }
 
-      // 3) Jos lupa edelleen hylätty, ilmoita käyttäjälle ja palauta null
       if (finalStatus !== 'granted') {
         Alert.alert(
           'Ilmoitusoikeus puuttuu',
@@ -112,7 +93,6 @@ export default function RootLayout() {
         return null;
       }
 
-      // 4) Haetaan Expo‐push‐token
       const tokenData = await Notifications.getExpoPushTokenAsync();
       const token = tokenData.data;
       console.log('Expo Push Token:', token);
@@ -123,10 +103,6 @@ export default function RootLayout() {
     }
   }
 
-
-  // ───────────────────────────────────────────────────────────────────────────────
-  // Kun auth‐tilaa odotetaan, näytetään loader
-  // ───────────────────────────────────────────────────────────────────────────────
   if (initializing) {
     return (
       <View style={styles.loaderContainer}>
@@ -134,10 +110,6 @@ export default function RootLayout() {
       </View>
     );
   }
-
-  // ───────────────────────────────────────────────────────────────────────────────
-  // Käyttäjä on autentikoitu, renderöidään sovelluksen sisältö (Slot)
-  // ───────────────────────────────────────────────────────────────────────────────
   const hideHeaderRoutes = ['/login', '/register', '/forgot-password'];
   const showHeader = !hideHeaderRoutes.includes(pathname);
 

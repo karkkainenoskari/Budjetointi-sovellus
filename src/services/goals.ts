@@ -1,5 +1,3 @@
-// src/services/goals.ts
-
 import {
   collection,
   addDoc,
@@ -16,9 +14,9 @@ export interface Goal {
   title: string;
   targetAmount: number;
   currentSaved: number;
-  deadline: any;     // Timestamp
+  deadline: any;    
   monthlyAmount: number;
-  createdAt: any;    // Timestamp
+  createdAt: any;    
 }
 
 export async function getGoals(userId: string): Promise<Goal[]> {

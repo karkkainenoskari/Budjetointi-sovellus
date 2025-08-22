@@ -1,5 +1,3 @@
-// app/(tabs)/index.tsx
-
 import React, { useState, useEffect, useRef, useMemo } from 'react';
 import {
   SafeAreaView,
@@ -62,8 +60,6 @@ export default function BudjettiScreen() {
   const user = auth.currentUser;
   const userId = user ? user.uid : null;
 
-  // ─── States ─────────────────────────────────────────────────────────
-  // Kategoriat ja lataustila
   const [categories, setCategories] = useState<Category[]>([]);
   const [loadingCategories, setLoadingCategories] = useState<boolean>(true);
 
@@ -85,21 +81,16 @@ export default function BudjettiScreen() {
   const [editCategoryTitle, setEditCategoryTitle] = useState<string>('');
   const [editCategoryAmount, setEditCategoryAmount] = useState<string>('');
 
-
-  // Kulut summattuna kategoriakohtaisesti
   const [expensesByCategory, setExpensesByCategory] = useState<Record<string, number>>({});
   const [totalExpenses, setTotalExpenses] = useState<number>(0);
   const [loadingExpenses, setLoadingExpenses] = useState<boolean>(false);
 
-  // Budjettijakso ja lataustila
   const [budgetPeriod, setBudgetPeriod] = useState<{ startDate: Date; endDate: Date; totalAmount: number } | null>(null);
   const [loadingPeriod, setLoadingPeriod] = useState<boolean>(true);
   const currentPeriodFetch = useRef<{ current: boolean } | null>(null);
 
-  // Valittu välilehti: 'plan' | 'spent' | 'left'
   const [selectedTab, setSelectedTab] = useState<'plan' | 'spent' | 'left'>('plan');
 
-  // Uuden budjettijakson modalin tilat
   const [showNewPeriodModal, setShowNewPeriodModal] = useState<boolean>(false);
   const [newPeriodStart, setNewPeriodStart] = useState<Date>(new Date());
   const [newPeriodEnd, setNewPeriodEnd] = useState<Date>(new Date());
@@ -268,7 +259,7 @@ export default function BudjettiScreen() {
     const year = periodPickerDate.getFullYear();
     const month = periodPickerDate.getMonth();
     const daysInMonth = new Date(year, month + 1, 0).getDate();
-    const firstWeekDay = (new Date(year, month, 1).getDay() + 6) % 7; // Monday start
+    const firstWeekDay = (new Date(year, month, 1).getDay() + 6) % 7;
 
     const cells = [];
     for (let i = 0; i < firstWeekDay; i++) {
@@ -380,7 +371,6 @@ export default function BudjettiScreen() {
     }
   };
 
-  // Kokonaissummat
   const totalIncome = incomes.reduce((sum, inc) => sum + inc.amount, 0);
 
   const totalAllocated = categories
@@ -398,10 +388,8 @@ export default function BudjettiScreen() {
 
   const leftPercent = totalIncome > 0 ? budgetLeftOverall / totalIncome : 0;
 
-  // progress bar removed for simplicity
-
   const readOnly = viewPeriodId !== currentPeriodId;
-  // ─── Fetch current budget period ────────────────────────────────────
+
   useEffect(() => {
     if (!userId) return;
 
@@ -434,7 +422,6 @@ export default function BudjettiScreen() {
     }, [userId])
   );
 
-  // ─── Fetch categories whenever userId or budgetPeriod changes ────────
   useEffect(() => {
     if (!userId || !budgetPeriod || !viewPeriodId) return;
 
@@ -464,7 +451,6 @@ export default function BudjettiScreen() {
     };
   }, [userId, budgetPeriod, viewPeriodId]);
 
-  // ─── Fetch expenses and sum by category when budgetPeriod changes ────
   useEffect(() => {
     loadExpenses();
   }, [userId, budgetPeriod]);
@@ -475,7 +461,6 @@ export default function BudjettiScreen() {
     }, [userId, budgetPeriod])
   );
 
-  // ─── Fetch incomes ─────────────────────────────────────────────────
   useEffect(() => {
     if (!userId) return;
     loadIncomes();
@@ -487,8 +472,6 @@ export default function BudjettiScreen() {
     }, [userId])
   );
 
-
-  // ─── Add main category ──────────────────────────────────────────────
   const handleAddMainCategory = () => {
     if (!userId) return;
     Alert.prompt(
@@ -655,8 +638,6 @@ export default function BudjettiScreen() {
   };
 
 
-
-
   const handleEditCategory = (
     categoryId: string,
     oldTitle: string,
@@ -740,7 +721,6 @@ export default function BudjettiScreen() {
     );
   };
 
-  // ─── Add expense to category ────────────────────────────────────────
   const handleAddExpenseToCategory = (categoryId: string) => {
     if (!userId) return;
     Alert.prompt(
@@ -778,10 +758,6 @@ export default function BudjettiScreen() {
     );
   };
 
-  // ─── Edit budget period ─────────────────────────────────────────────
-
-
-  // ─── Start new budget period ───────────────────────────────────────
   const handleOpenNewPeriod = () => {
     if (budgetPeriod) {
       setNewPeriodStart(budgetPeriod.startDate);
@@ -880,17 +856,13 @@ export default function BudjettiScreen() {
     }
   };
 
-
-  // ─── Render category item (shows main categories and option to add sub) ─
   const renderCategoryItem = ({ item }: { item: Category }) => {
     if (item.parentId !== null) return null;
 
-    // Laske pääkategorian varatut ja käytetyt summat alakategoriat huomioiden
     let totalAllocatedForMain = item.allocated;
     let totalSpentForMain = 0;
     categories.forEach((cat) => {
       if (cat.parentId === item.id) {
-        // Älä lisää "yhteensä"-riviä varattuihin summiin
         if (!cat.title.toLowerCase().includes('yhteensä')) {
           totalAllocatedForMain += cat.allocated;
         }
@@ -1126,13 +1098,10 @@ export default function BudjettiScreen() {
           })}
 
         </View>
-
-        {/* Kokonaissumma näytetään vain alakategorioiden "Yhteensä"-rivillä */}
       </View>
     );
   };
 
-  // ─── Render loading if needed ────────────────────────────────────────
   if (!userId) {
     return (
       <View style={styles.loaderContainer}>
@@ -1148,11 +1117,8 @@ export default function BudjettiScreen() {
     );
   }
 
-  // ─── Main UI ─────────────────────────────────────────────────────────
   return (
     <SafeAreaView style={styles.safeContainer}>
-
-      {/* Jakson valinta */}
       <Modal
         transparent
         visible={showPeriodModal}
@@ -1222,8 +1188,6 @@ export default function BudjettiScreen() {
         </View>
       </Modal>
 
-
-      {/* Uuden budjettijakson modal */}
       <Modal
         transparent
         visible={showNewPeriodModal}
@@ -1386,7 +1350,6 @@ export default function BudjettiScreen() {
             </TouchableOpacity>
 
           </View>
-          {/* ─── Tilannevälilehdet ────────────────────────────────────────── */}
           <View style={styles.tabsContainer}>
             <TouchableOpacity
               style={[styles.tabButton, selectedTab === 'plan' && styles.tabButtonSelected]}
@@ -1407,8 +1370,6 @@ export default function BudjettiScreen() {
               <Text style={[styles.tabText, selectedTab === 'left' && styles.tabTextSelected]}>Jäljellä</Text>
             </TouchableOpacity>
           </View>
-
-          {/* Kokonaissummat */}
           <View style={styles.unallocatedContainer}>
             <View style={styles.budgetSummaryContainer}>
               {selectedTab === 'plan' && (
@@ -1449,8 +1410,6 @@ export default function BudjettiScreen() {
           </View>
 
           <ScrollView contentContainerStyle={{ paddingBottom: 24 }}>
-
-            {/* ─── Tulot ─────────────────────────────────────────────────── */}
             <View style={styles.incomeHeader}>
               <Text style={styles.incomeTitle}>Tulot</Text>
               {selectedTab === 'plan' ? (
@@ -1586,8 +1545,6 @@ export default function BudjettiScreen() {
               </Text>
               <Text style={styles.incomeTotalValue}>{formatCurrency(totalIncome)} €</Text>
             </View>
-
-            {/* ─── Menot ───────────────────────────────────────────────────── */}
             <View style={styles.mainCategoryHeader}>
               <Text style={styles.mainCategoryTitle}>Menot</Text>
               {selectedTab === 'plan' ? (
@@ -1604,8 +1561,6 @@ export default function BudjettiScreen() {
                 <View style={styles.categoryHeaderButtons} />
               )}
             </View>
-
-            {/* ─── Kategoriat FlatListillä ─────────────────────────────────── */}
             <FlatList
               data={categories}
               keyExtractor={(item) => item.id}
@@ -1620,7 +1575,7 @@ export default function BudjettiScreen() {
   );
 }
 
-// ─── Styles ───────────────────────────────────────────────────────────
+
 const styles = StyleSheet.create({
   safeContainer: {
     flex: 1,
@@ -1700,8 +1655,6 @@ const styles = StyleSheet.create({
     marginTop: 8,
   },
 
-
-  /* ── Tilannevälilehdet ── */
   tabsContainer: {
     flexDirection: 'row',
     justifyContent: 'space-around',
@@ -1736,20 +1689,17 @@ const styles = StyleSheet.create({
     textDecorationLine: 'none',
   },
 
-
-
-  /* ── Pääkategoriat otsikko ja Lisää painike ── */
   mainCategoryHeader: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
     paddingHorizontal: 16,
-    marginTop: 20, // aiemmin 12
-    marginBottom: 12, // aiemmin 8
+    marginTop: 20,
+    marginBottom: 12, 
   },
   mainCategoryTitle: {
-    fontSize: 24, // aiemmin 20
-    fontWeight: '600', // vahvempi korostus
+    fontSize: 24,
+    fontWeight: '600', 
     color: Colors.textPrimary,
 
   },
@@ -1796,13 +1746,10 @@ const styles = StyleSheet.create({
     fontWeight: '600',
     color: Colors.textPrimary,
   },
-
   categoryHeaderButtons: {
     flexDirection: 'row',
     alignItems: 'center',
   },
-
-  /* ── Kategoriakortin tyylit ── */
    incomeListContent: {
     paddingHorizontal: 16,
     paddingBottom: 4,
@@ -1816,16 +1763,16 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
     alignItems: 'center',
     backgroundColor: Colors.cardBackground,
-    borderRadius: 12, // aiemmin 8
-    padding: 16,      // aiemmin 12
-    marginBottom: 16, // enemmän tilaa
+    borderRadius: 12,
+    padding: 16,      
+    marginBottom: 16, 
     borderWidth: 1,
     borderColor: Colors.border,
     shadowColor: '#000',
     shadowOpacity: 0.05,
     shadowOffset: { width: 0, height: 2 },
     shadowRadius: 6,
-    elevation: 2, // Android
+    elevation: 2, 
   },
 
   categoryLeft: {
@@ -2014,7 +1961,6 @@ const styles = StyleSheet.create({
     fontWeight: '600',
     color: Colors.textPrimary,
   },
-  /* ── Modal tyylit ── */
   modalOverlay: {
     flex: 1,
     backgroundColor: 'rgba(0,0,0,0.3)',

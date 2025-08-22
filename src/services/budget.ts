@@ -1,5 +1,3 @@
-// src/services/budget.ts
-
 import {
   doc,
   setDoc,
@@ -17,16 +15,12 @@ import { getCategories } from './categories';
 import { clearIncomes } from './incomes';
 
 export interface BudgetPeriod {
-  startDate: any; // Timestamp
-  endDate: any;   // Timestamp
+  startDate: any; 
+  endDate: any;   
   totalAmount: number;
   createdAt: any;
 }
 
-/**
- * Aseta tai päivitä käyttäjän nykyinen budjettijakso.
- * Tämä kirjoittaa dokumenttiin: budjetit/{userId}/currentBudget
- */
 export async function setCurrentBudgetPeriod(
   userId: string,
   {
@@ -44,18 +38,14 @@ export async function setCurrentBudgetPeriod(
     createdAt: serverTimestamp(),
   });
 }
-/**
- * Luo uuden budjettijakson ilman aiempien tietojen arkistointia.
- */
+
 export async function createBudgetPeriod(
   userId: string,
   info: { startDate: any; endDate: any; totalAmount: number }
 ): Promise<void> {
   await setCurrentBudgetPeriod(userId, info);
 }
-/**
- * Hae nykyinen budjettijakso (tai palauta null, jos ei ole)
- */
+
 export async function getCurrentBudgetPeriod(
   userId: string
 ): Promise<BudgetPeriod | null> {
@@ -73,18 +63,12 @@ export async function getCurrentBudgetPeriod(
   };
 }
 
-/**
- * Poista nykyisen budjettijakson tiedot kokonaan.
- */
 export async function clearCurrentBudgetPeriod(userId: string): Promise<void> {
   if (!userId) return;
   const budgetDocRef = doc(firestore, 'budjetit', userId, 'currentBudget', 'settings');
   await deleteDoc(budgetDocRef);
 }
 
-/**
- * Tallenna budjettijakson tiedot history-kokoelmaan.
- */
 export async function saveBudgetPeriodToHistory(
   userId: string,
   periodId: string,
@@ -101,9 +85,6 @@ export async function saveBudgetPeriodToHistory(
   await setDoc(historySettingsRef, { ...info, createdAt: serverTimestamp() });
 }
 
-/**
- * Hae budjettijakson tiedot history-kokoelmasta.
- */
 export async function getBudgetPeriodFromHistory(
   userId: string,
   periodId: string
@@ -179,15 +160,11 @@ export async function archiveCurrentIncomes(
     });
   }
 }
-/**
- * Aloita uusi budjettijakso ja kopioi mukaan toistuvat menot
- * sekä edellisen kuukauden kategoriat.
- */
+
 export async function startNewBudgetPeriod(
   userId: string,
   periodInfo: { startDate: any; endDate: any; totalAmount: number }
 ): Promise<void> {
-  // Tallenna mahdollinen aiempi jakso historyyn
   const current = await getCurrentBudgetPeriod(userId);
   if (current) {
     const d = current.startDate.toDate();
@@ -215,16 +192,12 @@ export async function startNewBudgetPeriod(
   }
 }
 
-/**
- * Poista budjettijakso historiasta.
- */
 export async function deleteBudgetPeriod(
   userId: string,
   periodId: string
 ): Promise<void> {
   if (!userId) return;
 
-  // Poista jakson kategoriat, jos niitä on tallennettu
   const catsRef = collection(
     firestore,
     'budjetit',
@@ -238,7 +211,6 @@ export async function deleteBudgetPeriod(
     await deleteDoc(doc(firestore, 'budjetit', userId, 'history', periodId, 'categories', docSnap.id));
   }
 
-  // Poista itse jakso
   const periodRef = doc(firestore, 'budjetit', userId, 'history', periodId);
   await deleteDoc(periodRef);
 }

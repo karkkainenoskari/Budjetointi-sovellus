@@ -1,4 +1,3 @@
-// src/services/recurringExpenses.ts
 import {
   collection,
   addDoc,
@@ -17,7 +16,7 @@ export interface RecurringExpense {
   name: string;
   amount: number;
   categoryId: string;
-  dueDate: any; // Timestamp
+  dueDate: any; 
   recurrence: 'weekly' | 'monthly';
   active: boolean;
   createdAt: any;

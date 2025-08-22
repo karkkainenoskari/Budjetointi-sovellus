@@ -1,8 +1,8 @@
 export interface Vacation {
   id: string;
   title: string;
-  startDate: any; // Timestamp
-  endDate: any; // Timestamp
+  startDate: any; 
+  endDate: any; 
 }
 
 import { collection, addDoc, getDocs, deleteDoc, doc, serverTimestamp } from 'firebase/firestore';

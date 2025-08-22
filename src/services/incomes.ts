@@ -1,4 +1,3 @@
-// src/services/incomes.ts
 import {
   collection,
   addDoc,
@@ -86,10 +85,6 @@ export async function deleteIncome(
   await deleteDoc(ref);
 }
 
-/**
- * Poistaa kaikki tulot käyttäjältä.
- * Käytetään uuden budjettijakson alussa, jotta arvot alkavat nollasta.
- */
 export async function clearIncomes(userId: string): Promise<void> {
   const colRef = collection(firestore, 'budjetit', userId, 'incomes');
   const snap = await getDocs(colRef);

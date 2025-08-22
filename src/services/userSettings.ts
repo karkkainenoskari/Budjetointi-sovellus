@@ -1,4 +1,3 @@
-// src/services/userSettings.ts
 import { doc, setDoc, getDoc } from 'firebase/firestore';
 import { firestore } from '../api/firebaseConfig';
 

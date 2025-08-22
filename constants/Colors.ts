@@ -1,37 +1,28 @@
-// src/constants/Colors.ts
-
 export default {
-  /* Vaaleat taustasävyt */
-  sageHint: '#BFCFBB',   // Soft sage hint – hyvin vaalea vihreä
-  mint: '#BECFBB',       // Mint – hieman tummempi kuin sageHint
 
-  /* Keskitummat sävyt korostuksiin */
-  sage: '#9EA58C',       // Sage – neutraali vihreä
-  moss: '#738A6E',       // Moss – tummempi vihreä
-  evergreen: '#344C3D',  // Evergreen – kaikkein tummin vihreä (esim. tekstiin/ikonin pääväri)
+  sageHint: '#BFCFBB',  
+  mint: '#BECFBB',      
 
-  /* Tekstivärit */
-  textPrimary: '#344C3D',   // Evergreen – päätekstille
-  textSecondary: '#738A6E', // Moss – otsikoille tai valituille teksteille
+  sage: '#9EA58C',       
+  moss: '#738A6E',       
+  evergreen: '#344C3D',  
 
-  /* Taustat ja kortit */
-  background: '#FFFFFF',      // Puhdas valkoinen, päätaustaksi
-  cardBackground: '#F0F4EE',  // Erittäin vaalea vihreään taittava – korttien taustaksi
-  tabInactiveBg: '#EAEBE6',   // Hyvin vaalea, tabien inaktiiviseksi pohjaksi
+  textPrimary: '#344C3D',  
+  textSecondary: '#738A6E', 
 
-  /* Painikkeet ja korostusvärisävyt */
-  buttonPrimary: '#738A6E',    // Moss – pääpainikkeille
-  buttonPrimaryText: '#FFFFFF', // valkoinen teksti nappeihin
-  buttonSecondary: '#9EA58C',   // Sage – toissijaisille painikkeille
+  background: '#FFFFFF',    
+  cardBackground: '#F0F4EE',  
+  tabInactiveBg: '#EAEBE6',   
 
-  /* Ilmaiseva väri negatiivisille arvoille */
+  buttonPrimary: '#738A6E',    
+  buttonPrimaryText: '#FFFFFF', 
+  buttonSecondary: '#9EA58C',   
+
   danger: '#CC3333',
 
-    /* Varoitus ja onnistuminen */
-  warning: '#FFA500', // oranssi progressbarille
-  success: '#4CAF50', // vihreä progressbarille
+  warning: '#FFA500', 
+  success: '#4CAF50', 
 
-  /* Rajaviivat ja varjostukset */
-  border: '#CED4C2',       // Hillitty rajaviiva korttien ympärille
-  iconMuted: '#888888',    // Hillitty ikoniväri
+  border: '#CED4C2',       
+  iconMuted: '#888888',    
 };

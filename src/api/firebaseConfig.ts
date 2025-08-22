@@ -1,4 +1,3 @@
-// src/api/firebaseConfig.ts
 import firebase from 'firebase/compat/app';
 import 'firebase/compat/auth';
 import 'firebase/compat/firestore';
@@ -6,10 +5,6 @@ import { initializeApp } from 'firebase/app';
 import { getAuth } from 'firebase/auth';
 import { getFirestore } from 'firebase/firestore';
 
-// ┌────────────────────────────────────────────────────────────────┐
-// │ 1) KOPIOI TÄHÄN OMAN FIREBASE-PROJEKTISI KONFIGURAATIO        │
-// │    (Projektin asetukset → General → Your apps → Web app SDK). │
-// └────────────────────────────────────────────────────────────────┘
 const firebaseConfig = {
   apiKey: "AIzaSyC45hnhNkZF8ASi2ZGtzN7laJwX-oQdf0k",
   authDomain: "budjetointiaplikaatio.firebaseapp.com",

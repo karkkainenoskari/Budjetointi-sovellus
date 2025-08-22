@@ -1,5 +1,3 @@
-// app/(tabs)/tavoitteet.tsx
-
 import React, { useState, useEffect } from 'react';
 import {
   View,
@@ -59,7 +57,6 @@ export default function TavoitteetScreen() {
     return Colors.success;
   };
 
-  // Hae tavoitteet Firestoresta
   useEffect(() => {
     if (!userId) return;
     setLoadingGoals(true);

@@ -43,7 +43,6 @@ interface Transaction {
   type: 'expense' | 'income';
   date: Date;
   category: string;
-   /** Optional parent category for expenses */
   mainCategory?: string;
   categoryId: string;
   description: string;
@@ -159,7 +158,6 @@ const [showMainCategoryDropdown, setShowMainCategoryDropdown] = useState(false);
         });
       });
       txs.sort((a, b) => b.date.getTime() - a.date.getTime());
-        // Merge with locally stored transactions so newly added ones are not lost
       let stored: Transaction[] = [];
        if (storageKey) {
          const raw = await AsyncStorage.getItem(storageKey);
