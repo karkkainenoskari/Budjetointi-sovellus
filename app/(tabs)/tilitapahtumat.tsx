@@ -62,6 +62,7 @@ const [loading, setLoading] = useState(true);
   const [description, setDescription] = useState('');
   const [selectedMainCategory, setSelectedMainCategory] = useState('');
   const [selectedCategory, setSelectedCategory] = useState('');
+   const [periodStartDate, setPeriodStartDate] = useState(new Date());
   const [date, setDate] = useState(new Date());
   const [showDatePicker, setShowDatePicker] = useState(false);
  const [showAmountField, setShowAmountField] = useState(true);
@@ -94,6 +95,17 @@ const [showMainCategoryDropdown, setShowMainCategoryDropdown] = useState(false);
         getCurrentBudgetPeriod(userId),
         getCategories(userId),
       ]);
+       if (period) {
+     const start = period.startDate?.toDate
+          ? period.startDate.toDate()
+          : new Date(period.startDate);
+        setPeriodStartDate(start);
+        setDate(start);
+      } else {
+        const now = new Date();
+        setPeriodStartDate(now);
+        setDate(now);
+      }
       const map: Record<string, string> = {};
       const catMap: Record<string, Category> = {};
       cats.forEach((c: Category) => {
@@ -209,7 +221,7 @@ const [showMainCategoryDropdown, setShowMainCategoryDropdown] = useState(false);
     setNewType('expense');
     setAmount('');
     setDescription('');
-    setDate(new Date());
+     setDate(periodStartDate);
      setShowAmountField(true);
     setShowDescriptionField(false);
    setShowMainCategoryDropdown(false);
@@ -607,6 +619,7 @@ const [showMainCategoryDropdown, setShowMainCategoryDropdown] = useState(false);
                   mode="date"
                   display={Platform.OS === 'ios' ? 'spinner' : 'default'}
                   onChange={onChangeDate}
+                    locale="fi"
                 />
                )}
               <View style={styles.modalActions}>
