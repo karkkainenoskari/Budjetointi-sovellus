@@ -14,7 +14,6 @@ import {
     ScrollView,
 } from 'react-native';
 import { useFocusEffect } from '@react-navigation/native';
-import { useRouter } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import Colors from '../../constants/Colors';
 import { auth } from '../../src/api/firebaseConfig';
@@ -50,7 +49,6 @@ interface Transaction {
 }
 
 export default function TilitapahtumatScreen() {
-  const router = useRouter();
   const user = auth.currentUser;
   const userId = user ? user.uid : null;
     const storageKey = userId ? `transactions_${userId}` : null;
@@ -221,26 +219,6 @@ const [showMainCategoryDropdown, setShowMainCategoryDropdown] = useState(false);
 
   const handlePress = (item: Transaction) => {
     Alert.alert('Tapahtuma', '', [
-      {
-        text: 'Muokkaa',
-        onPress: () => {
-          if (item.type === 'expense') {
-            router.push({
-              pathname: '/editExpense',
-              params: { id: item.id, categoryId: item.categoryId },
-            });
-          } else {
-            router.push({
-              pathname: '/editIncome',
-              params: {
-                id: item.id,
-                title: item.description,
-                amount: item.amount.toString(),
-              },
-            });
-          }
-        },
-      },
       {
         text: 'Poista',
         style: 'destructive',
