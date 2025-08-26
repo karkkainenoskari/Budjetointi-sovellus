@@ -5,11 +5,11 @@ import {
   StyleSheet,
   TouchableOpacity,
   SafeAreaView,
-  FlatList,
   ActivityIndicator,
   TextInput,
   Alert,
   Platform,
+  ScrollView,
 } from 'react-native';
 import { Picker } from '@react-native-picker/picker';
 import DateTimePicker from '@react-native-community/datetimepicker';
@@ -121,13 +121,21 @@ export default function RecurringExpensesScreen() {
     );
   }
 
-  const renderItem = ({ item }: { item: RecurringExpense }) => (
-    <View style={styles.row}>
-      <View>
-        <Text style={styles.name}>{item.name}</Text>
-        <Text style={styles.subText}>
+ const renderExpenseRow = (item: RecurringExpense) => (
+    <View key={item.id} style={styles.row}>
+      <Ionicons
+        name="repeat-outline"
+        size={20}
+        color={Colors.evergreen}
+        style={styles.icon}
+      />
+      <View style={{ flex: 1 }}>
+        <Text style={styles.rowLabel}>{item.name}</Text>
+        <Text style={styles.rowSub}>
           {item.amount.toFixed(2)} € •{' '}
-          {item.dueDate.toDate ? item.dueDate.toDate().toLocaleDateString('fi-FI') : ''}
+          {item.dueDate.toDate
+            ? item.dueDate.toDate().toLocaleDateString('fi-FI')
+            : ''}
           {' • '}
           {item.recurrence === 'weekly' ? 'viikoittain' : 'kuukausittain'}
         </Text>
@@ -139,107 +147,212 @@ export default function RecurringExpensesScreen() {
   );
 
   return (
-    <SafeAreaView style={styles.safeContainer}>
-      <View style={styles.header}>
-        <TouchableOpacity onPress={() => router.back()}>
-          <Ionicons name="arrow-back" size={24} color={Colors.textPrimary} />
-        </TouchableOpacity>
-        <Text style={styles.headerTitle}>Toistuvat menot</Text>
-        <TouchableOpacity onPress={() => setShowAdd(!showAdd)}>
-          <Ionicons name="add-circle-outline" size={24} color={Colors.moss} />
-        </TouchableOpacity>
-      </View>
-
-      {showAdd && (
-        <>
-          <Text style={styles.label}>Nimi</Text>
-          <TextInput style={styles.input} value={name} onChangeText={setName} />
-          <Text style={styles.label}>Summa (€)</Text>
-          <TextInput
-            style={styles.input}
-            value={amount}
-            onChangeText={setAmount}
-            keyboardType="decimal-pad"
-          />
-          <Text style={styles.label}>Kategoria</Text>
-          <View style={styles.pickerContainer}>
-            <Picker
-              selectedValue={selectedCategory}
-              onValueChange={(val) => setSelectedCategory(val)}
-              style={styles.picker}
-              mode="dropdown"
-            >
-              {categories.map((cat) => (
-                <Picker.Item key={cat.id} label={cat.title} value={cat.id} />
-              ))}
-            </Picker>
-          </View>
-          <Text style={styles.label}>Eräpäivä</Text>
-          <TouchableOpacity
-            style={styles.dateButton}
-            onPress={() => setShowDatePicker(true)}
-          >
-            <Ionicons name="calendar-outline" size={20} color={Colors.textPrimary} />
-            <Text style={styles.dateButtonText}>{date.toLocaleDateString('fi-FI')}</Text>
+    <SafeAreaView style={styles.container}>
+      <ScrollView contentContainerStyle={styles.content}>
+        <View style={styles.header}>
+          <TouchableOpacity onPress={() => router.back()} style={styles.backButton}>
+            <Ionicons name="chevron-back" size={24} color={Colors.evergreen} />
           </TouchableOpacity>
-          {showDatePicker && (
-            <DateTimePicker
-              value={date}
-              mode="date"
-              display={Platform.OS === 'ios' ? 'inline' : 'default'}
-              onChange={(_, d) => {
-                setShowDatePicker(false);
-                if (d) setDate(d);
-              }}
+          <Text style={styles.title}>Toistuvat menot</Text>
+          <TouchableOpacity onPress={() => setShowAdd(!showAdd)}>
+            <Ionicons
+              name={showAdd ? 'close' : 'add'}
+              size={24}
+              color={Colors.evergreen}
             />
-          )}
-          <Text style={styles.label}>Toistuvuus</Text>
-          <View style={styles.pickerContainer}>
-            <Picker
-              selectedValue={recurrence}
-              onValueChange={(val) => setRecurrence(val)}
-              style={styles.picker}
-              mode="dropdown"
-            >
-              <Picker.Item label="Kuukausittain" value="monthly" />
-              <Picker.Item label="Viikoittain" value="weekly" />
-            </Picker>
-          </View>
-          <TouchableOpacity
-            style={[styles.saveButton, saving && { opacity: 0.6 }]}
-            onPress={handleSave}
-            disabled={saving}
-          >
-            <Text style={styles.saveButtonText}>Tallenna</Text>
           </TouchableOpacity>
-        </>
-      )}
+        </View>
 
-      <FlatList
-        data={expenses}
-        keyExtractor={(item) => item.id}
-        renderItem={renderItem}
-        contentContainerStyle={styles.listContent}
-      />
+        {showAdd && (
+          <View style={styles.section}>
+            <Text style={styles.sectionTitle}>Uusi toistuva meno</Text>
+            <View style={styles.row}>
+              <Ionicons
+                name="create-outline"
+                size={20}
+                color={Colors.evergreen}
+                style={styles.icon}
+              />
+              <TextInput
+                style={styles.rowInput}
+                placeholder="Nimi"
+                value={name}
+                onChangeText={setName}
+              />
+            </View>
+            <View style={styles.row}>
+              <Ionicons
+                name="cash-outline"
+                size={20}
+                color={Colors.evergreen}
+                style={styles.icon}
+              />
+              <TextInput
+                style={styles.rowInput}
+                placeholder="Summa (€)"
+                value={amount}
+                onChangeText={setAmount}
+                keyboardType="decimal-pad"
+              />
+            </View>
+            <View style={styles.row}>
+              <Ionicons
+                name="list-outline"
+                size={20}
+                color={Colors.evergreen}
+                style={styles.icon}
+              />
+              <View style={styles.rowPicker}>
+                <Picker
+                  selectedValue={selectedCategory}
+                  onValueChange={(val) => setSelectedCategory(val)}
+                  style={styles.picker}
+                  mode="dropdown"
+                >
+                  {categories.map((cat) => (
+                    <Picker.Item key={cat.id} label={cat.title} value={cat.id} />
+                  ))}
+                </Picker>
+              </View>
+            </View>
+            <View style={styles.row}>
+              <Ionicons
+                name="calendar-outline"
+                size={20}
+                color={Colors.evergreen}
+                style={styles.icon}
+              />
+              <Text style={styles.rowLabel}>Eräpäivä</Text>
+              <TouchableOpacity
+                style={styles.rowButton}
+                onPress={() => setShowDatePicker(true)}
+              >
+                <Text style={styles.rowButtonText}>
+                  {date.toLocaleDateString('fi-FI')}
+                </Text>
+              </TouchableOpacity>
+            </View>
+            {showDatePicker && (
+              <DateTimePicker
+                value={date}
+                mode="date"
+                display={Platform.OS === 'ios' ? 'inline' : 'default'}
+                onChange={(_, d) => {
+                  setShowDatePicker(false);
+                  if (d) setDate(d);
+                }}
+              />
+            )}
+            <View style={styles.row}>
+              <Ionicons
+                name="repeat-outline"
+                size={20}
+                color={Colors.evergreen}
+                style={styles.icon}
+              />
+              <View style={styles.rowPicker}>
+                <Picker
+                  selectedValue={recurrence}
+                  onValueChange={(val) => setRecurrence(val)}
+                  style={styles.picker}
+                  mode="dropdown"
+                >
+                  <Picker.Item label="Kuukausittain" value="monthly" />
+                  <Picker.Item label="Viikoittain" value="weekly" />
+                </Picker>
+              </View>
+            </View>
+            <TouchableOpacity
+              style={[styles.saveButton, saving && { opacity: 0.6 }]}
+              onPress={handleSave}
+              disabled={saving}
+            >
+               <Text style={styles.saveButtonText}>Tallenna</Text>
+            </TouchableOpacity>
+          </View>
+          )}
+
+      <View style={styles.section}>
+          <Text style={styles.sectionTitle}>Toistuvat menot</Text>
+          {expenses.map(renderExpenseRow)}
+        </View>
+      </ScrollView>
     </SafeAreaView>
   );
 }
 
 const styles = StyleSheet.create({
-  safeContainer: { flex: 1, backgroundColor: Colors.background, padding: 16 },
-  loaderContainer: { flex: 1, justifyContent: 'center', alignItems: 'center', backgroundColor: Colors.background },
-  header: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginBottom: 16 },
-  headerTitle: { fontSize: 20, fontWeight: '600', color: Colors.textPrimary },
-  label: { fontSize: 16, fontWeight: '500', color: Colors.textPrimary, marginTop: 12 },
-  input: { borderWidth: 1, borderColor: Colors.border, borderRadius: 6, paddingHorizontal: 12, paddingVertical: 8, marginTop: 4, fontSize: 16, color: Colors.textPrimary, backgroundColor: Colors.cardBackground },
-  pickerContainer: { marginTop: 4, borderWidth: 1, borderColor: Colors.border, borderRadius: 6, backgroundColor: Colors.cardBackground },
+container: { flex: 1, backgroundColor: Colors.background },
+  content: { padding: 20 },
+  loaderContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    backgroundColor: Colors.background,
+  },
+  header: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    marginBottom: 20,
+  },
+  backButton: { marginRight: 12 },
+  title: { fontSize: 24, fontWeight: '600', color: Colors.textPrimary },
+  section: {
+    backgroundColor: Colors.cardBackground,
+    borderRadius: 8,
+    padding: 16,
+    marginBottom: 20,
+  },
+  sectionTitle: {
+    fontSize: 14,
+    fontWeight: '600',
+    color: Colors.textSecondary,
+    marginBottom: 12,
+  },
+  row: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    marginBottom: 12,
+  },
+  icon: { marginRight: 12 },
+  rowLabel: { flex: 1, fontSize: 16, color: Colors.textPrimary },
+  rowSub: { fontSize: 14, color: Colors.textSecondary },
+  rowInput: {
+    flex: 1,
+    borderWidth: 1,
+    borderColor: Colors.border,
+    borderRadius: 6,
+    paddingHorizontal: 12,
+    paddingVertical: 8,
+    fontSize: 16,
+    color: Colors.textPrimary,
+    backgroundColor: Colors.background,
+  },
+  rowPicker: {
+    flex: 1,
+    borderWidth: 1,
+    borderColor: Colors.border,
+    borderRadius: 6,
+    backgroundColor: Colors.background,
+  },
   picker: { height: 50, width: '100%', color: Colors.textPrimary },
-  dateButton: { flexDirection: 'row', alignItems: 'center', paddingVertical: 10, paddingHorizontal: 12, borderWidth: 1, borderColor: Colors.border, borderRadius: 6, marginTop: 8, backgroundColor: Colors.cardBackground },
-  dateButtonText: { marginLeft: 8, fontSize: 16, color: Colors.textPrimary },
-  saveButton: { marginTop: 16, backgroundColor: Colors.moss, paddingVertical: 14, borderRadius: 8, alignItems: 'center' },
+  rowButton: {
+    borderWidth: 1,
+    borderColor: Colors.border,
+    borderRadius: 6,
+    paddingHorizontal: 12,
+    paddingVertical: 8,
+    backgroundColor: Colors.background,
+  },
+  rowButtonText: { fontSize: 16, color: Colors.textPrimary },
+  saveButton: {
+    marginTop: 16,
+    backgroundColor: Colors.moss,
+    paddingVertical: 14,
+    borderRadius: 8,
+    alignItems: 'center',
+  },
   saveButtonText: { color: Colors.background, fontSize: 18, fontWeight: '600' },
-  listContent: { paddingTop: 16 },
-  row: { flexDirection: 'row', justifyContent: 'space-between', paddingVertical: 12, borderBottomWidth: 1, borderColor: Colors.border },
-  name: { fontSize: 16, color: Colors.textPrimary },
-  subText: { fontSize: 14, color: Colors.textSecondary },
 });

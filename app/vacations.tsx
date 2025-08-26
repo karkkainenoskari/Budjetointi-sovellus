@@ -1,5 +1,17 @@
 import React, { useEffect, useState } from 'react';
-import { SafeAreaView, View, Text, StyleSheet, TouchableOpacity, FlatList, ActivityIndicator, Modal, TouchableWithoutFeedback, TextInput, Platform } from 'react-native';
+import {
+SafeAreaView,
+  View,
+  Text,
+  StyleSheet,
+  TouchableOpacity,
+  ActivityIndicator,
+  Modal,
+  TouchableWithoutFeedback,
+  TextInput,
+  Platform,
+  ScrollView,
+} from 'react-native';
 import DateTimePicker, { DateTimePickerAndroid } from '@react-native-community/datetimepicker';
 import { Ionicons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
@@ -81,12 +93,20 @@ export default function VacationsScreen() {
     fetchTotals();
   }, [vacations, userId]);
 
-  const renderItem = ({ item }: { item: Vacation & { total: number } }) => (
-    <View style={styles.row}>
-      <View>
-        <Text style={styles.name}>{item.title}</Text>
-        <Text style={styles.subText}>
-          {item.startDate.toDate().toLocaleDateString('fi-FI')} - {item.endDate.toDate().toLocaleDateString('fi-FI')} • {item.total.toFixed(2)} €
+  const renderVacationRow = (item: Vacation & { total: number }) => (
+    <View key={item.id} style={styles.row}>
+      <Ionicons
+        name="airplane-outline"
+        size={20}
+        color={Colors.evergreen}
+        style={styles.icon}
+      />
+      <View style={{ flex: 1 }}>
+        <Text style={styles.rowLabel}>{item.title}</Text>
+        <Text style={styles.rowSub}>
+          {item.startDate.toDate().toLocaleDateString('fi-FI')} -{' '}
+          {item.endDate.toDate().toLocaleDateString('fi-FI')} •{' '}
+          {item.total.toFixed(2)} €
         </Text>
       </View>
       <TouchableOpacity onPress={() => handleDelete(item.id)}>
@@ -130,79 +150,218 @@ export default function VacationsScreen() {
   }
 
   return (
-    <SafeAreaView style={styles.safeContainer}>
-      <View style={styles.header}>
-        <TouchableOpacity onPress={() => router.back()}>
-          <Ionicons name="arrow-back" size={24} color={Colors.textPrimary} />
-        </TouchableOpacity>
-        <Text style={styles.headerTitle}>Lomajaksot</Text>
-        <TouchableOpacity onPress={() => setShowAdd(!showAdd)}>
-          <Ionicons name="add-circle-outline" size={24} color={Colors.moss} />
-        </TouchableOpacity>
-      </View>
+     <SafeAreaView style={styles.container}>
+      <ScrollView contentContainerStyle={styles.content}>
+        <View style={styles.header}>
+          <TouchableOpacity onPress={() => router.back()} style={styles.backButton}>
+            <Ionicons name="chevron-back" size={24} color={Colors.evergreen} />
+          </TouchableOpacity>
+         <Text style={styles.title}>Lomajaksot</Text>
+          <TouchableOpacity onPress={() => setShowAdd(!showAdd)}>
+            <Ionicons
+              name={showAdd ? 'close' : 'add'}
+              size={24}
+              color={Colors.evergreen}
+            />
+          </TouchableOpacity>
+          </View>
 
-      {showAdd && (
-        <>
-          <Text style={styles.label}>Nimi</Text>
-          <TextInput style={styles.input} value={title} onChangeText={setTitle} />
-          <Text style={styles.label}>Alkaa</Text>
-          <TouchableOpacity style={styles.dateButton} onPress={openStartPicker}>
-            <Ionicons name="calendar-outline" size={20} color={Colors.textPrimary} />
-            <Text style={styles.dateButtonText}>{startDate.toLocaleDateString('fi-FI')}</Text>
-          </TouchableOpacity>
-          {Platform.OS !== 'android' && showStartPicker && (
-            <Modal transparent animationType="fade" visible onRequestClose={() => setShowStartPicker(false)}>
-              <TouchableOpacity style={styles.pickerOverlay} activeOpacity={1} onPressOut={() => setShowStartPicker(false)}>
-                <TouchableWithoutFeedback>
-                  <View style={styles.pickerContainer}>
-                    <DateTimePicker value={startDate} mode="date" display={Platform.OS === 'ios' ? 'inline' : 'default'} onChange={(_, d) => { setShowStartPicker(false); if (d) setStartDate(d); }} />
-                  </View>
-                </TouchableWithoutFeedback>
+        {showAdd && (
+          <View style={styles.section}>
+            <Text style={styles.sectionTitle}>Uusi lomajakso</Text>
+            <View style={styles.row}>
+              <Ionicons
+                name="create-outline"
+                size={20}
+                color={Colors.evergreen}
+                style={styles.icon}
+              />
+              <TextInput
+                style={styles.rowInput}
+                placeholder="Nimi"
+                value={title}
+                onChangeText={setTitle}
+              />
+            </View>
+            <View style={styles.row}>
+              <Ionicons
+                name="calendar-outline"
+                size={20}
+                color={Colors.evergreen}
+                style={styles.icon}
+              />
+              <Text style={styles.rowLabel}>Alkaa</Text>
+              <TouchableOpacity style={styles.rowButton} onPress={openStartPicker}>
+                <Text style={styles.rowButtonText}>
+                  {startDate.toLocaleDateString('fi-FI')}
+                </Text>
               </TouchableOpacity>
-            </Modal>
-          )}
-          <Text style={styles.label}>Loppuu</Text>
-          <TouchableOpacity style={styles.dateButton} onPress={openEndPicker}>
-            <Ionicons name="calendar-outline" size={20} color={Colors.textPrimary} />
-            <Text style={styles.dateButtonText}>{endDate.toLocaleDateString('fi-FI')}</Text>
-          </TouchableOpacity>
-          {Platform.OS !== 'android' && showEndPicker && (
-            <Modal transparent animationType="fade" visible onRequestClose={() => setShowEndPicker(false)}>
-              <TouchableOpacity style={styles.pickerOverlay} activeOpacity={1} onPressOut={() => setShowEndPicker(false)}>
-                <TouchableWithoutFeedback>
-                  <View style={styles.pickerContainer}>
-                    <DateTimePicker value={endDate} mode="date" display={Platform.OS === 'ios' ? 'inline' : 'default'} onChange={(_, d) => { setShowEndPicker(false); if (d) setEndDate(d); }} />
-                  </View>
-                </TouchableWithoutFeedback>
+            </View>
+            {Platform.OS !== 'android' && showStartPicker && (
+              <Modal
+                transparent
+                animationType="fade"
+                visible
+                onRequestClose={() => setShowStartPicker(false)}
+              >
+                <TouchableOpacity
+                  style={styles.pickerOverlay}
+                  activeOpacity={1}
+                  onPressOut={() => setShowStartPicker(false)}
+                >
+                  <TouchableWithoutFeedback>
+                    <View style={styles.pickerContainer}>
+                      <DateTimePicker
+                        value={startDate}
+                        mode="date"
+                        display={Platform.OS === 'ios' ? 'inline' : 'default'}
+                        onChange={(_, d) => {
+                          setShowStartPicker(false);
+                          if (d) setStartDate(d);
+                        }}
+                      />
+                    </View>
+                  </TouchableWithoutFeedback>
+                </TouchableOpacity>
+              </Modal>
+            )}
+            <View style={styles.row}>
+              <Ionicons
+                name="calendar-outline"
+                size={20}
+                color={Colors.evergreen}
+                style={styles.icon}
+              />
+              <Text style={styles.rowLabel}>Loppuu</Text>
+              <TouchableOpacity style={styles.rowButton} onPress={openEndPicker}>
+                <Text style={styles.rowButtonText}>
+                  {endDate.toLocaleDateString('fi-FI')}
+                </Text>
               </TouchableOpacity>
-            </Modal>
-          )}
-          <TouchableOpacity style={[styles.saveButton, saving && { opacity: 0.6 }]} onPress={handleSave} disabled={saving}>
-            <Text style={styles.saveButtonText}>Tallenna</Text>
-          </TouchableOpacity>
-        </>
-      )}
+            </View>
+            {Platform.OS !== 'android' && showEndPicker && (
+              <Modal
+                transparent
+                animationType="fade"
+                visible
+                onRequestClose={() => setShowEndPicker(false)}
+              >
+                <TouchableOpacity
+                  style={styles.pickerOverlay}
+                  activeOpacity={1}
+                  onPressOut={() => setShowEndPicker(false)}
+                >
+                  <TouchableWithoutFeedback>
+                    <View style={styles.pickerContainer}>
+                      <DateTimePicker
+                        value={endDate}
+                        mode="date"
+                        display={Platform.OS === 'ios' ? 'inline' : 'default'}
+                        onChange={(_, d) => {
+                          setShowEndPicker(false);
+                          if (d) setEndDate(d);
+                        }}
+                      />
+                    </View>
+                  </TouchableWithoutFeedback>
+                </TouchableOpacity>
+              </Modal>
+            )}
+            <TouchableOpacity
+              style={[styles.saveButton, saving && { opacity: 0.6 }]}
+              onPress={handleSave}
+              disabled={saving}
+            >
+              <Text style={styles.saveButtonText}>Tallenna</Text>
+            </TouchableOpacity>
+          </View>
+        )}
 
-      <FlatList data={vacationsWithTotals} keyExtractor={(item) => item.id} renderItem={renderItem} contentContainerStyle={styles.listContent} />
+
+      <View style={styles.section}>
+          <Text style={styles.sectionTitle}>Lomajaksot</Text>
+          {vacationsWithTotals.map(renderVacationRow)}
+        </View>
+      </ScrollView>
     </SafeAreaView>
   );
 }
 
 const styles = StyleSheet.create({
-  safeContainer: { flex: 1, backgroundColor: Colors.background, padding: 16 },
-  loaderContainer: { flex: 1, justifyContent: 'center', alignItems: 'center', backgroundColor: Colors.background },
-  header: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginBottom: 16 },
-  headerTitle: { fontSize: 20, fontWeight: '600', color: Colors.textPrimary },
-  label: { fontSize: 16, fontWeight: '500', color: Colors.textPrimary, marginTop: 12 },
-  input: { borderWidth: 1, borderColor: Colors.border, borderRadius: 6, paddingHorizontal: 12, paddingVertical: 8, marginTop: 4, fontSize: 16, color: Colors.textPrimary, backgroundColor: Colors.cardBackground },
-  dateButton: { flexDirection: 'row', alignItems: 'center', paddingVertical: 10, paddingHorizontal: 12, borderWidth: 1, borderColor: Colors.border, borderRadius: 6, marginTop: 8, backgroundColor: Colors.cardBackground },
-  dateButtonText: { marginLeft: 8, fontSize: 16, color: Colors.textPrimary },
-  saveButton: { marginTop: 16, backgroundColor: Colors.moss, paddingVertical: 14, borderRadius: 8, alignItems: 'center' },
+   container: { flex: 1, backgroundColor: Colors.background },
+  content: { padding: 20 },
+  loaderContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    backgroundColor: Colors.background,
+  },
+  header: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    marginBottom: 20,
+  },
+  backButton: { marginRight: 12 },
+  title: { fontSize: 24, fontWeight: '600', color: Colors.textPrimary },
+  section: {
+    backgroundColor: Colors.cardBackground,
+    borderRadius: 8,
+    padding: 16,
+    marginBottom: 20,
+  },
+  sectionTitle: {
+    fontSize: 14,
+    fontWeight: '600',
+    color: Colors.textSecondary,
+    marginBottom: 12,
+  },
+  row: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    marginBottom: 12,
+  },
+  icon: { marginRight: 12 },
+  rowLabel: { flex: 1, fontSize: 16, color: Colors.textPrimary },
+  rowSub: { fontSize: 14, color: Colors.textSecondary },
+  rowInput: {
+    flex: 1,
+    borderWidth: 1,
+    borderColor: Colors.border,
+    borderRadius: 6,
+    paddingHorizontal: 12,
+    paddingVertical: 8,
+    fontSize: 16,
+    color: Colors.textPrimary,
+    backgroundColor: Colors.background,
+  },
+  rowButton: {
+    borderWidth: 1,
+    borderColor: Colors.border,
+    borderRadius: 6,
+    paddingHorizontal: 12,
+    paddingVertical: 8,
+    backgroundColor: Colors.background,
+  },
+  rowButtonText: { fontSize: 16, color: Colors.textPrimary },
+  saveButton: {
+    marginTop: 16,
+    backgroundColor: Colors.moss,
+    paddingVertical: 14,
+    borderRadius: 8,
+    alignItems: 'center',
+  },
   saveButtonText: { color: Colors.background, fontSize: 18, fontWeight: '600' },
-  listContent: { paddingTop: 16 },
-  row: { flexDirection: 'row', justifyContent: 'space-between', paddingVertical: 12, borderBottomWidth: 1, borderColor: Colors.border },
-  name: { fontSize: 16, color: Colors.textPrimary },
-  subText: { fontSize: 14, color: Colors.textSecondary },
-  pickerOverlay: { flex: 1, backgroundColor: 'rgba(0,0,0,0.3)', justifyContent: 'center', alignItems: 'center' },
-  pickerContainer: { backgroundColor: Colors.background, padding: 10, borderRadius: 8 },
+  pickerOverlay: {
+    flex: 1,
+    backgroundColor: 'rgba(0,0,0,0.3)',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  pickerContainer: {
+    backgroundColor: Colors.background,
+    padding: 10,
+    borderRadius: 8,
+  },
 });
