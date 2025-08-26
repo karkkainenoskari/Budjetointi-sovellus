@@ -11,6 +11,7 @@ SafeAreaView,
   TextInput,
   Platform,
   ScrollView,
+  BackHandler,
 } from 'react-native';
 import DateTimePicker, { DateTimePickerAndroid } from '@react-native-community/datetimepicker';
 import { Ionicons } from '@expo/vector-icons';
@@ -52,6 +53,15 @@ export default function VacationsScreen() {
   useEffect(() => {
     loadVacations();
   }, [userId]);
+
+   useEffect(() => {
+    const handleBack = () => {
+      router.replace('/(tabs)/valikko');
+      return true;
+    };
+    const sub = BackHandler.addEventListener('hardwareBackPress', handleBack);
+    return () => sub.remove();
+  }, [router]);
 
   const handleSave = async () => {
     if (!userId) return;
@@ -153,9 +163,12 @@ export default function VacationsScreen() {
      <SafeAreaView style={styles.container}>
       <ScrollView contentContainerStyle={styles.content}>
         <View style={styles.header}>
-          <TouchableOpacity onPress={() => router.back()} style={styles.backButton}>
-            <Ionicons name="chevron-back" size={24} color={Colors.evergreen} />
-          </TouchableOpacity>
+           <TouchableOpacity
+          onPress={() => router.replace('/(tabs)/valikko')}
+          style={styles.backButton}
+        >
+          <Ionicons name="chevron-back" size={24} color={Colors.evergreen} />
+        </TouchableOpacity>
          <Text style={styles.title}>Lomajaksot</Text>
           <TouchableOpacity onPress={() => setShowAdd(!showAdd)}>
             <Ionicons

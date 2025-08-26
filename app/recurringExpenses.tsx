@@ -10,6 +10,7 @@ import {
   Alert,
   Platform,
   ScrollView,
+  BackHandler,
 } from 'react-native';
 import { Picker } from '@react-native-picker/picker';
 import DateTimePicker from '@react-native-community/datetimepicker';
@@ -63,6 +64,15 @@ export default function RecurringExpensesScreen() {
     };
     load();
   }, [userId]);
+
+  useEffect(() => {
+    const handleBack = () => {
+      router.replace('/(tabs)/valikko');
+      return true;
+    };
+    const sub = BackHandler.addEventListener('hardwareBackPress', handleBack);
+    return () => sub.remove();
+  }, [router]);
 
   const handleSave = async () => {
     if (!userId) return;
@@ -150,7 +160,10 @@ export default function RecurringExpensesScreen() {
     <SafeAreaView style={styles.container}>
       <ScrollView contentContainerStyle={styles.content}>
         <View style={styles.header}>
-          <TouchableOpacity onPress={() => router.back()} style={styles.backButton}>
+           <TouchableOpacity
+            onPress={() => router.replace('/(tabs)/valikko')}
+            style={styles.backButton}
+          >
             <Ionicons name="chevron-back" size={24} color={Colors.evergreen} />
           </TouchableOpacity>
           <Text style={styles.title}>Toistuvat menot</Text>

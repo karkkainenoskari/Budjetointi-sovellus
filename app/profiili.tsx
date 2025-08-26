@@ -1,10 +1,11 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import {
   SafeAreaView,
   View,
   Text,
   StyleSheet,
   TouchableOpacity,
+  BackHandler,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
@@ -14,10 +15,22 @@ import { auth } from '../src/api/firebaseConfig';
 export default function ProfiiliScreen() {
   const router = useRouter();
   const user = auth.currentUser;
+
+   useEffect(() => {
+    const handleBack = () => {
+      router.replace('/(tabs)/valikko');
+      return true;
+    };
+    const sub = BackHandler.addEventListener('hardwareBackPress', handleBack);
+    return () => sub.remove();
+  }, [router]);
   return (
     <SafeAreaView style={styles.container}>
       <View style={styles.header}>
-        <TouchableOpacity onPress={() => router.back()} style={styles.backButton}>
+         <TouchableOpacity
+          onPress={() => router.replace('/(tabs)/valikko')}
+          style={styles.backButton}
+        >
           <Ionicons name="chevron-back" size={24} color={Colors.evergreen} />
         </TouchableOpacity>
         <Text style={styles.title}>Profiili</Text>

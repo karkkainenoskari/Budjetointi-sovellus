@@ -8,7 +8,8 @@ import {
   TextInput,
   Switch,
   Alert,
-   ScrollView,
+  ScrollView,
+  BackHandler,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
@@ -50,6 +51,15 @@ export default function AsetuksetScreen() {
     load();
   }, [userId]);
 
+   useEffect(() => {
+    const handleBack = () => {
+      router.replace('/(tabs)/valikko');
+      return true;
+    };
+    const sub = BackHandler.addEventListener('hardwareBackPress', handleBack);
+    return () => sub.remove();
+  }, [router]);
+
   const handleSave = async () => {
     if (!userId) return;
     const dayNum = parseInt(payday, 10);
@@ -75,7 +85,7 @@ export default function AsetuksetScreen() {
        <ScrollView contentContainerStyle={styles.content}>
         <View style={styles.header}>
           <TouchableOpacity
-            onPress={() => router.back()}
+            onPress={() => router.replace('/(tabs)/valikko')}
             style={styles.backButton}
           >
             <Ionicons
