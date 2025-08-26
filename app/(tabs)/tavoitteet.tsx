@@ -296,7 +296,7 @@ export default function TavoitteetScreen() {
       </Modal>
       <View style={styles.pageContent}>
         <View style={styles.headerRow}>
-          <Text style={styles.headerTitle}>Tavoitteet</Text>
+           <Text style={styles.title}>Tavoitteet</Text>
           <TouchableOpacity onPress={handleAddGoal} style={styles.iconButton}>
             <Ionicons name="add-circle-outline" size={26} color={Colors.moss} />
           </TouchableOpacity>
@@ -399,20 +399,24 @@ const styles = StyleSheet.create({
     maxWidth: 600,
     paddingHorizontal: 24,
   },
- headerRow: {
-  flexDirection: 'row',
-  justifyContent: 'space-between',
-  alignItems: 'center',
-  marginBottom: 12,
-  marginTop: 15, 
-},
-  headerTitle: {
+  headerRow: {
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginBottom: 12,
+    marginTop: 15,
+  },
+  title: {
     fontSize: 24,
     fontWeight: '600',
+    textAlign: 'center',
     color: Colors.textPrimary,
   },
   iconButton: {
-    marginLeft: 12,
+    position: 'absolute',
+    right: 0,
+    top: 0,
+    bottom: 0,
+    justifyContent: 'center',
   },
    summaryCard: {
     backgroundColor: Colors.cardBackground,

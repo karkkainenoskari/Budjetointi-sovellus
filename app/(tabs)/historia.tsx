@@ -430,6 +430,7 @@ export default function HistoriaScreen() {
 
   return (
     <SafeAreaView style={styles.safeContainer}>
+        <Text style={styles.title}>Historia</Text>
       <View style={styles.monthNav}>
         <TouchableOpacity onPress={() => changeMonth(1)} style={styles.arrowButton}>
           <Ionicons name="chevron-back" size={32} color={Colors.evergreen} />
@@ -505,6 +506,14 @@ const styles = StyleSheet.create({
     paddingHorizontal: 16,
     paddingTop: 24,
     paddingBottom: 16,
+  },
+   title: {
+    fontSize: 24,
+    fontWeight: '600',
+    color: Colors.textPrimary,
+    textAlign: 'center',
+    marginBottom: 16,
+    marginTop: 16
   },
 
   loaderContainer: {

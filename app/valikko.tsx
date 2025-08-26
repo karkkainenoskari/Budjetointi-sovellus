@@ -66,9 +66,10 @@ const styles = StyleSheet.create({
  title: {
     fontSize: 24,
     fontWeight: '600',
-    marginBottom: 20,
     color: Colors.textPrimary,
-     alignSelf: 'center',
+    textAlign: 'center',
+    marginBottom: 16,
+    marginTop: 16
   },
  menuContainer: {
     paddingTop: 8,
