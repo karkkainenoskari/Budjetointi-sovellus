@@ -237,6 +237,7 @@ export default function RecurringExpensesScreen() {
                 value={date}
                 mode="date"
                 display={Platform.OS === 'ios' ? 'inline' : 'default'}
+                  locale="fi-FI"
                 onChange={(_, d) => {
                   setShowDatePicker(false);
                   if (d) setDate(d);

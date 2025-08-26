@@ -114,8 +114,7 @@ export default function BudjettiScreen() {
         onChange: (_, d) => {
           if (d) setNewPeriodStart(d);
         },
-        locale: 'fi-FI',
-      } as any);
+        });
     } else {
       setShowStartPicker(true);
     }
@@ -130,8 +129,7 @@ export default function BudjettiScreen() {
         onChange: (_, d) => {
           if (d) setNewPeriodEnd(d);
         },
-        locale: 'fi-FI',
-      } as any);
+        });
     } else {
       setShowEndPicker(true);
     }

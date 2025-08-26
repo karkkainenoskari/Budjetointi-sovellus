@@ -215,6 +215,7 @@ export default function VacationsScreen() {
                         value={startDate}
                         mode="date"
                         display={Platform.OS === 'ios' ? 'inline' : 'default'}
+                         locale="fi-FI"
                         onChange={(_, d) => {
                           setShowStartPicker(false);
                           if (d) setStartDate(d);
@@ -257,6 +258,7 @@ export default function VacationsScreen() {
                         value={endDate}
                         mode="date"
                         display={Platform.OS === 'ios' ? 'inline' : 'default'}
+                          locale="fi-FI"
                         onChange={(_, d) => {
                           setShowEndPicker(false);
                           if (d) setEndDate(d);
