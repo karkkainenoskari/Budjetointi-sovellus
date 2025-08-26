@@ -11,7 +11,6 @@ import {
    ScrollView,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
-import { Picker } from '@react-native-picker/picker';
 import { useRouter } from 'expo-router';
 import Colors from '../constants/Colors';
 import { auth } from '../src/api/firebaseConfig';
@@ -131,17 +130,27 @@ export default function AsetuksetScreen() {
                 style={styles.icon}
               />
               <Text style={styles.rowLabel}>Muistuta päiviä ennen</Text>
-              <Picker
-                selectedValue={daysBefore}
-                onValueChange={setDaysBefore}
-                style={styles.rowPicker}
-                mode="dropdown"
-              >
-                <Picker.Item label="0" value={0} />
-                <Picker.Item label="1" value={1} />
-                <Picker.Item label="2" value={2} />
-                <Picker.Item label="3" value={3} />
-              </Picker>
+               <View style={styles.daySelector}>
+                {[0, 1, 2, 3].map((n) => (
+                  <TouchableOpacity
+                    key={n}
+                    style={[
+                      styles.dayOption,
+                      daysBefore === n && styles.dayOptionSelected,
+                    ]}
+                    onPress={() => setDaysBefore(n)}
+                  >
+                    <Text
+                      style={[
+                        styles.dayOptionText,
+                        daysBefore === n && styles.dayOptionTextSelected,
+                      ]}
+                    >
+                      {n}
+                    </Text>
+                  </TouchableOpacity>
+                ))}
+              </View>
             </View>
           )}
         </View>
@@ -212,9 +221,30 @@ const styles = StyleSheet.create({
     color: Colors.textPrimary,
     backgroundColor: Colors.background,
   },
- rowPicker: {
-    flex: 1,
-    height: 40,
+  daySelector: {
+    flexDirection: 'row',
+  },
+  dayOption: {
+    width: 32,
+    height: 32,
+    borderRadius: 16,
+    borderWidth: 1,
+    borderColor: Colors.border,
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginLeft: 8,
+    backgroundColor: Colors.background,
+  },
+  dayOptionSelected: {
+    backgroundColor: Colors.evergreen,
+    borderColor: Colors.evergreen,
+  },
+  dayOptionText: {
+    color: Colors.textPrimary,
+    fontSize: 16,
+  },
+  dayOptionTextSelected: {
+    color: Colors.background,
   },
   saveButton: {
     marginTop: 16,
