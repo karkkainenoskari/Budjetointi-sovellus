@@ -8,6 +8,7 @@ import {
   TextInput,
   Switch,
   Alert,
+   ScrollView,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { Picker } from '@react-native-picker/picker';
@@ -72,45 +73,83 @@ export default function AsetuksetScreen() {
   };
   return (
     <SafeAreaView style={styles.container}>
-      <View style={styles.header}>
-        <TouchableOpacity onPress={() => router.back()} style={styles.backButton}>
-          <Ionicons name="chevron-back" size={24} color={Colors.evergreen} />
-        </TouchableOpacity>
-        <Text style={styles.title}>Asetukset</Text>
-      </View>
+       <ScrollView contentContainerStyle={styles.content}>
+        <View style={styles.header}>
+          <TouchableOpacity
+            onPress={() => router.back()}
+            style={styles.backButton}
+          >
+            <Ionicons
+              name="chevron-back"
+              size={24}
+              color={Colors.evergreen}
+            />
+          </TouchableOpacity>
+          <Text style={styles.title}>Asetukset</Text>
+        </View>
 
-       <Text style={styles.label}>Palkkapäivä</Text>
-      <TextInput
-        style={styles.input}
-        placeholder="Esim. 15"
-        keyboardType="number-pad"
-        value={payday}
-        onChangeText={setPaydayState}
-      />
+     <View style={styles.section}>
+          <Text style={styles.sectionTitle}>Palkkapäivä</Text>
+          <View style={styles.row}>
+            <Ionicons
+              name="calendar-outline"
+              size={20}
+              color={Colors.evergreen}
+              style={styles.icon}
+            />
+            <TextInput
+              style={styles.rowInput}
+              placeholder="Esim. 15"
+              keyboardType="number-pad"
+              value={payday}
+              onChangeText={setPaydayState}
+            />
+          </View>
+        </View>
 
-      <View style={styles.switchRow}>
-        <Text style={styles.label}>Palkkapäivämuistutus</Text>
-        <Switch value={reminderEnabled} onValueChange={setReminderEnabled} />
-      </View>
-
-      <Text style={styles.label}>Muistuta päiviä ennen</Text>
-      <View style={styles.pickerContainer}>
-        <Picker
-          selectedValue={daysBefore}
-          onValueChange={(v) => setDaysBefore(v)}
-          style={styles.picker}
-          mode="dropdown"
-        >
-          <Picker.Item label="0" value={0} />
-          <Picker.Item label="1" value={1} />
-          <Picker.Item label="2" value={2} />
-          <Picker.Item label="3" value={3} />
-        </Picker>
-      </View>
+      <View style={styles.section}>
+          <Text style={styles.sectionTitle}>Muistutukset</Text>
+          <View style={styles.row}>
+            <Ionicons
+              name="notifications-outline"
+              size={20}
+              color={Colors.evergreen}
+              style={styles.icon}
+            />
+            <Text style={styles.rowLabel}>Palkkapäivämuistutus</Text>
+            <Switch
+              value={reminderEnabled}
+              onValueChange={setReminderEnabled}
+            />
+          </View>
+          {reminderEnabled && (
+            <View style={styles.row}>
+              <Ionicons
+                name="time-outline"
+                size={20}
+                color={Colors.evergreen}
+                style={styles.icon}
+              />
+              <Text style={styles.rowLabel}>Muistuta päiviä ennen</Text>
+              <Picker
+                selectedValue={daysBefore}
+                onValueChange={setDaysBefore}
+                style={styles.rowPicker}
+                mode="dropdown"
+              >
+                <Picker.Item label="0" value={0} />
+                <Picker.Item label="1" value={1} />
+                <Picker.Item label="2" value={2} />
+                <Picker.Item label="3" value={3} />
+              </Picker>
+            </View>
+          )}
+        </View>
 
       <TouchableOpacity style={styles.saveButton} onPress={handleSave}>
-        <Text style={styles.saveButtonText}>Tallenna</Text>
-      </TouchableOpacity>
+          <Text style={styles.saveButtonText}>Tallenna</Text>
+        </TouchableOpacity>
+      </ScrollView>
     </SafeAreaView>
   );
 }
@@ -118,8 +157,10 @@ export default function AsetuksetScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    padding: 20,
     backgroundColor: Colors.background,
+  },
+  content: {
+    padding: 20,
   },
   header: {
     flexDirection: 'row',
@@ -134,40 +175,46 @@ const styles = StyleSheet.create({
     fontWeight: '600',
     color: Colors.textPrimary,
   },
-  label: {
-    fontSize: 16,
-    fontWeight: '500',
-    color: Colors.textPrimary,
-    marginTop: 12,
+  section: {
+    backgroundColor: Colors.cardBackground,
+    borderRadius: 8,
+    padding: 16,
+    marginBottom: 20,
   },
-  input: {
+  sectionTitle: {
+    fontSize: 14,
+    fontWeight: '600',
+    color: Colors.textSecondary,
+    marginBottom: 12,
+  },
+  row: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    marginBottom: 12,
+  },
+  icon: {
+    marginRight: 12,
+  },
+  rowLabel: {
+    flex: 1,
+    fontSize: 16,
+    color: Colors.textPrimary,
+  },
+ rowInput: {
+    flex: 1,
     borderWidth: 1,
     borderColor: Colors.border,
     borderRadius: 6,
     paddingHorizontal: 12,
     paddingVertical: 8,
-    marginTop: 4,
     fontSize: 16,
     color: Colors.textPrimary,
-     backgroundColor: Colors.cardBackground,
+    backgroundColor: Colors.background,
   },
-  switchRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    marginTop: 12,
-  },
-  pickerContainer: {
-    marginTop: 4,
-    borderWidth: 1,
-    borderColor: Colors.border,
-    borderRadius: 6,
-    backgroundColor: Colors.cardBackground,
-  },
-  picker: {
-    height: 50,
-    width: '100%',
-    color: Colors.textPrimary,
+ rowPicker: {
+    flex: 1,
+    height: 40,
   },
   saveButton: {
     marginTop: 16,
