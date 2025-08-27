@@ -512,7 +512,7 @@ const styles = StyleSheet.create({
     fontWeight: '600',
     color: Colors.textPrimary,
     textAlign: 'center',
-    marginBottom: 16,
+     marginBottom: 2,
     marginTop: 16
   },
 
