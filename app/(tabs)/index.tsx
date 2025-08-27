@@ -1317,7 +1317,7 @@ export default function BudjettiScreen() {
       {!budgetPeriod ? (
         <View style={styles.noPeriodContainer}>
           <Image
-            source={require('@/assets/images/icon.png')}
+            source={require('@/assets/images/budjettikoutsi_logo.png')}
             style={styles.noPeriodLogo}
           />
           <Text style={styles.noPeriodText}>

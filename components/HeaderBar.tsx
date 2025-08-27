@@ -29,7 +29,7 @@ return (
     <View style={[styles.container, { paddingTop: insets.top }]}>
      <View style={styles.titleContainer}>
         <Image
-          source={require('../assets/images/icon.png')}
+           source={require('../assets/images/budjettikoutsi_logo.png')}
           style={styles.logo}
         />
         <Text style={styles.title}>BudjettiKoutsi</Text>
