@@ -23,23 +23,24 @@ export default function TavoitteetScreen() {
   const userId = user ? user.uid : null;
 
 
-  const [goals, setGoals] = useState<Goal[]>([]);
+ const [goals, setGoals] = useState<Goal[]>([]);
   const [loadingGoals, setLoadingGoals] = useState<boolean>(true);
 
   const [addModalVisible, setAddModalVisible] = useState(false);
   const [newGoalTitle, setNewGoalTitle] = useState('');
   const [newGoalAmount, setNewGoalAmount] = useState('');
+  const [newGoalStartDate, setNewGoalStartDate] = useState(new Date());
   const [newGoalDate, setNewGoalDate] = useState(new Date());
+  const [showStartPicker, setShowStartPicker] = useState(false);
   const [showDatePicker, setShowDatePicker] = useState(false);
    const [monthlyNeeded, setMonthlyNeeded] = useState(0);
 
   useEffect(() => {
     const target = parseFloat(newGoalAmount);
     if (!isNaN(target)) {
-      const now = new Date();
       const monthsRemaining =
-        (newGoalDate.getFullYear() - now.getFullYear()) * 12 +
-        (newGoalDate.getMonth() - now.getMonth()) +
+        (newGoalDate.getFullYear() - newGoalStartDate.getFullYear()) * 12 +
+        (newGoalDate.getMonth() - newGoalStartDate.getMonth()) +
         1;
       if (monthsRemaining > 0) {
         setMonthlyNeeded(target / monthsRemaining);
@@ -49,7 +50,7 @@ export default function TavoitteetScreen() {
     } else {
       setMonthlyNeeded(0);
     }
-  }, [newGoalAmount, newGoalDate]);
+}, [newGoalAmount, newGoalDate, newGoalStartDate]);
 
    const getProgressColor = (percent: number) => {
     if (percent < 25) return Colors.danger;
@@ -86,7 +87,12 @@ export default function TavoitteetScreen() {
     if (isNaN(target) || target <= 0) {
       Alert.alert('Virhe', 'Anna kelvollinen summa');
       return;
+      }
+    if (newGoalStartDate > newGoalDate) {
+      Alert.alert('Virhe', 'Aloituspäivä ei voi olla deadlinea myöhemmin');
+      return;
     }
+    
      const ensureSavingsCategory = async (
       goalTitle: string,
       monthlyAmount: number
@@ -130,13 +136,19 @@ export default function TavoitteetScreen() {
     };
 
     try {
-      await addGoal(userId, { title, targetAmount: target, deadline: newGoalDate });
-        await ensureSavingsCategory(title, monthlyNeeded);
+      await addGoal(userId, {
+        title,
+        targetAmount: target,
+        startDate: newGoalStartDate,
+        deadline: newGoalDate,
+      });
+      await ensureSavingsCategory(title, monthlyNeeded);
       const updated = await getGoals(userId);
       setGoals(updated);
       setAddModalVisible(false);
       setNewGoalTitle('');
       setNewGoalAmount('');
+      setNewGoalStartDate(new Date());
       setNewGoalDate(new Date());
     } catch (e) {
       console.error('addGoal virhe:', e);
@@ -168,9 +180,13 @@ export default function TavoitteetScreen() {
             // Päivitä deadline oletuksena yllä
             const now = new Date();
             const deadline = new Date(now.getFullYear(), now.getMonth() + 6, now.getDate());
+              const startDate = goal.startDate?.toDate
+              ? goal.startDate.toDate()
+              : new Date(goal.startDate);
             await updateGoal(userId, goal.id, {
               title,
               targetAmount: target,
+               startDate,
               deadline,
               currentSaved: goal.currentSaved,
             });
@@ -253,6 +269,26 @@ export default function TavoitteetScreen() {
               keyboardType="numeric"
             />
             <TouchableOpacity
+              onPress={() => setShowStartPicker(true)}
+              style={styles.dateButton}
+            >
+              <Text style={styles.dateButtonText}>
+                Aloitus: {newGoalStartDate.toLocaleDateString('fi-FI')}
+              </Text>
+            </TouchableOpacity>
+            {showStartPicker && (
+              <DateTimePicker
+                value={newGoalStartDate}
+                mode="date"
+                display="default"
+                locale="fi-FI"
+                onChange={(e, d) => {
+                  setShowStartPicker(false);
+                  if (d) setNewGoalStartDate(d);
+                }}
+              />
+            )}
+            <TouchableOpacity
               onPress={() => setShowDatePicker(true)}
               style={styles.dateButton}
             >
@@ -319,11 +355,14 @@ export default function TavoitteetScreen() {
             0,
             Math.ceil((deadlineDate.getTime() - Date.now()) / (1000 * 60 * 60 * 24))
           );
-          const createdDate =
-            item.createdAt?.toDate ? item.createdAt.toDate() : new Date(item.createdAt);
-          const totalDuration = Math.max(1, deadlineDate.getTime() - createdDate.getTime());
-          const elapsed = Date.now() - createdDate.getTime();
-          const expectedPercent = Math.min((elapsed / totalDuration) * 100, 100);
+           const startDate =
+            item.startDate?.toDate ? item.startDate.toDate() : new Date(item.startDate);
+          const totalDuration = Math.max(1, deadlineDate.getTime() - startDate.getTime());
+          const elapsed = Date.now() - startDate.getTime();
+          const expectedPercent = Math.min(
+            Math.max((elapsed / totalDuration) * 100, 0),
+            100
+          );
           const statusMessage =
             percent >= expectedPercent ? 'Olet aikataulussa' : 'Pientä kiriä tarvitaan';
 

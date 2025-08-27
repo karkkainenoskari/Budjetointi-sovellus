@@ -10,13 +10,14 @@ import {
 import { firestore } from '../api/firebaseConfig';
 
 export interface Goal {
-  id: string;
+   id: string;
   title: string;
   targetAmount: number;
-  currentSaved: number;
-  deadline: any;    
-  monthlyAmount: number;
-  createdAt: any;    
+  currentSaved: number;   
+  startDate: any;
+  deadline: any;
+  monthlyAmount: number;   
+  createdAt: any; 
 }
 
 export async function getGoals(userId: string): Promise<Goal[]> {
@@ -26,10 +27,11 @@ export async function getGoals(userId: string): Promise<Goal[]> {
   snapshot.forEach((docSnap) => {
     const data = docSnap.data();
     goals.push({
-      id: docSnap.id,
+       id: docSnap.id,
       title: data.title,
       targetAmount: data.targetAmount,
       currentSaved: data.currentSaved || 0,
+      startDate: data.startDate,
       deadline: data.deadline,
       monthlyAmount: data.monthlyAmount,
       createdAt: data.createdAt,
@@ -43,20 +45,23 @@ export async function addGoal(
   {
     title,
     targetAmount,
+     startDate,
     deadline,
-  }: { title: string; targetAmount: number; deadline: any }
+ }: { title: string; targetAmount: number; startDate: any; deadline: any }
 ): Promise<void> {
-  const now = new Date();
-  const monthsRemaining =
-    (deadline.getFullYear() - now.getFullYear()) * 12 +
-    (deadline.getMonth() - now.getMonth()) +
-    1;
+ const monthsRemaining = Math.max(
+    1,
+    (deadline.getFullYear() - startDate.getFullYear()) * 12 +
+      (deadline.getMonth() - startDate.getMonth()) +
+      1
+  );
   const monthlyAmount = targetAmount / monthsRemaining;
   const goalsRef = collection(firestore, 'budjetit', userId, 'goals');
   await addDoc(goalsRef, {
     title,
     targetAmount,
     currentSaved: 0,
+    startDate,
     deadline,
     monthlyAmount,
     createdAt: serverTimestamp(),
@@ -69,20 +74,29 @@ export async function updateGoal(
   {
     title,
     targetAmount,
+    startDate,
     deadline,
     currentSaved,
-  }: { title: string; targetAmount: number; deadline: any; currentSaved: number }
+   }: {
+    title: string;
+    targetAmount: number;
+    startDate: any;
+    deadline: any;
+    currentSaved: number;
+  }
 ): Promise<void> {
-  const now = new Date();
-  const monthsRemaining =
-    (deadline.getFullYear() - now.getFullYear()) * 12 +
-    (deadline.getMonth() - now.getMonth()) +
-    1;
+  const monthsRemaining = Math.max(
+    1,
+    (deadline.getFullYear() - startDate.getFullYear()) * 12 +
+      (deadline.getMonth() - startDate.getMonth()) +
+      1
+  );
   const monthlyAmount = targetAmount / monthsRemaining;
   const goalDocRef = doc(firestore, 'budjetit', userId, 'goals', goalId);
   await updateDoc(goalDocRef, {
     title,
     targetAmount,
+     startDate,
     deadline,
     currentSaved,
     monthlyAmount,
