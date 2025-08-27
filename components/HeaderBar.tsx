@@ -72,7 +72,7 @@ const styles = StyleSheet.create({
       top: -50,  
        alignSelf: 'center',
     transform: [{ scale: 1.5 }],
-     left: 135,
+     left: 138,
   },
   logoutButton: {
    padding: 6,
