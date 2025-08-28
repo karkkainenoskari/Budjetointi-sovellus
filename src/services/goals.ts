@@ -6,6 +6,7 @@ import {
   deleteDoc,
   doc,
   serverTimestamp,
+  increment,
 } from 'firebase/firestore';
 import { firestore } from '../api/firebaseConfig';
 
@@ -106,4 +107,15 @@ export async function updateGoal(
 export async function deleteGoal(userId: string, goalId: string): Promise<void> {
   const goalDocRef = doc(firestore, 'budjetit', userId, 'goals', goalId);
   await deleteDoc(goalDocRef);
+}
+
+export async function addSavedToGoal(
+  userId: string,
+  goalId: string,
+  amount: number
+): Promise<void> {
+  const goalDocRef = doc(firestore, 'budjetit', userId, 'goals', goalId);
+  await updateDoc(goalDocRef, {
+    currentSaved: increment(amount),
+  });
 }

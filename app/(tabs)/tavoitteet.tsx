@@ -12,7 +12,14 @@ import {
   TextInput,
 } from 'react-native';
 import Colors from '../../constants/Colors';
-import { getGoals, addGoal, updateGoal, deleteGoal, Goal } from '../../src/services/goals';
+import {
+  getGoals,
+  addGoal,
+  updateGoal,
+  deleteGoal,
+  addSavedToGoal,
+  Goal,
+} from '../../src/services/goals';
 import { auth } from '../../src/api/firebaseConfig';
 import { Ionicons } from '@expo/vector-icons';
 import DateTimePicker from '@react-native-community/datetimepicker';
@@ -34,7 +41,10 @@ export default function TavoitteetScreen() {
   const [newGoalDate, setNewGoalDate] = useState(new Date());
   const [showStartPicker, setShowStartPicker] = useState(false);
   const [showDatePicker, setShowDatePicker] = useState(false);
-   const [monthlyNeeded, setMonthlyNeeded] = useState(0);
+     const [monthlyNeeded, setMonthlyNeeded] = useState(0);
+  const [savedModalVisible, setSavedModalVisible] = useState(false);
+  const [selectedGoal, setSelectedGoal] = useState<Goal | null>(null);
+  const [savedAmountInput, setSavedAmountInput] = useState('');
 
   useEffect(() => {
     const target = parseFloat(newGoalAmount);
@@ -171,6 +181,29 @@ export default function TavoitteetScreen() {
     } catch (e) {
       console.error('addGoal virhe:', e);
     }
+  };
+
+   const handleAddSaved = (goal: Goal) => {
+    setSelectedGoal(goal);
+    setSavedAmountInput('');
+    setSavedModalVisible(true);
+  };
+
+  const handleConfirmAddSaved = async () => {
+    if (!userId || !selectedGoal) return;
+    const amount = parseFloat(savedAmountInput.replace(',', '.'));
+    if (isNaN(amount) || amount <= 0) {
+      Alert.alert('Virhe', 'Anna kelvollinen summa');
+      return;
+    }
+    try {
+      await addSavedToGoal(userId, selectedGoal.id, amount);
+      const updated = await getGoals(userId);
+      setGoals(updated);
+    } catch (e) {
+      console.error('addSavedToGoal virhe:', e);
+    }
+    setSavedModalVisible(false);
   };
 
   // Muokkaa tavoitetta
@@ -348,6 +381,34 @@ export default function TavoitteetScreen() {
           </View>
         </View>
       </Modal>
+      <Modal visible={savedModalVisible} animationType="fade" transparent>
+        <View style={styles.modalOverlay}>
+          <View style={styles.modalContainer}>
+            <Text style={styles.modalTitle}>Lisää säästöön</Text>
+            <TextInput
+              style={styles.modalInput}
+              placeholder="Summa €"
+              value={savedAmountInput}
+              onChangeText={setSavedAmountInput}
+              keyboardType="numeric"
+            />
+            <View style={styles.modalActions}>
+              <TouchableOpacity
+                onPress={() => setSavedModalVisible(false)}
+                style={styles.modalCancelButton}
+              >
+                <Text style={styles.modalCancelText}>Peruuta</Text>
+              </TouchableOpacity>
+              <TouchableOpacity
+                onPress={handleConfirmAddSaved}
+                style={styles.modalSaveButton}
+              >
+                <Text style={styles.modalSaveText}>Lisää</Text>
+              </TouchableOpacity>
+            </View>
+          </View>
+        </View>
+      </Modal>
       <View style={styles.pageContent}>
         <View style={styles.headerRow}>
            <Text style={styles.title}>Tavoitteet</Text>
@@ -394,14 +455,16 @@ export default function TavoitteetScreen() {
                     color={Colors.moss}
                     style={styles.goalIcon}
                   />
-                  <Text style={styles.goalTitle}>{item.title}</Text>
+                  <TouchableOpacity onPress={() => handleEditGoal(item)}>
+                    <Text style={styles.goalTitle}>{item.title}</Text>
+                  </TouchableOpacity>
                 </View>
                 <View style={styles.goalIcons}>
-                  <TouchableOpacity
-                    onPress={() => handleEditGoal(item)}
+                   <TouchableOpacity
+                    onPress={() => handleAddSaved(item)}
                     style={styles.iconButtonSmall}
                   >
-                    <Ionicons name="pencil-outline" size={18} color={Colors.textSecondary} />
+                    <Ionicons name="add-outline" size={18} color={Colors.moss} />
                   </TouchableOpacity>
                   <TouchableOpacity
                     onPress={() => handleDeleteGoal(item.id)}
