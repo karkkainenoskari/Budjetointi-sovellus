@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { ActivityIndicator, View, StyleSheet, Alert } from 'react-native';
 import { Slot, useRouter, usePathname } from 'expo-router';
+import Animated, { FadeIn, FadeOut } from 'react-native-reanimated';
 import { auth } from '../src/api/firebaseConfig';
 import * as Notifications from 'expo-notifications';
 import { firestore } from '../src/api/firebaseConfig';
@@ -116,7 +117,14 @@ export default function RootLayout() {
   return (
     <View style={styles.container}>
       {showHeader && <HeaderBar />}
-      <Slot />
+     <Animated.View
+        key={pathname}
+        entering={FadeIn.duration(250)}
+        exiting={FadeOut.duration(250)}
+        style={styles.animatedContainer}
+      >
+        <Slot />
+      </Animated.View>
     </View>
   );
 }
@@ -125,6 +133,9 @@ const styles = StyleSheet.create({
    container: {
     flex: 1,
     backgroundColor: Colors.background,
+  },
+  animatedContainer: {
+    flex: 1,
   },
   loaderContainer: {
     flex: 1,
