@@ -3,7 +3,7 @@ import {
   View,
   Text,
   StyleSheet,
-  FlatList,
+ SectionList,
   TouchableOpacity,
   Alert,
   ActivityIndicator,
@@ -70,7 +70,7 @@ export default function TavoitteetScreen() {
   };
 
   const getMotivationMessage = (percent: number) => {
-    if (percent >= 100) return '🎉 Onneksi olkoon, tavoite saavutettu!';
+    if (percent >= 100) return 'Onneksi olkoon, tavoite saavutettu!';
     if (percent >= 75) return 'Melkein perillä, maali häämöttää!';
     if (percent >= 25) return 'Olet jo pitkällä, vielä vähän matkaa!';
     return 'Ensiaskeleet otettu, tästä se lähtee!';
@@ -300,6 +300,14 @@ export default function TavoitteetScreen() {
         )
       : 0;
 
+       const activeGoals = goals.filter((g) => g.currentSaved < g.targetAmount);
+  const completedGoals = goals.filter((g) => g.currentSaved >= g.targetAmount);
+  const sections = [] as { title: string; data: Goal[] }[];
+  if (activeGoals.length)
+    sections.push({ title: 'Aktiiviset tavoitteet', data: activeGoals });
+  if (completedGoals.length)
+    sections.push({ title: 'Valmiit tavoitteet', data: completedGoals });
+
   return (
     <SafeAreaView style={styles.safeContainer}>
      <Modal visible={addModalVisible} animationType="slide" transparent>
@@ -422,11 +430,14 @@ export default function TavoitteetScreen() {
           </Text>
         </View>
 
-       <FlatList
-          data={goals}
-          keyExtractor={(item) => item.id}
-          contentContainerStyle={styles.listContent}
-          renderItem={({ item }) => {
+       <SectionList
+        sections={sections}
+        keyExtractor={(item) => item.id}
+        contentContainerStyle={styles.listContent}
+        renderSectionHeader={({ section: { title } }) => (
+          <Text style={styles.sectionHeader}>{title}</Text>
+        )}
+        renderItem={({ item }) => {
           const percent = Math.min((item.currentSaved / item.targetAmount) * 100, 100);
           const deadlineDate =
             item.deadline?.toDate ? item.deadline.toDate() : new Date(item.deadline);
@@ -444,15 +455,16 @@ export default function TavoitteetScreen() {
             (item.currentSaved / item.targetAmount) * monthsTotal
           );
           const motivation = getMotivationMessage(percent);
+           const isCompleted = item.currentSaved >= item.targetAmount;
 
           return (
-            <View style={styles.goalCard}>
+            <View style={[styles.goalCard, isCompleted && styles.completedGoal]}>
               <View style={styles.goalRow}>
                <View style={styles.goalTitleRow}>
                   <Ionicons
                     name={getGoalIconName(item.title) as any}
                     size={20}
-                    color={Colors.moss}
+                    color={isCompleted ? Colors.success : Colors.moss}
                     style={styles.goalIcon}
                   />
                   <TouchableOpacity onPress={() => handleEditGoal(item)}>
@@ -460,12 +472,14 @@ export default function TavoitteetScreen() {
                   </TouchableOpacity>
                 </View>
                 <View style={styles.goalIcons}>
-                   <TouchableOpacity
-                    onPress={() => handleAddSaved(item)}
-                    style={styles.iconButtonSmall}
-                  >
-                    <Ionicons name="add-outline" size={18} color={Colors.moss} />
-                  </TouchableOpacity>
+                    {!isCompleted && (
+                    <TouchableOpacity
+                      onPress={() => handleAddSaved(item)}
+                      style={styles.iconButtonSmall}
+                    >
+                      <Ionicons name="add-outline" size={18} color={Colors.moss} />
+                    </TouchableOpacity>
+                  )}
                   <TouchableOpacity
                     onPress={() => handleDeleteGoal(item.id)}
                     style={styles.iconButtonSmall}
@@ -593,6 +607,13 @@ const styles = StyleSheet.create({
     fontSize: 16,
     color: Colors.textPrimary,
   },
+  sectionHeader: {
+    fontSize: 16,
+    fontWeight: '600',
+    color: Colors.textSecondary,
+    marginTop: 16,
+    marginBottom: 8,
+  },
   listContent: {
     paddingBottom: 24,
   },
@@ -603,6 +624,10 @@ const styles = StyleSheet.create({
     marginBottom: 12,
     borderWidth: 1,
     borderColor: Colors.border,
+  },
+   completedGoal: {
+    backgroundColor: Colors.tabInactiveBg,
+    opacity: 0.7,
   },
   goalRow: {
     flexDirection: 'row',
