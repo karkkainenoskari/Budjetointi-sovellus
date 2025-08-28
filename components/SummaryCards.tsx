@@ -1,6 +1,7 @@
 import React from 'react';
 import { View, Text, StyleSheet } from 'react-native';
 import Colors from '../constants/Colors';
+import AnimatedProgressBar from './AnimatedProgressBar';
 
 export default function SummaryCards({
   income,
@@ -17,10 +18,14 @@ export default function SummaryCards({
       <View style={[styles.card, { backgroundColor: Colors.success }]}>
         <Text style={styles.label}>Tulot yhteensä</Text>
         <Text style={styles.value}>{fmt(income)} €</Text>
+         <AnimatedProgressBar progress={1} />
       </View>
       <View style={[styles.card, { backgroundColor: Colors.danger }]}>
         <Text style={styles.label}>Menot yhteensä</Text>
         <Text style={styles.value}>{fmt(expense)} €</Text>
+        <AnimatedProgressBar
+          progress={income > 0 ? Math.min(expense / income, 1) : 0}
+        />
       </View>
       <View
         style={[
@@ -30,6 +35,9 @@ export default function SummaryCards({
       >
         <Text style={styles.label}>Saldo</Text>
         <Text style={styles.value}>{fmt(balance)} €</Text>
+         <AnimatedProgressBar
+          progress={income > 0 ? Math.min(Math.max(balance / income, 0), 1) : 0}
+        />
       </View>
     </View>
   );
@@ -45,8 +53,14 @@ const styles = StyleSheet.create({
     flex: 1,
     marginHorizontal: 4,
     paddingVertical: 12,
+     paddingHorizontal: 12,
     borderRadius: 8,
     alignItems: 'center',
+    shadowColor: '#000',
+    shadowOpacity: 0.1,
+    shadowOffset: { width: 0, height: 2 },
+    shadowRadius: 4,
+    elevation: 3,
   },
   label: {
     color: Colors.background,

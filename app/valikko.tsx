@@ -34,20 +34,14 @@ export default function ValikkoScreen() {
             onPress={() => router.push(item.route)}
             style={styles.menuItem}
           >
-            <View style={styles.menuItemLeft}>
+              <View style={styles.iconCircle}>
               <Ionicons
                 name={item.icon}
                 size={26}
-                color={Colors.evergreen}
-                style={styles.menuIcon}
+               color={Colors.background}
               />
-              <Text style={styles.menuText}>{item.label}</Text>
             </View>
-            <Ionicons
-              name="chevron-forward-outline"
-              size={20}
-              color={Colors.textSecondary}
-            />
+           <Text style={styles.menuText}>{item.label}</Text>
           </TouchableOpacity>
         ))}
       </View>
@@ -71,33 +65,32 @@ const styles = StyleSheet.create({
     marginBottom: 16,
     marginTop: 16
   },
- menuContainer: {
+  menuContainer: {
     paddingTop: 8,
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    justifyContent: 'space-around',
   },
   menuItem: {
-    flexDirection: 'row',
     alignItems: 'center',
-     justifyContent: 'space-between',
-    paddingVertical: 16,
-     paddingHorizontal: 20,
-    backgroundColor: Colors.cardBackground,
-    borderRadius: 12,
-    marginBottom: 16,
+    marginBottom: 24,
+  },
+  iconCircle: {
+    width: 72,
+    height: 72,
+    borderRadius: 36,
+    backgroundColor: Colors.evergreen,
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginBottom: 8,
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 1 },
     shadowOpacity: 0.1,
     shadowRadius: 3,
     elevation: 2,
   },
-  menuItemLeft: {
-    flexDirection: 'row',
-    alignItems: 'center',
-  },
-  menuIcon: {
-    marginRight: 12,
-  },
   menuText: {
-    fontSize: 18,
+    fontSize: 16,
     color: Colors.textPrimary,
   },
 });

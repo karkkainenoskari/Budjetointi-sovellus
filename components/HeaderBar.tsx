@@ -6,9 +6,11 @@ import { Ionicons } from '@expo/vector-icons';
 import { signOut } from 'firebase/auth';
 import { auth } from '../src/api/firebaseConfig';
 import Colors from '../constants/Colors';
+import { useRouter } from 'expo-router';
 
 export default function HeaderBar() {
   const insets = useSafeAreaInsets();
+   const router = useRouter();
   const [logoutPressed, setLogoutPressed] = useState(false);
  
 
@@ -22,21 +24,30 @@ export default function HeaderBar() {
 
 return (
     <View style={[styles.container, { paddingTop: insets.top }]}>
-     <View style={styles.titleContainer}>
+     
+      <TouchableOpacity
+         onPress={() => router.push('/profiili')}
+        style={styles.avatarButton}
+      >
+         <Ionicons name="person-circle" size={32} color={Colors.evergreen} />
+      </TouchableOpacity>
+      <View style={styles.titleContainer}>
         <Image
-           source={require('../assets/images/budjettikoutsi_logo.png')}
+          source={require('../assets/images/budjettikoutsi_logo.png')}
           style={styles.logo}
         />
       </View>
-      <TouchableOpacity
-        onPress={handleLogout}
-        onPressIn={() => setLogoutPressed(true)}
-        onPressOut={() => setLogoutPressed(false)}
-        style={[styles.logoutButton, logoutPressed && styles.logoutButtonPressed]}
-        activeOpacity={0.8}
-      >
-         <Ionicons name="lock-closed-outline" size={24} color={Colors.evergreen} />
-      </TouchableOpacity>
+      <View style={styles.rightButtons}>
+        <TouchableOpacity
+          onPress={handleLogout}
+          onPressIn={() => setLogoutPressed(true)}
+          onPressOut={() => setLogoutPressed(false)}
+          style={[styles.iconButton, logoutPressed && styles.logoutButtonPressed]}
+          activeOpacity={0.8}
+        >
+          <Ionicons name="lock-closed-outline" size={24} color={Colors.evergreen} />
+        </TouchableOpacity>
+      </View>
     </View>
   );
 }
@@ -72,11 +83,20 @@ const styles = StyleSheet.create({
       top: -50,  
        alignSelf: 'center',
     transform: [{ scale: 1.5 }],
-     left: 138,
+     left: 95,
   },
-  logoutButton: {
-   padding: 6,
+   avatarButton: {
+    padding: 6,
+    borderRadius: 20,
+  },
+  rightButtons: {
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  iconButton: {
+    padding: 6,
     borderRadius: 12,
+     marginLeft: 8,
   },
   logoutButtonPressed: {
     backgroundColor: '#FFEBD6',
