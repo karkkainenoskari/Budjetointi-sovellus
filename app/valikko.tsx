@@ -21,7 +21,6 @@ export default function ValikkoScreen() {
     { icon: 'person-outline', label: 'Profiili', route: '/profiili' },
     { icon: 'settings-outline', label: 'Asetukset', route: '/asetukset' },
     { icon: 'airplane-outline', label: 'Lomajaksot', route: '/vacations' },
-    { icon: 'repeat-outline', label: 'Toistuvat menot', route: '/recurringExpenses' },
   ];
 
   return (
