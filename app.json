@@ -4,7 +4,7 @@
     "slug": "budjettikoutsi",
     "version": "1.0.0",
     "orientation": "portrait",
-  "icon": "./assets/images/budjettikoutsi_logo.png",
+    "icon": "./assets/images/budjettikoutsi_logo.png",
     "scheme": "budjettikoutsi",
     "userInterfaceStyle": "automatic",
     "newArchEnabled": true,
@@ -13,7 +13,7 @@
     },
     "android": {
       "adaptiveIcon": {
-          "foregroundImage": "./assets/images/budjettikoutsi_logo.png",
+        "foregroundImage": "./assets/images/budjettikoutsi_logo.png",
         "backgroundColor": "#ffffff"
       },
       "edgeToEdgeEnabled": true
@@ -37,6 +37,18 @@
     ],
     "experiments": {
       "typedRoutes": true
+    },
+    "extra": {
+      "router": {},
+      "eas": {
+        "projectId": "5f1c1f85-42e2-4354-a8d7-ba31ca51f6cb"
+      }
+    },
+    "runtimeVersion": {
+      "policy": "sdkVersion"
+    },
+    "updates": {
+      "url": "https://u.expo.dev/5f1c1f85-42e2-4354-a8d7-ba31ca51f6cb"
     }
   }
 }
