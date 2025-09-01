@@ -57,7 +57,7 @@ export default function ForgotPasswordScreen() {
         >
             <View style={styles.innerContainer}>
                 <Image
-                    source={require('@/assets/images/budjettikoutsi_logo.png')}
+                    source={require('@/assets/images/budjetti_logo.png')}
                     style={styles.logo}
                 />
                 <Text style={styles.title}>Salasana unohtunut</Text>

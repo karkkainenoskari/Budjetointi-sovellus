@@ -1,11 +1,11 @@
 {
   "expo": {
-    "name": "Budjettikoutsi",
-    "slug": "budjettikoutsi",
+    "name": "BudjetointiSovellus",
+    "slug": "BudjetointiSovellus",
     "version": "1.0.0",
     "orientation": "portrait",
-    "icon": "./assets/images/budjettikoutsi_logo.png",
-    "scheme": "budjettikoutsi",
+    "icon": "./assets/images/budjetti_logo.png",
+    "scheme": "BudjetointiSovellus",
     "userInterfaceStyle": "automatic",
     "newArchEnabled": true,
     "ios": {
@@ -13,7 +13,7 @@
     },
     "android": {
       "adaptiveIcon": {
-        "foregroundImage": "./assets/images/budjettikoutsi_logo.png",
+        "foregroundImage": "./assets/images/budjetti_logo.png",
         "backgroundColor": "#ffffff"
       },
       "edgeToEdgeEnabled": true

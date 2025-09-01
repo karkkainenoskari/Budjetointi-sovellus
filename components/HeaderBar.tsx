@@ -33,7 +33,7 @@ return (
       </TouchableOpacity>
       <View style={styles.titleContainer}>
         <Image
-          source={require('../assets/images/budjettikoutsi_logo.png')}
+          source={require('../assets/images/budjetti_logo.png')}
           style={styles.logo}
         />
       </View>
@@ -76,14 +76,14 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   logo: {
-    width: 100,
-    height: 100,
+    width: 68,
+    height: 68,
     resizeMode: 'contain',
      position: 'absolute',  
-      top: -50,  
+      top: -38,  
        alignSelf: 'center',
     transform: [{ scale: 1.5 }],
-     left: 95,
+     left: 112,
   },
    avatarButton: {
     padding: 6,

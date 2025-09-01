@@ -67,7 +67,7 @@ export default function LoginScreen() {
     >
       <View style={styles.innerContainer}>
         <Image
-         source={require('@/assets/images/budjettikoutsi_logo.png')}
+         source={require('@/assets/images/budjetti_logo.png')}
           style={styles.logo}
         />
         <Text style={styles.welcome}>Tervetuloa!</Text>
