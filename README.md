@@ -1,4 +1,4 @@
-# 🧾 Budjetointi-sovellus
+#  Budjetointi-sovellus
 
 ![Logo](assets/images/budjetti_logo.png)
 
@@ -7,7 +7,7 @@ Sovelluksella voit seurata tuloja, menoja ja säästötavoitteita sekä pitää 
 
 ---
 
-## ✨ Ominaisuudet
+##  Ominaisuudet
 
 - Käyttäjäautentikointi Firebase Authin avulla  
 - Budjettijaksojen luonti ja arkistointi  
@@ -18,7 +18,7 @@ Sovelluksella voit seurata tuloja, menoja ja säästötavoitteita sekä pitää 
 
 ---
 
-## 🛠️ Teknologiat
+##  Teknologiat
 
 - [Expo](https://expo.dev/) & React Native  
 - TypeScript  
@@ -28,7 +28,7 @@ Sovelluksella voit seurata tuloja, menoja ja säästötavoitteita sekä pitää 
 
 ---
 
-## 📦 Asennus ja kehitys
+##  Asennus ja kehitys
 
 **Vaatimukset:** Node.js ≥ 18 ja npm  
 
@@ -48,7 +48,7 @@ npm run lint           # Suorita linttaus
 npm run reset-project  # Tyhjennä projektin aloitustiedostot
 
 
-📂 Projektirakenne
+ Projektirakenne
 
 app/              # Näytöt ja reitit (Expo Router)
   assets/         # Kuvia ja fontteja
