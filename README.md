@@ -39,3 +39,27 @@ git clone <repo-url>
 cd budjetointi-sovellus
 npm install
 
+Käynnistys:
+
+npm run android        # Avaa Android-emulaattorissa
+npm run ios            # Avaa iOS-simulaattorissa
+npm run web            # Avaa selaimessa
+npm run lint           # Suorita linttaus
+npm run reset-project  # Tyhjennä projektin aloitustiedostot
+
+
+📂 Projektirakenne
+
+app/              # Näytöt ja reitit (Expo Router)
+  assets/         # Kuvia ja fontteja
+  components/     # Uudelleenkäytettävät UI-komponentit
+  constants/      # Sovelluksen vakiot
+  hooks/          # Custom hookit
+  scripts/        # Apuskriptit
+src/
+  api/            # Firebase-konfiguraatio
+  services/       # Sovelluslogiikka (budjetit, menot, tulot...)
+  utils/          # Apufunktiot
+
+
+
