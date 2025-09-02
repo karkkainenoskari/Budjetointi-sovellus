@@ -63,15 +63,3 @@ src/
 
 
 
-## Kuvankaappaukset
-
-<div align="center">
-  <img src="assets/screenshots/kirjautuminen.jpg?raw=true" alt="Kirjautuminen" width="300" />
-  <img src="assets/screenshots/valikko.jpg?raw=true" alt="Valikko" width="300" />
-  <img src="assets/screenshots/budjetti.jpg?raw=true" alt="Budjetti" width="300" />
-  <img src="assets/screenshots/tilitapahtumat.jpg?raw=true" alt="Tilitapahtumat" width="300" />
-  <img src="assets/screenshots/tavoitteet.jpg?raw=true" alt="Tavoitteet" width="300" />
-  <img src="assets/screenshots/historia1.jpg?raw=true" alt="Historia" width="300" />
-  <img src="assets/screenshots/historia2.jpg?raw=true" alt="Historia 2" width="300" />
-</div>
-
