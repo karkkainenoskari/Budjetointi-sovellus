@@ -63,4 +63,14 @@ src/
 
 
 
+## Kuvankaappaukset
+
+![Kirjautuminen](assets/screenshots/kirjautuminen.jpg)
+![Valikko](assets/screenshots/valikko.jpg)
+![Budjetti](assets/screenshots/budjetti.jpg)
+![Tilitapahtumat](assets/screenshots/tilitapahtumat.jpg)
+![Tavoitteet](assets/screenshots/tavoitteet.jpg)
+![Historia](assets/screenshots/historia1.jpg)
+![Historia 2](assets/screenshots/historia2.jpg)
+
 
