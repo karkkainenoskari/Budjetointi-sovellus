@@ -65,18 +65,7 @@ src/
 
 ## Kuvakaappaukset
 
-| Kirjautuminen | Budjetti | Tilitapahtumat |
-|---------------|----------|----------------|
-| ![Kirjautuminen](screenshots/kirjautuminen.jpg) | ![Budjetti](screenshots/budjetti.jpg) | ![Tilitapahtumat](screenshots/tilitapahtumat.jpg) |
 
-| Historia 1 | Historia 2 | Tavoitteet |
-|------------|------------|------------|
-| ![Historia 1](screenshots/historia1.jpg) | ![Historia 2](screenshots/historia2.jpg) | ![Tavoitteet](screenshots/tavoitteet.jpg) |
-
-| Valikko |
-|---------|
-| ![Valikko](screenshots/valikko.jpg) |
-
-
+![Budjetti](screenshots/budjetti.jpg)
 
 
