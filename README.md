@@ -63,19 +63,4 @@ src/
 
 
 
-Kuvakaappaukset
-
-
-
-
-| Kirjautuminen                                          | Budjetti                                     | Tilitapahtumat                                           |
-| ------------------------------------------------------ | -------------------------------------------- | -------------------------------------------------------- |
-|
-
-
-
-
- ![Kirjautuminen](assets/screenshots/kirjautuminen.jpg) | ![Budjetti](assets/screenshots/budjetti.jpg) | ![Tilitapahtumat](assets/screenshots/tilitapahtumat.jpg) |
-
-
 
