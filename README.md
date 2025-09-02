@@ -65,12 +65,13 @@ src/
 
 ## Kuvankaappaukset
 
-![Kirjautuminen](assets/screenshots/kirjautuminen.jpg)
-![Valikko](assets/screenshots/valikko.jpg)
-![Budjetti](assets/screenshots/budjetti.jpg)
-![Tilitapahtumat](assets/screenshots/tilitapahtumat.jpg)
-![Tavoitteet](assets/screenshots/tavoitteet.jpg)
-![Historia](assets/screenshots/historia1.jpg)
-![Historia 2](assets/screenshots/historia2.jpg)
-
+<div align="center">
+  <img src="./assets/screenshots/kirjautuminen.jpg" alt="Kirjautuminen" width="300" />
+  <img src="./assets/screenshots/valikko.jpg" alt="Valikko" width="300" />
+  <img src="./assets/screenshots/budjetti.jpg" alt="Budjetti" width="300" />
+  <img src="./assets/screenshots/tilitapahtumat.jpg" alt="Tilitapahtumat" width="300" />
+  <img src="./assets/screenshots/tavoitteet.jpg" alt="Tavoitteet" width="300" />
+  <img src="./assets/screenshots/historia1.jpg" alt="Historia" width="300" />
+  <img src="./assets/screenshots/historia2.jpg" alt="Historia 2" width="300" />
+</div>
 
